@@ -6,6 +6,7 @@ import {
   Text,
   Image,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -29,18 +30,23 @@ const LoginScreen = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   const handleLogin = async () => {
-    const result = await loginUser(email, password);
-    if (result instanceof Error) {
-      console.error("Login failed:", result.message);
+    if (!email || !password) {
+      Alert.alert('Please fill in both email and password.');
+      return;
+    }
+
+    setLoading(true); // Start loading
+    const user = await loginUser(email, password); // Call loginUser
+
+    setLoading(false); // End loading
+
+    if (user) {
+      Alert.alert('Login Successful');
+      // Navigate to the home screen (or another screen) after successful login
+      await storeUserDataLocally(user); // Store user data in AsyncStorage
+      router.navigate('/(Authenticated)/(tabs)/Home');
     } else {
-      const user = getCurrentUser();
-      if (user) {
-        await storeUserDataLocally(user); // Store user data in AsyncStorage
-        setCurrentUserData(user); // Set the user data in state
-      } else {
-        const storedData = await getStoredUserData(); // Get stored data if no current user
-        setCurrentUserData(storedData);
-      }
+      Alert.alert('Login Failed', 'Please check your credentials and try again.');
     }
   };
 
@@ -70,12 +76,14 @@ const LoginScreen = () => {
             placeholder="Email"
             label="Email"
             onChangeText={setEmail}
+            value={email}
           />
           <CustomTextInput
             placeholder="Password"
             label="Password"
             secureTextEntry
             onChangeText={setPassword}
+            value={password}
           />
           <Text
             style={{
@@ -108,7 +116,7 @@ const LoginScreen = () => {
           </View>
           <View style={{ marginTop: 25 }}>
             <IconButton
-              icon="email-outline"
+              icon="mail-outline"
               text="Sign up with Email"
               onPress={() => {
                 router.navigate("/RegisterScreen" as never);
@@ -122,7 +130,7 @@ const LoginScreen = () => {
               style={{ marginBottom: 15 }} // Adds spacing
             />
             <IconButton
-              icon="facebook"
+              icon="logo-facebook"
               text="Login with Facebook"
               onPress={() => {}}
               iconSize={25}
@@ -134,7 +142,7 @@ const LoginScreen = () => {
               style={{ marginBottom: 15 }} // Adds spacing
             />
             <IconButton
-              icon="google"
+              icon="logo-google"
               text="Login with Google"
               onPress={() => {}}
               iconSize={25}
