@@ -1,15 +1,96 @@
 import React, { useRef, useState } from "react";
-import { ImageBackground, StyleSheet, View, Text, Image } from "react-native";
+import {
+  ImageBackground,
+  StyleSheet,
+  View,
+  Text,
+  Image,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/assets/styles/colors";
 import CustomSwitch from "../components/CustomSwitch";
 import CustomTextInput from "../components/CustomTextInput";
 import CustomButton from "../components/CustomButton";
 import { router } from "expo-router";
+import {
+  signupUser,
+  storeUserDataLocally,
+} from "../Firebase/Services/AuthService";
+import { setInitialUserData } from "../Firebase/Services/DatabaseService";
+import { UserData } from "../types/UserData";
 
 const RegisterScreen = () => {
   const insets = useSafeAreaInsets(); // Get safe area insets
-  const [isTenant, setIsTenant] = useState<boolean>(true);
+  const [isHomeOwner, setIsHomeOwner] = useState<boolean>(true);
+  const [IsLoading, setIsLoading] = useState<boolean>(false);
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+
+  const handleSignup = async () => {
+    setIsLoading(true);
+
+    if (!email || !password || !confirmPassword) {
+      Alert.alert("Error", "Please fill in all fields.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match.");
+      setIsLoading(false);
+      return;
+    }
+
+    const user = await signupUser(email, password);
+    setIsLoading(false);
+
+    if (user) {
+      const userData: UserData = {
+        email: user.email,
+        role: isHomeOwner ? "home owner" : "tenant",
+        id: "",
+        firstName: "",
+        lastName: "",
+        birthDate: {
+          month: "",
+          day: "",
+          year: "",
+        },
+        emergencyContact: "",
+        emergentContactNumber: "",
+        coverUrl: "",
+        sex: "",
+        displayName: "",
+        photoUrl: "",
+        phoneNumber: "",
+        isAdmin: false,
+      };
+
+      // ✅ Save user data to Firestore
+      const isUserSaved = await setInitialUserData(user.uid, userData);
+
+      if (isUserSaved) {
+        // ✅ Store user data locally
+        await storeUserDataLocally(user);
+        router.replace("/(Authenticated)/(tabs)/Home");
+      } else {
+        Alert.alert("Error", "User not saved.");
+      }
+    } else {
+      Alert.alert("Error", "cant create.");
+    }
+  };
+
+  if (IsLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <>
@@ -31,27 +112,36 @@ const RegisterScreen = () => {
         <Text style={styles.text}>Create Account</Text>
         <View style={styles.form}>
           <CustomSwitch
-            onValueChange={setIsTenant}
+            onValueChange={setIsHomeOwner}
             leftLabel={"As a Tenant"}
             rightLabel={"As an Owner"}
-            initialValue={isTenant}
+            initialValue={isHomeOwner}
           />
           <View style={{ marginVertical: 15 }}>
-            <CustomTextInput placeholder="Email" label="Email" />
+            <CustomTextInput
+              placeholder="Email"
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+            />
             <CustomTextInput
               placeholder="Password"
               label="Password"
               secureTextEntry
+              value={password}
+              onChangeText={setPassword}
             />
             <CustomTextInput
               placeholder="ConfirmPassword"
               label="ConfirmPassword"
               secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
             />
           </View>
           <CustomButton
             title="Create Account"
-            onPress={() => {}}
+            onPress={handleSignup}
             style={{ backgroundColor: Colors.primary }}
           />
           <View
@@ -79,9 +169,9 @@ const RegisterScreen = () => {
               // Navigate to login screen
               router.back();
             }}
-            >
-              Already have an account?
-            </Text>
+          >
+            Already have an account?
+          </Text>
         </View>
       </View>
     </>

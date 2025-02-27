@@ -6,8 +6,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomButton from "@/app/components/CustomButton";
 import { router } from "expo-router";
-import { checkAuth } from "./Firebase/AuthService";
-import { User } from "firebase/auth";
 
 const OnboardingScreen = () => {
   const insets = useSafeAreaInsets(); // Get safe area insets

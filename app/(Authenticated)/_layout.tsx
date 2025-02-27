@@ -8,6 +8,9 @@ const AuthenticatedLayout = () => {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)"/>
       <Stack.Screen name="(setup)"/>
+      <Stack.Screen name="(apartments)"/>
+      <Stack.Screen name="(transients)"/>
+      <Stack.Screen name="(bookings)"/>
     </Stack>
   );
 };

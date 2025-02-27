@@ -2,9 +2,9 @@
   "expo": {
     "name": "Appart",
     "slug": "Appart",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/App-Icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,29 +13,47 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "foregroundImage": "./assets/images/App-Icon.png"
+      },
+      "package": "com.capstone.appart"
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "output": "static"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "image": "./assets/images/Splash-Screen.png"
+        }
+      ],
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMaps": {
+            "accessToken": "pk.eyJ1IjoiaGFpaWFuZXhlIiwiYSI6ImNtMmloZm0zdzBsdDEya3EydHhweHpxazAifQ.T4jDThXZWpOi2GnDdUOzzQ"
+          }
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow App to access your location for mapping and navigation."
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "c7b61ff4-092d-4a8a-b217-89680e92faa4"
+      }
     }
   }
 }

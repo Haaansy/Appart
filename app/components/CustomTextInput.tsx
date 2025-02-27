@@ -13,16 +13,22 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons"; // Import i
 
 interface CustomTextInputProps extends TextInputProps {
   label: string;
+  status?: "required" | "optional" | ""; // Status can be required, optional, or blank
   secureTextEntry?: boolean;
+  textStart?: string; // Optional start text
+  textEnd?: string; // Optional end text
 }
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
   label,
+  status = "",
   secureTextEntry = false,
+  textStart,
+  textEnd,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
-  const [isPasswordVisible, setIsPasswordVisible] = useState(!secureTextEntry); // Toggle state
+  const [isPasswordVisible, setIsPasswordVisible] = useState(!secureTextEntry);
   const animatedLabel = useRef(new Animated.Value(props.value ? 1 : 0)).current;
 
   const handleFocus = () => {
@@ -45,6 +51,12 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
     }
   };
 
+  const getStatusLabel = () => {
+    if (status === "required") return " (Required)";
+    if (status === "optional") return " (Optional)";
+    return "";
+  };
+
   return (
     <View style={styles.container}>
       <Animated.Text
@@ -64,23 +76,31 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
         ]}
       >
         {label}
+        <Text style={styles.statusText}>{getStatusLabel()}</Text>
       </Animated.Text>
       <View style={styles.inputContainer}>
+        {textStart && <Text style={styles.textStart}>{textStart}</Text>}
         <TextInput
-          style={[styles.input, isFocused && styles.inputFocused]}
+          style={[
+            styles.input,
+            isFocused && styles.inputFocused,
+            textStart && styles.inputWithStartText,
+            textEnd && styles.inputWithEndText,
+          ]}
           secureTextEntry={!isPasswordVisible}
           onFocus={handleFocus}
           onBlur={handleBlur}
           placeholderTextColor={Colors.secondaryText}
           {...props}
         />
+        {textEnd && <Text style={styles.textEnd}>{textEnd}</Text>}
         {secureTextEntry && (
           <TouchableOpacity
             style={styles.iconContainer}
             onPress={() => setIsPasswordVisible(!isPasswordVisible)}
           >
             <Icon
-              name={isPasswordVisible ? "eye-off" : "eye"} // Toggle eye icon
+              name={isPasswordVisible ? "eye-off" : "eye"}
               size={24}
               color={Colors.secondaryText}
             />
@@ -104,6 +124,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     zIndex: 10,
   },
+  statusText: {
+    fontSize: 12,
+    color: Colors.secondaryText,
+  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -111,17 +135,32 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     borderRadius: 15,
     backgroundColor: Colors.primaryBackground,
-    paddingRight: 15, // Space for icon
+    paddingHorizontal: 15,
+  },
+  textStart: {
+    fontSize: 14,
+    color: Colors.secondaryText,
+    marginRight: 8,
   },
   input: {
     flex: 1,
     height: 50,
-    paddingHorizontal: 15,
     fontSize: 16,
     color: Colors.primaryText,
   },
+  inputWithStartText: {
+    paddingLeft: 5, // Ensures textStart doesn't overlap input
+  },
+  inputWithEndText: {
+    paddingRight: 5, // Ensures textEnd doesn't overlap input
+  },
   inputFocused: {
     borderColor: Colors.primary,
+  },
+  textEnd: {
+    fontSize: 14,
+    color: Colors.secondaryText,
+    marginLeft: 8,
   },
   iconContainer: {
     padding: 10,

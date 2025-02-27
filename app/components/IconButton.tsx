@@ -1,10 +1,11 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import { Ionicons } from "@expo/vector-icons";
 import Colors from "@/assets/styles/colors"; // Import your colors
 
 interface IconButtonProps {
-  icon: string;
+  icon?: keyof typeof Ionicons.glyphMap; // ✅ Optional start icon
+  endIcon?: keyof typeof Ionicons.glyphMap; // ✅ Optional end icon
   text?: string;
   onPress: () => void;
   iconSize?: number;
@@ -20,6 +21,7 @@ interface IconButtonProps {
 
 const IconButton: React.FC<IconButtonProps> = ({
   icon,
+  endIcon,
   text,
   onPress,
   iconSize = 24,
@@ -42,8 +44,28 @@ const IconButton: React.FC<IconButtonProps> = ({
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Ionicons name={icon} size={iconSize} color={iconColor} style={{marginRight: text ? 8 : 0,}} />
+      {/* Start Icon */}
+      {icon && (
+        <Ionicons
+          name={icon}
+          size={iconSize}
+          color={iconColor}
+          style={[styles.icon, text && { marginRight: 8 }]}
+        />
+      )}
+
+      {/* Text */}
       {text && <Text style={[styles.text, { color: textColor }, textStyle]}>{text}</Text>}
+
+      {/* End Icon */}
+      {endIcon && (
+        <Ionicons
+          name={endIcon}
+          size={iconSize}
+          color={iconColor}
+          style={[styles.icon, text && { marginLeft: 8 }]}
+        />
+      )}
     </TouchableOpacity>
   );
 };
@@ -61,6 +83,9 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     fontWeight: "bold",
+  },
+  icon: {
+    marginVertical: "auto",
   },
 });
 

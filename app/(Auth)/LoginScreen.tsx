@@ -25,9 +25,7 @@ const LoginScreen = () => {
   const insets = useSafeAreaInsets(); // Get safe area insets
   const [email, setEmail] = React.useState<string>("");
   const [password, setPassword] = React.useState<string>("");
-
-  const [currentUserData, setCurrentUserData] = useState<any>(null); // Store user data here
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -37,7 +35,6 @@ const LoginScreen = () => {
 
     setLoading(true); // Start loading
     const user = await loginUser(email, password); // Call loginUser
-
     setLoading(false); // End loading
 
     if (user) {
@@ -49,6 +46,14 @@ const LoginScreen = () => {
       Alert.alert('Login Failed', 'Please check your credentials and try again.');
     }
   };
+
+  if(loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <>
@@ -75,14 +80,14 @@ const LoginScreen = () => {
           <CustomTextInput
             placeholder="Email"
             label="Email"
-            onChangeText={setEmail}
+            onChangeText={(value) => setEmail(value)}
             value={email}
           />
           <CustomTextInput
             placeholder="Password"
             label="Password"
             secureTextEntry
-            onChangeText={setPassword}
+            onChangeText={(value) => setPassword(value)}
             value={password}
           />
           <Text
