@@ -7,6 +7,7 @@ import {
   Image,
   ActivityIndicator,
   FlatList,
+  TouchableOpacity,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/assets/styles/colors";
@@ -14,6 +15,9 @@ import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import AlertBox from "@/app/components/Alerts/AlertBox";
 import { UserData } from "@/app/types/UserData";
 import getAlerts from "@/app/hooks/alerts/getAlerts";
+import { Alert } from "@/app/types/Alert";
+import useUpdateAlertRead from "@/app/hooks/alerts/useUpdateAlertRead";
+import { router } from "expo-router";
 
 const Alerts = () => {
   const insets = useSafeAreaInsets();
@@ -21,6 +25,7 @@ const Alerts = () => {
     {} as UserData
   );
 
+  // Fetch user data on component mount
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -34,7 +39,25 @@ const Alerts = () => {
     fetchUserData();
   }, []);
 
-  const { alerts, loading } = getAlerts(currentUserData.id || "");
+  // Get alerts only if user ID is available
+  const { alerts, loading } = getAlerts(currentUserData?.id || "");
+
+  // Hook for marking alerts as read
+  const { markAlertAsRead, loading: markedAlertLoading, error } =
+    useUpdateAlertRead();
+
+  // Handle alert press
+  const handleAlertPress = async (alert: Alert) => {
+    await markAlertAsRead(alert);
+
+    if (alert.type === "booking") {
+      if(alert.bookingType === "apartment") {
+        router.push(`/(Authenticated)/(bookings)/(viewbooking)/${alert.bookingId}?isApartment=true`);
+      }
+    } else {
+      // Navigate to conversation screen
+    }
+  };
 
   if (loading) {
     return (
@@ -65,17 +88,13 @@ const Alerts = () => {
         </View>
         <View style={{ flex: 1, marginTop: 20 }}>
           <View style={styles.form}>
-            <FlatList 
+            <FlatList
               data={alerts}
-              keyExtractor={(item) => item.id?.toString() ?? Math.random().toString()}
+              keyExtractor={(item) => item.id ?? Math.random().toString()}
               renderItem={({ item }) => (
-                <AlertBox
-                  sender={item?.sender || {} as UserData}
-                  message={item.message}
-                  isInquiry={item.isInquiry}
-                  isRead={item.isRead}
-                  createdAt={item.createdAt}
-                />
+                <TouchableOpacity onPress={() => handleAlertPress(item)}>
+                  <AlertBox alert={item} />
+                </TouchableOpacity>
               )}
             />
           </View>

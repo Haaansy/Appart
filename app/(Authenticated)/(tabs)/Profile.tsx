@@ -28,7 +28,7 @@ const Profile = () => {
       try {
         const userData = await getStoredUserData();
         setCurrentUserData(userData);
-        console.log("User data fetched:", userData);
+        console.log("Profile: User data fetched:", userData);
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {

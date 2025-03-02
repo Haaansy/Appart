@@ -1,45 +1,56 @@
 import { View, Text, StyleSheet, Image } from "react-native";
 import React from "react";
-import { UserData } from "@/app/types/UserData";
 import IconButton from "../IconButton";
 import Colors from "@/assets/styles/colors";
+import { Timestamp } from "firebase/firestore";
+import { Alert } from "@/app/types/Alert";
 
 interface AlertBoxProps {
-  sender: UserData;
-  message: string;
-  isInquiry: boolean;
-  isRead: boolean;
-  createdAt: number;
+  alert: Alert;
 }
 
-const AlertBox: React.FC<AlertBoxProps> = ({
-  sender,
-  message,
-  isInquiry,
-  isRead,
-  createdAt,
-}) => {
+const AlertBox: React.FC<AlertBoxProps> = ({ alert }) => {
+  const formattedDate = (createdAt?: Timestamp | Date) => {
+    if (!createdAt) return "N/A"; // Handle undefined case
+
+    const date =
+      createdAt instanceof Timestamp ? createdAt.toDate() : createdAt;
+
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  };
+
   return (
     <View style={styles.container}>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <View style={{ flexDirection: "row" }}>
-          <Image source={{ uri: sender.photoUrl }} style={styles.avatar} />
+          <Image
+            source={{ uri: alert.sender.photoUrl }}
+            style={styles.avatar}
+          />
           <View style={{ marginLeft: 15 }}>
             <Text
               style={styles.senderName}
-            >{`${sender.firstName} ${sender.lastName}`}</Text>
+            >{`${alert.sender.firstName} ${alert.sender.lastName}`}</Text>
             <Text style={styles.senderDisplayName}>
-              @{sender.displayName}
+              @{alert.sender.displayName}
             </Text>
-            <Text>{message}</Text>
+            <Text style={{ width: "80%" }}>{alert.message}</Text>
           </View>
         </View>
-        <View style={isRead ? { display: "none" } : styles.unreadIndication} />
+        <View
+          style={alert.isRead ? { display: "none" } : styles.unreadIndication}
+        />
       </View>
 
       {/* Actions Section */}
       <View>
-        {isInquiry && (
+        {alert.type == "inquiry" && (
           <View style={{ flexDirection: "row", justifyContent: "center" }}>
             <IconButton
               icon={"checkmark-outline"}
@@ -60,8 +71,8 @@ const AlertBox: React.FC<AlertBoxProps> = ({
           </View>
         )}
 
-        <Text style={{ fontSize: 12, color: Colors.secondaryText, alignSelf: "flex-end" }}>
-          {new Date(createdAt).toLocaleString()}
+        <Text style={{ alignSelf: "flex-end", marginTop: 5 }}>
+          {formattedDate(alert.createdAt)}
         </Text>
       </View>
     </View>

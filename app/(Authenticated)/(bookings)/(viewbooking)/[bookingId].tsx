@@ -6,32 +6,31 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Image,
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import React, { useEffect } from "react";
+import React from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import Colors from "@/assets/styles/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useApartment } from "@/app/hooks/apartment/useApartment";
-import { useTransient } from "@/app/hooks/transient/useTransient";
 import ApartmentScreen from "./ApartmentScreen";
+import useBooking from "@/app/hooks/bookings/useBooking";
+import { Apartment } from "@/app/types/Apartment";
+import { Booking } from "@/app/types/Booking";
 
 const index = () => {
-  const { propertyId, isApartment } = useLocalSearchParams();
+  const { bookingId, isApartment } = useLocalSearchParams();
   const insets = useSafeAreaInsets();
-  const {
-    apartment,
-    loading: apartmentLoading,
-    error: apartmentError,
-  } = useApartment(Boolean(isApartment) ? String(propertyId) : "");
-  const {
-    transient,
-    loading: transientLoading,
-    error: transientError,
-  } = useTransient(!Boolean(isApartment) ? String(propertyId) : "");
+  const { bookingData, propertyData, loading, error } = useBooking(String(bookingId));
+  
+  if(loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Loading...</Text>
+      </View>
+    )
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: "white" }}>
@@ -67,7 +66,7 @@ const index = () => {
               />
             </TouchableOpacity>
             <Text style={styles.text}>
-              Book {Boolean(isApartment) ? "Apartment" : "Transient"}
+              { `Review ${'\n'}${Boolean(isApartment) ? "Apartment" : "Transient"} Booking` }
             </Text>
           </View>
           <Animated.View style={{ flex: 1, marginTop: 20 }}>
@@ -83,22 +82,22 @@ const index = () => {
               <ScrollView keyboardShouldPersistTaps="handled">
                 {Boolean(isApartment) ? (
                   <View>
-                    {apartmentLoading ? (
+                    {loading ? (
                       <Text>Loading apartment...</Text>
-                    ) : apartmentError ? (
-                      <Text>{apartmentError}</Text>
+                    ) : error ? (
+                      <Text>{error}</Text>
                     ) : (
-                      <ApartmentScreen apartment={apartment} />
+                      <ApartmentScreen apartment={propertyData as Apartment} booking={bookingData as Booking} />
                     )}
                   </View>
                 ) : (
                   <View>
-                    {transientLoading ? (
+                    {loading ? (
                       <Text>Loading transient...</Text>
-                    ) : transientError ? (
-                      <Text>{transientLoading}</Text>
+                    ) : error ? (
+                      <Text>{error}</Text>
                     ) : (
-                      <Text>{transient?.name}</Text>
+                      <Text>Test</Text>
                     )}
                   </View>
                 )}

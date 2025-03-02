@@ -15,9 +15,11 @@ import { Tenant } from "@/app/types/Tenant";
 interface TenantCardProps {
   tenant: Tenant;
   onPress?: () => void;
+  onDelete?: () => void;
+  deleteButton?: boolean;
 }
 
-const TenantCard: React.FC<TenantCardProps> = ({ tenant }) => {
+const TenantCard: React.FC<TenantCardProps> = ({ tenant, onPress, onDelete, deleteButton = false}) => {
   return (
     <TouchableOpacity>
       <View style={styles.container}>
@@ -35,18 +37,20 @@ const TenantCard: React.FC<TenantCardProps> = ({ tenant }) => {
         </View>
 
         {/* Forward Icon */}
-        <View style={{ flex: 1, alignItems: "flex-end" }}>
-          {tenant.status === "Host" ? (
-            <Text style={{ color: Colors.primary }}>Host</Text>
-          ) : (
-            <TouchableOpacity>
-              <Ionicons
-                name="chevron-forward"
-                size={24}
-                color={Colors.primary}
-              />
-            </TouchableOpacity>
+        <View style={{ flex: 1, justifyContent: "flex-end", alignItems: "center", flexDirection: "row" }}>
+          {tenant.status === "Host" && (
+            <Text style={{ color: Colors.primary, marginHorizontal: 5}}>Host</Text>
           )}
+
+          {deleteButton && tenant.status !== "Host" ? (
+            <TouchableOpacity onPress={onDelete}>
+              <Ionicons name="trash" size={24} color={Colors.error} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={onPress}>
+              <Ionicons name="chevron-forward" size={24} color={Colors.primaryText} />
+            </TouchableOpacity>
+          )} 
         </View>
       </View>
     </TouchableOpacity>

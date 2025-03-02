@@ -107,6 +107,8 @@ import { UserData } from '@/app/types/UserData'; // UserData type
 import { Apartment } from '@/app/types/Apartment';
 import { uploadApartmentImages, uploadTransientImages } from './StorageService';
 import { Transient } from '@/app/types/Transient';
+import { Booking } from '@/app/types/Booking';
+import { Alert } from '@/app/types/Alert';
 
 
 
@@ -180,6 +182,24 @@ export const fetchUserDataFromFirestore = async (userId: string): Promise<UserDa
     return null;
   }
 };
+
+export const fetchTenantByDisplayName = async (displayName: string): Promise<UserData | null> => {
+  try {
+    const q = query(collection(db, "users"), where("displayName", "==", displayName));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) return null; // No user found
+
+    const doc = querySnapshot.docs[0];
+    const userData = doc.data() as UserData;
+
+    return { ...userData, id: doc.id }; // Ensure id is included without duplication
+  } catch (error) {
+    console.error("Error fetching tenant data from Firestore:", error);
+    return null;
+  }
+};
+
 
 // Function to update user data in Firestore
 export const updateUserData = async (userId: string, data: Partial<UserData>) => {
@@ -422,3 +442,57 @@ export const updateTransient = async (transientId: string, transientData: Partia
     console.error("Error updating transient:", error);
   }
 };
+
+export const createBooking = async (bookingData: Booking) => {
+  try {
+    const bookingRef = doc(collection(db, "bookings")); // Generate new document reference
+    const bookingWithId = { ...bookingData, id: bookingRef.id }; // Add the generated ID to the data
+
+    await setDoc(bookingRef, bookingWithId);
+
+    return bookingRef.id;
+  } catch (error) {
+    console.error("Error creating booking:", error);
+    return null;
+  }
+};
+
+export const updateBooking = async (bookingId: string, bookingData: Partial<Booking>) => {
+  try {
+    const bookingRef = doc(db, "bookings", bookingId);
+    await updateDoc(bookingRef, bookingData);
+    console.log("Booking updated successfully");
+  } catch (error) {
+    console.error("Error updating booking:", error);
+  }
+}
+
+export const createAlert = async (alertData: Alert) => {
+  try {
+    const alertRef = doc(collection(db, "alerts"));
+    await setDoc(alertRef, alertData);
+    return alertRef.id;
+  } catch (error) {
+    console.error("Error creating alert:", error);
+    return null;
+  }
+}
+
+export const updateAlert = async (alertId: string, alertData: Partial<Alert>) => {
+  try {
+    const alertRef = doc(db, "alerts", alertId);
+    await updateDoc(alertRef, alertData);
+    console.log("Alert updated successfully");
+  } catch (error) {
+    console.error("Error updating alert:", error);
+  }
+}
+
+export const deleteAlert = async (alertId: string) => {
+  try {
+    await deleteDoc(doc(db, "alerts", alertId));
+    console.log("alert deleted successfully");
+  } catch (error) {
+    console.error("Error deleting alert:", error);
+  }
+}

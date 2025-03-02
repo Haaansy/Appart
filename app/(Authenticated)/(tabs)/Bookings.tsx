@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { act, useEffect, useState } from "react";
 import {
   ImageBackground,
   StyleSheet,
@@ -12,6 +12,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/assets/styles/colors";
 import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
+import Booked from "../(bookings)/pages/Booked";
+import BookingCard from "@/app/components/BookingComponents/BookingCard";
 
 type MainTabType = "Apartments" | "Transients";
 

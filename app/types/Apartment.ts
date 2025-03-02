@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 interface Owner {
     firstName?: string;
     lastName?: string;
@@ -23,7 +25,7 @@ export interface Apartment {
     parking: number;
     area: number;
     levels: number;
-    maxTentants: number;
+    maxTenants: number;
     electricIncluded: boolean;
     waterIncluded: boolean;
     internetIncluded: boolean;
@@ -32,4 +34,6 @@ export interface Apartment {
     leaseTerms: number[];
     createdAt: number;
     id?: string;
+    bookedDates: Timestamp[];
+    viewingDates: Timestamp[];
 }

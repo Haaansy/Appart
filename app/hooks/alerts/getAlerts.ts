@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/app/Firebase/FirebaseConfig'; // Adjust path as needed
 import { FirebaseError } from 'firebase/app';
-import { Alert } from '@/app/types/Alerts';
+import { Alert } from '@/app/types/Alert';
 
 const getAlerts = (userId: string) => {
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -13,7 +13,7 @@ const getAlerts = (userId: string) => {
     if (!userId) return;
 
     const alertsRef = collection(db, 'alerts');
-    const q = query(alertsRef, where('owner', '==', userId));
+    const q = query(alertsRef, where('receiver.id', '==', userId));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const alertsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

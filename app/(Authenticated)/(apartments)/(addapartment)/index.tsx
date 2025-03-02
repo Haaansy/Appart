@@ -26,6 +26,7 @@ import { createApartment } from "@/app/Firebase/Services/DatabaseService";
 import { getApartments } from "@/app/hooks/apartment/getApartments";
 import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import { UserData } from "@/app/types/UserData";
+import { Apartment } from "@/app/types/Apartment";
 
 const pages = [PageOne, PageTwo, PageThree, PageFour];
 
@@ -34,11 +35,13 @@ const Index = () => {
   const [step, setStep] = useState(0);
   const [isValid, setIsValid] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Apartment>({
+    owner: undefined,
     images: [],
     title: "",
-    status: "Available",
+    status: "",
     address: "",
+    coordinates: [],
     price: 0,
     securityDeposit: 0,
     description: "",
@@ -49,17 +52,20 @@ const Index = () => {
     livingRooms: 0,
     parking: 0,
     area: 0,
-    levels: 1,
-    maxTentants: 1,
+    levels: 0,
+    maxTenants: 0,
     electricIncluded: false,
     waterIncluded: false,
     internetIncluded: false,
     houseRules: [],
     requirements: [],
     leaseTerms: [],
-    coordinates: [0, 0],
     createdAt: Date.now(),
+    id: undefined,
+    bookedDates: [],
+    viewingDates: [],
   });
+  
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
 
   const scrollViewRef = useRef<ScrollView>(null);

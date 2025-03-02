@@ -402,7 +402,7 @@ const ViewApartment = () => {
             <IconButton
               onPress={() => {}}
               icon={"person"}
-              text={`${apartment.maxTenant || 1} Max Tenant${
+              text={`${apartment.maxTenants || 1} Max Tenant${
                 apartment.maxTenant > 1 ? "s" : ""
               }`}
               iconColor={Colors.primary}
