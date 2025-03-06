@@ -21,6 +21,7 @@ import CustomBadge from "@/app/components/CustomBadge";
 import IconButton from "@/app/components/IconButton";
 import { useTransient } from "@/app/hooks/transient/useTransient";
 import { deleteTransient } from "@/app/Firebase/Services/DatabaseService";
+import useCheckExistingBooking from "@/app/hooks/bookings/useCheckExistingBooking";
 
 const { width, height } = Dimensions.get("window");
 
@@ -55,6 +56,10 @@ const ViewApartment = () => {
 
     fetchUserData();
   }, []);
+
+  const { hasExistingBooking, loading: hasExistingBookingLoading } = useCheckExistingBooking(
+    String(transientId)
+  );
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const newIndex = Math.round(event.nativeEvent.contentOffset.x / width);
@@ -93,6 +98,19 @@ const ViewApartment = () => {
       ]
     );
   };
+  
+  const handleBookTransient = () => {
+      console.log("hasExistingBooking", hasExistingBooking);
+  
+      if (hasExistingBooking) {
+        Alert.alert("Booking Error", "You already have an existing booking for this transient.");
+        return;
+      }
+  
+      router.push(
+        `/(Authenticated)/(bookings)/(bookproperty)/${transientId}?isApartment=false` as unknown as RelativePathString
+      );
+    };
 
   return (
     <View style={{ marginBottom: 200 }}>
@@ -450,7 +468,7 @@ const ViewApartment = () => {
                   style={{ marginBottom: 10 }}
                 />
                 <IconButton
-                  onPress={() => {}}
+                  onPress={handleBookTransient}
                   icon={"book"}
                   text={"Reserve a Visit"}
                   iconColor={Colors.primary}

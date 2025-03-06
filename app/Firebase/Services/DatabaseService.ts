@@ -103,12 +103,13 @@
 import { collection, getDocs, getDoc, doc, query, where, getFirestore, updateDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../FirebaseConfig'; // Make sure to update the import path for your firebase config
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
-import { UserData } from '@/app/types/UserData'; // UserData type
-import { Apartment } from '@/app/types/Apartment';
+import UserData from '@/app/types/UserData'; // UserData type
+import Apartment from '@/app/types/Apartment';
 import { uploadApartmentImages, uploadTransientImages } from './StorageService';
-import { Transient } from '@/app/types/Transient';
-import { Booking } from '@/app/types/Booking';
-import { Alert } from '@/app/types/Alert';
+import Transient from '@/app/types/Transient';
+import Booking from '@/app/types/Booking';
+import Alert from '@/app/types/Alert';
+import Conversation from '@/app/types/Conversation';
 
 
 
@@ -281,11 +282,6 @@ export const createApartment = async (apartmentData: Apartment): Promise<string 
     const apartmentDataWithOwner = {
       ...apartmentData,
       images: uploadedImageUrls, // Replace local paths with URLs
-      owner: {
-        firstName: userData.firstName || "",
-        lastName: userData.lastName || "",
-        ownerID: user.uid,
-      },
       createdAt: Date.now(),
       id: apartmentRef.id,
     };
@@ -375,11 +371,7 @@ export const createTransient = async (transientData: Transient): Promise<string 
     const apartmentDataWithOwner = {
       ...transientData,
       images: uploadedImageUrls, // Replace local paths with URLs
-      owner: {
-        firstName: userData.firstName || "",
-        lastName: userData.lastName || "",
-        ownerID: user.uid,
-      },
+      owner: userData,
       createdAt: Date.now(),
       id: transientRef.id,
     };
@@ -403,7 +395,7 @@ export const deleteTransient = async (transientId: string) => {
   }
 }
 
-export const updateTransient = async (transientId: string, transientData: Partial<Apartment>) => {
+export const updateTransient = async (transientId: string, transientData: Partial<Transient>) => {
   try {
     const transientRef = doc(db, "transients", transientId);
     const transientSnap = await getDoc(transientRef);
@@ -494,5 +486,16 @@ export const deleteAlert = async (alertId: string) => {
     console.log("alert deleted successfully");
   } catch (error) {
     console.error("Error deleting alert:", error);
+  }
+}
+
+export const createConversation = async (conversationData: Conversation) => {
+  try {
+    const conversationRef = doc(collection(db, "conversations"));
+    await setDoc(conversationRef, conversationData);
+    return conversationRef.id;
+  } catch (error) {
+    console.error("Error creating conversation:", error);
+    return null;
   }
 }

@@ -23,7 +23,6 @@ import PageThree from "./pages/PageThree";
 import PageFour from "./pages/PageFour";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { updateApartment } from "@/app/Firebase/Services/DatabaseService";
-import { Apartment } from "@/app/types/Apartment";
 
 const pages = [PageOne, PageTwo, PageThree, PageFour];
 

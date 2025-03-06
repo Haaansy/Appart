@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, Image } from "react-native";
-import React, { useEffect } from "react";
-import { Apartment } from "@/app/types/Apartment";
+import React, { useEffect, useState } from "react";
+import Apartment from "@/app/types/Apartment";
 import PropertyCard from "@/app/components/BookingComponents/PropertyCard";
 import Colors from "@/assets/styles/colors";
 import TenantCard from "@/app/components/BookingComponents/TenantCard";
@@ -8,14 +8,19 @@ import DurationCard from "@/app/components/BookingComponents/DurationCard";
 import DateCard from "@/app/components/BookingComponents/DateCard";
 import { Ionicons } from "@expo/vector-icons";
 import { Timestamp } from "firebase/firestore";
-import { Booking } from "@/app/types/Booking";
+import Booking from "@/app/types/Booking";
 import IconButton from "@/app/components/IconButton";
-import { UserData } from "@/app/types/UserData";
+import UserData from "@/app/types/UserData";
 import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
-import { updateBooking } from "@/app/Firebase/Services/DatabaseService";
+import {
+  updateApartment,
+  updateBooking,
+} from "@/app/Firebase/Services/DatabaseService";
 import { router } from "expo-router";
 import useSendAlerts from "@/app/hooks/alerts/useSendAlerts";
-import { Alert } from "@/app/types/Alert";
+import Alert from "@/app/types/Alert";
+import Tenant from "@/app/types/Tenant";
+import EvictionPopup from "@/app/components/BookingComponents/EvictionPopup";
 
 interface ApartmentProps {
   apartment: Apartment;
@@ -23,10 +28,13 @@ interface ApartmentProps {
 }
 
 const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
-  const [currentUserData, setCurrentUserData] = React.useState<UserData>(
+  const [currentUserData, setCurrentUserData] = useState<UserData>(
     {} as UserData
   );
-  const [loading, setLoading] = React.useState<boolean>(true);
+  const [tenantEvictionModalVisible, setTenantEvictionModalVisible] =
+    useState<boolean>(false);
+  const [ bookingData, setBookingData ] = useState<Booking>({} as Booking);
+  const [loading, setLoading] = useState<boolean>(true);
   const {
     sendAlerts,
     loading: sendAlertsLoading,
@@ -42,12 +50,12 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
       });
       const alertData: Alert = {
         message: "Your viewing appointment has been approved.",
-        type: "booking", // Default value, change if needed
-        bookingType: "apartment",
+        type: "Booking", // Default value, change if needed
+        bookingType: "Apartment",
         bookingId: String(booking.id),
         propertyId: String(apartment.id),
         isRead: false,
-        sender: currentUserData, // Empty object, assuming UserData type
+        sender: currentUserData,
         createdAt: Timestamp.now(),
       };
 
@@ -59,11 +67,56 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
     }
   };
 
+  const handleBookingApproval = async () => {
+    try {
+      const updatedData = await updateBooking(String(booking.id), {
+        ...booking,
+        status: "Booking Confirmed",
+      });
+
+      const updatedApartment = await updateApartment(String(apartment.id), {
+        ...apartment,
+        bookedDates: [...booking.bookedDate, ...(booking.viewingDate ? [booking.viewingDate] : [])],
+      });
+
+      const alertData: Alert = {
+        message: "Your booking has been approved.",
+        type: "Booking", // Default value, change if needed
+        bookingType: "Apartment",
+        bookingId: String(booking.id),
+        propertyId: String(apartment.id),
+        isRead: false,
+        sender: currentUserData,
+        createdAt: Timestamp.now(),
+      };
+
+      await sendAlerts(booking.tenants, alertData);
+
+      router.replace(`/(Authenticated)/(tabs)/Bookings`);
+    } catch (error) {
+      console.error("Error approving viewing:", error);
+    }
+  };
+
+  const handleInvitation = async (status: "Accepted" | "Declined") => {
+    await updateBooking(String(booking.id), {
+      ...booking,
+      tenants: booking.tenants.map((tenant) =>
+        tenant.user.id === currentUserData.id
+          ? { ...tenant, status: status }
+          : tenant
+      ),
+    });
+
+    router.replace(`/(Authenticated)/(tabs)/Bookings`);
+  };
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const userData = await getStoredUserData();
         setCurrentUserData(userData);
+        setBookingData(booking);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -80,6 +133,24 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
       </View>
     );
   }
+
+  const handleEviction = async (tenants: Tenant[]) => {
+    setBookingData((prevData) => {
+      const updatedData = {
+        ...prevData,
+        tenants: tenants, // Ensure it's an array
+      };
+      return updatedData;
+    });
+
+    const updatedBooking = await updateBooking(String(booking.id), {
+      ...booking,
+      tenants: tenants,
+    });
+
+    setTenantEvictionModalVisible(false);
+    router.replace("/(Authenticated)/(tabs)/Bookings");
+  };
 
   return (
     <View style={styles.container}>
@@ -139,7 +210,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
 
         {/* Tenant Section */}
         <Text style={styles.subtitle}>Tenant</Text>
-        {booking.tenants.map((tenant) => (
+        {booking.tenants.map((tenant: Tenant) => (
           <TenantCard key={tenant.user.id} tenant={tenant} />
         ))}
 
@@ -265,7 +336,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
                 Booking Approval
               </Text>
               <IconButton
-                onPress={() => {}}
+                onPress={handleBookingApproval}
                 icon="book"
                 text="Approve Booking"
                 iconColor={Colors.primaryBackground}
@@ -298,13 +369,13 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
                 Tenant Management
               </Text>
               <IconButton
-                onPress={() => {}}
+                onPress={() => setTenantEvictionModalVisible(true)}
                 icon="person"
                 text="Evict Tenant"
                 iconColor={Colors.primaryBackground}
                 textStyle={{ color: Colors.primaryBackground }}
                 style={{
-                  backgroundColor: Colors.primary,
+                  backgroundColor: Colors.error,
                   borderWidth: 0,
                   marginTop: 5,
                 }}
@@ -312,9 +383,20 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
             </View>
           )}
 
+        <EvictionPopup
+          visible={tenantEvictionModalVisible}
+          onConfirm={handleEviction}
+          tenant={booking.tenants}
+          onClose={() => setTenantEvictionModalVisible(false)}
+        />
+
         {/* Actions - Tenants */}
         {booking.status !== "Viewing Confirmed" &&
-          currentUserData.role === "tenant" && (
+          currentUserData.role === "tenant" &&
+          booking.tenants?.some(
+            (tenant: Tenant) =>
+              tenant.user.id === currentUserData.id && tenant.status === "Host"
+          ) && (
             <View>
               <Text style={[styles.subtitle, { marginTop: 20 }]}>
                 Booking Actions
@@ -335,10 +417,10 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
           )}
 
         {/* Actions - Tenants(Invited) */}
-        {booking.status !== "Pending Invitation" &&
+        {booking.status == "Pending Invitation" &&
           currentUserData.role === "tenant" &&
           booking.tenants?.some(
-            (tenant) =>
+            (tenant: Tenant) =>
               tenant.user.id === currentUserData.id &&
               tenant.status === "Invited"
           ) && (
@@ -347,7 +429,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
                 Booking Actions
               </Text>
               <IconButton
-                onPress={() => {}}
+                onPress={() => handleInvitation("Accepted")}
                 icon="checkmark"
                 text="Accept Invitation"
                 iconColor={Colors.primaryBackground}
@@ -359,7 +441,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
                 }}
               />
               <IconButton
-                onPress={() => {}}
+                onPress={() => handleInvitation("Declined")}
                 icon="close"
                 text="Decline Invitation"
                 iconColor={Colors.primaryBackground}

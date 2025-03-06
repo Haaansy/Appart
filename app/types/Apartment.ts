@@ -1,14 +1,8 @@
 import { Timestamp } from "firebase/firestore";
+import UserData from "./UserData";
 
-interface Owner {
-    firstName?: string;
-    lastName?: string;
-    rating?: number;
-    ownerID?: string;
-}
-
-export interface Apartment {
-    owner?: Owner;
+export default interface Apartment {
+    owner?: UserData;
     images: string[];
     title: string;
     status: string;

@@ -16,8 +16,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import ApartmentScreen from "./ApartmentScreen";
 import useBooking from "@/app/hooks/bookings/useBooking";
-import { Apartment } from "@/app/types/Apartment";
-import { Booking } from "@/app/types/Booking";
+import Apartment from "@/app/types/Apartment";
+import Booking from "@/app/types/Booking";
+import TransientScreen from "./TransientScreen";
+import Transient from "@/app/types/Transient";
 
 const index = () => {
   const { bookingId, isApartment } = useLocalSearchParams();
@@ -66,7 +68,7 @@ const index = () => {
               />
             </TouchableOpacity>
             <Text style={styles.text}>
-              { `Review ${'\n'}${Boolean(isApartment) ? "Apartment" : "Transient"} Booking` }
+              { `Review ${'\n'}${isApartment === "true" ? "Apartment" : "Transient"} Booking` }
             </Text>
           </View>
           <Animated.View style={{ flex: 1, marginTop: 20 }}>
@@ -80,7 +82,7 @@ const index = () => {
               }}
             >
               <ScrollView keyboardShouldPersistTaps="handled">
-                {Boolean(isApartment) ? (
+                {isApartment === "true" ? (
                   <View>
                     {loading ? (
                       <Text>Loading apartment...</Text>
@@ -97,7 +99,7 @@ const index = () => {
                     ) : error ? (
                       <Text>{error}</Text>
                     ) : (
-                      <Text>Test</Text>
+                      <TransientScreen transient={propertyData as Transient} booking={bookingData as Booking} />
                     )}
                   </View>
                 )}

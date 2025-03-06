@@ -18,6 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useApartment } from "@/app/hooks/apartment/useApartment";
 import { useTransient } from "@/app/hooks/transient/useTransient";
 import ApartmentScreen from "./ApartmentScreen";
+import TransientScreen from "./TransientScreen";
 
 const index = () => {
   const { propertyId, isApartment } = useLocalSearchParams();
@@ -26,12 +27,13 @@ const index = () => {
     apartment,
     loading: apartmentLoading,
     error: apartmentError,
-  } = useApartment(Boolean(isApartment) ? String(propertyId) : "");
+  } = useApartment(isApartment === "true" ? String(propertyId) : "");
+
   const {
     transient,
     loading: transientLoading,
     error: transientError,
-  } = useTransient(!Boolean(isApartment) ? String(propertyId) : "");
+  } = useTransient(isApartment === "false" ? String(propertyId) : "");
 
   return (
     <View style={{ flex: 1, backgroundColor: "white" }}>
@@ -67,7 +69,7 @@ const index = () => {
               />
             </TouchableOpacity>
             <Text style={styles.text}>
-              Book {Boolean(isApartment) ? "Apartment" : "Transient"}
+              Book {isApartment === "true" ? "Apartment" : "Transient"}
             </Text>
           </View>
           <Animated.View style={{ flex: 1, marginTop: 20 }}>
@@ -81,7 +83,7 @@ const index = () => {
               }}
             >
               <ScrollView keyboardShouldPersistTaps="handled">
-                {Boolean(isApartment) ? (
+                {isApartment === "true" ? (
                   <View>
                     {apartmentLoading ? (
                       <Text>Loading apartment...</Text>
@@ -98,7 +100,7 @@ const index = () => {
                     ) : transientError ? (
                       <Text>{transientLoading}</Text>
                     ) : (
-                      <Text>{transient?.name}</Text>
+                      <TransientScreen transient={transient}/>
                     )}
                   </View>
                 )}

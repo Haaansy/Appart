@@ -1,4 +1,4 @@
-import React, { act, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ImageBackground,
   StyleSheet,
@@ -8,62 +8,62 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   ScrollView,
+  FlatList,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/assets/styles/colors";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
-import Booked from "../(bookings)/pages/Booked";
+import useFetchBookings from "@/app/hooks/bookings/useFetchBookings";
 import BookingCard from "@/app/components/BookingComponents/BookingCard";
+import { router } from "expo-router";
+import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
+import UserData from "@/app/types/UserData";
 
-type MainTabType = "Apartments" | "Transients";
-
-const SUB_TABS: Record<MainTabType, string[]> = {
-  Apartments: [
-    "For Approval",
-    "For Viewing",
-    "Booking Approved",
-    "Booking Completed",
-    "Declined",
-  ],
-  Transients: [
-    "For Approval",
-    "Booking Approved",
-    "Booking Completed",
-    "Declined",
-  ],
-};
+type MainTabType = "Apartment" | "Transient";
 
 const Bookings = () => {
+  const [currentUserData, setCurrentUserData] = useState<UserData>({} as UserData);
+  const SUB_TABS: Record<MainTabType, string[]> = {
+    Apartment: [
+      ...(currentUserData.role === "tenant" ? ["Pending Invitation"] : []), // Add only if tenant
+      "Booked",
+      "Viewing Confirmed",
+      "Booking Confirmed",
+      "Booking Completed",
+      "Booking Declined",
+    ],
+    Transient: [
+      "Booked",
+      "Booking Confirmed",
+      "Booking Completed",
+      "Booking Declined",
+    ],
+  };
+
   const insets = useSafeAreaInsets();
-  const [currentUserData, setCurrentUserData] = useState<any>(null);
   const [isLoading, setLoading] = useState<boolean>(true);
-  const [activeMainTab, setActiveMainTab] = useState<MainTabType>("Apartments");
+  const [activeMainTab, setActiveMainTab] = useState<MainTabType>("Apartment");
   const [activeSubTab, setActiveSubTab] = useState<string>(
-    SUB_TABS["Apartments"][0]
+    SUB_TABS["Apartment"][0]
+  );
+
+  const { bookings, loading, error } = useFetchBookings(
+    activeSubTab,
+    activeMainTab
   );
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userData = await getStoredUserData();
-        setCurrentUserData(userData);
+        const user = await getStoredUserData();
+        setCurrentUserData(user);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching user data:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchUserData();
   }, []);
-
-  if (isLoading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
-  }
 
   return (
     <>
@@ -116,40 +116,63 @@ const Bookings = () => {
         </View>
 
         {/* Sub Tabs */}
-        <View
-          style={styles.subTabsContainer}
-        >
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-          >
-            {SUB_TABS[activeMainTab].map((subTab) => (
-              <TouchableOpacity
-                key={subTab}
-                style={[
-                  styles.subTab,
-                  activeSubTab === subTab && styles.activeSubTab,
-                ]}
-                onPress={() => setActiveSubTab(subTab)}
-              >
-                <Text
+        <View style={styles.subTabsContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {SUB_TABS[activeMainTab].map((subTab) => {
+              const sanitizedKey = `${activeMainTab}-${subTab
+                .trim()
+                .replace(/\s+/g, "_")}`;
+
+              return (
+                <TouchableOpacity
+                  key={sanitizedKey} // ✅ Ensure truly unique key
                   style={[
-                    styles.subTabText,
-                    activeSubTab === subTab && styles.activeSubTabText,
+                    styles.subTab,
+                    activeSubTab === subTab && styles.activeSubTab,
                   ]}
+                  onPress={() => setActiveSubTab(subTab)}
                 >
-                  {subTab}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.subTabText,
+                      activeSubTab === subTab && styles.activeSubTabText,
+                    ]}
+                  >
+                    {subTab}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
 
-        {/* Content Placeholder */}
+        {/* Bookings List */}
         <View style={styles.contentContainer}>
-          <Text style={styles.contentText}>
-            Showing: {activeMainTab} - {activeSubTab}
-          </Text>
+          {loading ? (
+            <ActivityIndicator size="large" color={Colors.primary} />
+          ) : error ? (
+            <Text style={styles.errorText}>{error}</Text>
+          ) : bookings.length === 0 ? (
+            <Text style={styles.emptyText}>No bookings found.</Text>
+          ) : (
+            <FlatList
+              data={bookings}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                 onPress={() => {
+                  if(item.type === "Apartment") {
+                    router.push(`/(Authenticated)/(bookings)/(viewbooking)/${item.id}?isApartment=true`);
+                  } else {
+                    router.push(`/(Authenticated)/(bookings)/(viewbooking)/${item.id}?isApartment=false`);
+                  }
+                 }}
+                >
+                  <BookingCard booking={item} />
+                </TouchableOpacity>
+              )}
+            />
+          )}
         </View>
       </View>
     </>
@@ -157,15 +180,7 @@ const Bookings = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 25,
-  },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  container: { flex: 1, paddingHorizontal: 25 },
   backgroundVector: {
     height: "90%",
     width: "100%",
@@ -174,26 +189,14 @@ const styles = StyleSheet.create({
     top: -350,
     backgroundColor: Colors.secondaryBackground,
   },
-  icon: {
-    width: 60,
-    height: 60,
-    resizeMode: "cover",
-  },
+  icon: { width: 60, height: 60, resizeMode: "cover" },
   greetings: {
     fontSize: 20,
     fontWeight: "bold",
     color: Colors.primaryBackground,
   },
-  subtext: {
-    fontSize: 12,
-    fontWeight: "regular",
-    color: Colors.primaryBackground,
-  },
-  topBar: {
-    flexDirection: "row",
-    marginTop: 65,
-    alignItems: "center",
-  },
+  subtext: { fontSize: 12, color: Colors.primaryBackground },
+  topBar: { flexDirection: "row", marginTop: 65, alignItems: "center" },
 
   /* Main Tabs */
   mainTabsContainer: {
@@ -213,17 +216,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: 5,
   },
-  activeMainTab: {
-    backgroundColor: Colors.primary,
-  },
-  mainTabText: {
-    fontSize: 14,
-    color: "gray",
-  },
-  activeMainTabText: {
-    color: "white",
-    fontWeight: "bold",
-  },
+  activeMainTab: { backgroundColor: Colors.primary },
+  mainTabText: { fontSize: 14, color: "gray" },
+  activeMainTabText: { color: "white", fontWeight: "bold" },
 
   /* Sub Tabs */
   subTabsContainer: {
@@ -242,29 +237,21 @@ const styles = StyleSheet.create({
     backgroundColor: "#e0e0e0",
     height: 25,
   },
-  activeSubTab: {
-    backgroundColor: Colors.primary,
-  },
-  subTabText: {
-    fontSize: 12,
-    color: "black",
-  },
-  activeSubTabText: {
-    color: "white",
-    fontWeight: "bold",
-  },
+  activeSubTab: { backgroundColor: Colors.primary },
+  subTabText: { fontSize: 12, color: "black" },
+  activeSubTabText: { color: "white", fontWeight: "bold" },
 
-  /* Content Display */
-  contentContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: Colors.primaryBackground
+  /* Content */
+  contentContainer: { flex: 1, marginTop: 10 },
+  errorText: { color: "red", textAlign: "center" },
+  emptyText: { textAlign: "center", fontSize: 16 },
+  bookingItem: {
+    padding: 15,
+    backgroundColor: "#fff",
+    marginVertical: 5,
+    borderRadius: 10,
   },
-  contentText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: Colors.primary,
-  },
+  bookingTitle: { fontSize: 16, fontWeight: "bold" },
 });
 
 export default Bookings;

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createAlert } from "@/app/Firebase/Services/DatabaseService";
-import { Alert } from "@/app/types/Alert";
-import { Tenant } from "@/app/types/Tenant";
+import Alert from "@/app/types/Alert";
+import Tenant from "@/app/types/Tenant";
 
 const useSendAlerts = () => {
   const [loading, setLoading] = useState(false);

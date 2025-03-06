@@ -23,7 +23,7 @@ import PageTwo from "./pages/PageTwo";
 import PageThree from "./pages/PageThree";
 import { createTransient } from "@/app/Firebase/Services/DatabaseService";
 import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
-import { UserData } from "@/app/types/UserData";
+import UserData from "@/app/types/UserData";
 
 const pages = [PageOne, PageTwo, PageThree];
 
@@ -73,6 +73,7 @@ const Index = () => {
     const fetchUserData = async () => {
       const userData = await getStoredUserData();
       setCurrentUser(userData);
+      setFormData((prev) => ({ ...prev, owner: userData }));
     };
 
     fetchUserData();

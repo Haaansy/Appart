@@ -19,7 +19,7 @@ interface TenantCardProps {
   deleteButton?: boolean;
 }
 
-const TenantCard: React.FC<TenantCardProps> = ({
+const EvictionCard: React.FC<TenantCardProps> = ({
   tenant,
   onPress,
   onDelete,
@@ -52,24 +52,14 @@ const TenantCard: React.FC<TenantCardProps> = ({
             Host
           </Text>
         )}
-
         {tenant.status === "Evicted" && (
           <Text style={{ color: Colors.error, marginHorizontal: 5 }}>
             Evicted
           </Text>
         )}
-
-        {deleteButton && tenant.status !== "Host" ? (
+        {tenant.status !== "Evicted" && deleteButton && (
           <TouchableOpacity onPress={onDelete}>
             <Ionicons name="trash" size={24} color={Colors.error} />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity onPress={onPress}>
-            <Ionicons
-              name="chevron-forward"
-              size={24}
-              color={Colors.primaryText}
-            />
           </TouchableOpacity>
         )}
       </View>
@@ -109,4 +99,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TenantCard;
+export default EvictionCard;

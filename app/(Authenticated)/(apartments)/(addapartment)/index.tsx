@@ -25,21 +25,21 @@ import PageFour from "./pages/PageFour";
 import { createApartment } from "@/app/Firebase/Services/DatabaseService";
 import { getApartments } from "@/app/hooks/apartment/getApartments";
 import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
-import { UserData } from "@/app/types/UserData";
-import { Apartment } from "@/app/types/Apartment";
+import UserData from "@/app/types/UserData";
+import Apartment from "@/app/types/Apartment";
 
 const pages = [PageOne, PageTwo, PageThree, PageFour];
 
 const Index = () => {
+  const [currentUserData, setCurrentUserData] = useState<UserData | null>(null);
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState(0);
   const [isValid, setIsValid] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const [formData, setFormData] = useState<Apartment>({
-    owner: undefined,
     images: [],
     title: "",
-    status: "",
+    status: "Available",
     address: "",
     coordinates: [],
     price: 0,
@@ -65,8 +65,6 @@ const Index = () => {
     bookedDates: [],
     viewingDates: [],
   });
-  
-  const [currentUser, setCurrentUser] = useState<UserData | null>(null);
 
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRefs = useRef<{ [key: string]: TextInput | null }>({});
@@ -87,7 +85,8 @@ const Index = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       const userData = await getStoredUserData();
-      setCurrentUser(userData);
+      setCurrentUserData(userData);
+      setFormData
     };
 
     fetchUserData();
@@ -129,7 +128,7 @@ const Index = () => {
   };
 
   const handlePublish = async () => {
-    if (!currentUser) {
+    if (!currentUserData) {
       console.error("Current user is null. Cannot publish apartment.");
       Alert.alert("Error", "User data is missing. Please try again.");
       return;
@@ -172,7 +171,7 @@ const Index = () => {
 
   const CurrentPage = pages[step];
 
-  if (isLoading || !currentUser) {
+  if (isLoading || !currentUserData) {
     return <ActivityIndicator size="large" color={Colors.primary} />;
   }
 

@@ -1,4 +1,4 @@
-import { Tenant } from "@/app/types/Tenant";
+import Tenant from "@/app/types/Tenant";
 import Colors from "@/assets/styles/colors";
 import React, { useEffect } from "react";
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from "react-native";
@@ -12,9 +12,10 @@ interface PopupProps {
   onConfirm: (tenant: Tenant[]) => void; // Pass selected value
   tenant: Tenant[];
   onClose: () => void;
+  maxTenants: number;
 }
 
-const TenantPopup: React.FC<PopupProps> = ({ visible, onConfirm, tenant, onClose }) => {
+const TenantPopup: React.FC<PopupProps> = ({ visible, onConfirm, tenant, onClose, maxTenants }) => {
   const [tenants, setTenants] = React.useState<Tenant[]>([]);
   const [displayNameInput, setDisplayNameInput] = React.useState<string>("");
   const [loading, setLoading] = React.useState<boolean>(true);
@@ -25,20 +26,40 @@ const TenantPopup: React.FC<PopupProps> = ({ visible, onConfirm, tenant, onClose
   }, [tenant]);
 
   const handleInviteButton = async () => {
+    setLoading(true);
     if (!displayNameInput.trim()) return; // Prevent empty input
 
     try {
+      
+      if (tenants.length >= maxTenants) {
+        console.log("Max tenants reached");
+        return;
+      }
+
       const newTenant = await fetchTenantByDisplayName(displayNameInput.trim());
 
       if (newTenant) {
+        if(newTenant.role === "home owner") {
+          console.log("Home owner cannot be invited as tenant");
+          return;
+        } 
+
+        if(tenants.find(t => t.user.id === newTenant.id)) {
+          console.log("Tenant already invited");
+          return;
+        }
+
         setTenants((prev: Tenant[]) => [
           ...prev,
           { user: newTenant, status: "Invited" }, // Ensure user has full UserData properties
         ]);
+
+        setDisplayNameInput(""); // Clear input after processing
       } else {
         console.log("Tenant not found");
       }
 
+      setLoading(false);
       setDisplayNameInput(""); // Clear input after processing
     } catch (error) {
       console.error("Error fetching tenant:", error);
@@ -60,6 +81,7 @@ const TenantPopup: React.FC<PopupProps> = ({ visible, onConfirm, tenant, onClose
             Invite people to include them in your booking.
           </Text>
           <CustomInputWithButton
+            placeholder={"Enter Username"}
             buttonTitle={"+"}
             onButtonPress={handleInviteButton}
             value={displayNameInput}

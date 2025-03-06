@@ -22,7 +22,7 @@ import PageThree from "./pages/PageThree";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { updateTransient } from "@/app/Firebase/Services/DatabaseService";
 import { useTransient } from "@/app/hooks/transient/useTransient";
-import { Transient } from "@/app/types/Transient";
+import Transient from "@/app/types/Transient";
 
 const pages = [PageOne, PageTwo, PageThree];
 

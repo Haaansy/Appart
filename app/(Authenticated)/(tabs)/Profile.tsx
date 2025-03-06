@@ -10,8 +10,7 @@ import {
 import React, { useEffect, useState } from "react";
 import CustomButton from "@/app/components/CustomButton";
 import {
-  getStoredUserData,
-  logoutUser,
+  getStoredUserData
 } from "@/app/Firebase/Services/AuthService";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { collection, query, where, getDocs, orderBy, limit, startAfter } from "firebase/firestore";
 import { db } from "@/app/Firebase/FirebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Apartment } from "../../types/Apartment";
+import Apartment from "../../types/Apartment";
 
 /**
  * Fetches apartments based on the user's role and userId.
@@ -46,7 +46,7 @@ export const getApartments = (role: string, userId: string) => {
             const apartmentsRef = collection(db, "apartments");
             let apartmentsQuery =
                 role === "home owner"
-                    ? query(apartmentsRef, where("owner.ownerID", "==", userId)) // Ensure proper query
+                    ? query(apartmentsRef, where("owner.id", "==", userId)) // Ensure proper query
                     : apartmentsRef;
 
             apartmentsQuery = query(apartmentsQuery, orderBy("createdAt", "desc"), limit(LIMIT));

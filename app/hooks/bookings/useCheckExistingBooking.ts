@@ -1,0 +1,52 @@
+import { useState, useEffect } from "react";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "@/app/Firebase/FirebaseConfig";
+import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
+import Tenant from "@/app/types/Tenant";
+import UserData from "@/app/types/UserData";
+
+const useCheckExistingBooking = (propertyId: string) => {
+  const [hasExistingBooking, setHasExistingBooking] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkBooking = async () => {
+      console.log("propertyId:", propertyId);
+
+      const userData: UserData = await getStoredUserData();
+      if (!userData || !propertyId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const bookingsRef = collection(db, "bookings");
+        const q = query(
+          bookingsRef,
+          where("propertyId", "==", propertyId),
+          where("status", "in", ["Booked", "Pending Invitation"]) // ✅ Active bookings
+        );
+
+        const snapshot = await getDocs(q);
+        
+        // ✅ Manually filter tenants with userData.uid
+        const userHasBooking = snapshot.docs.some((doc) => {
+          const bookingData = doc.data();
+          return bookingData.tenants.some((tenant: Tenant) => tenant.user.id === userData.id);
+        });
+
+        setHasExistingBooking(userHasBooking);
+      } catch (error) {
+        console.error("Error checking existing booking:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkBooking();
+  }, [propertyId]);
+
+  return { hasExistingBooking, loading };
+};
+
+export default useCheckExistingBooking;

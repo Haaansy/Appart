@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/app/Firebase/FirebaseConfig";
-import { Booking } from "@/app/types/Booking";
-import { Apartment } from "@/app/types/Apartment";
-import { Transient } from "@/app/types/Transient";
+import Booking from "@/app/types/Booking";
+import Apartment from "@/app/types/Apartment";
+import Transient from "@/app/types/Transient";
 
 const useBooking = (bookingId: string) => {
   const [bookingData, setBookingData] = useState<Booking | null>(null);
@@ -24,9 +24,9 @@ const useBooking = (bookingId: string) => {
           setBookingData(booking);
 
           let propertyRef;
-          if (booking.isApartment) {
+          if (booking.type === "Apartment") {
             propertyRef = doc(db, "apartments", booking.propertyId);
-          } else if (booking.isApartment === false) {
+          } else if (booking.type === "Transient") {
             propertyRef = doc(db, "transients", booking.propertyId);
           }
 

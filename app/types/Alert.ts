@@ -1,16 +1,16 @@
-import { Timestamp } from "firebase/firestore";
-import { UserData } from "./UserData";
+import { FieldValue, Timestamp } from "firebase/firestore";
+import UserData from "./UserData";
 
-export interface Alert {
+export default interface Alert {
     id?: string;
     message: string;
-    type: 'booking' | 'inquiry';
-    bookingType?: "apartment" | "transient";
+    type: 'Booking' | 'Inquiry';
+    bookingType?: "Apartment" | "Transient";
     bookingId?: string;
     conversationId?: string;
-    createdAt?: Timestamp;
     propertyId: string;
     isRead: boolean;
     sender: UserData;
     receiver?: UserData;
+    createdAt: Timestamp | FieldValue;
 }

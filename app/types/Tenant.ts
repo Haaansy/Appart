@@ -1,6 +1,6 @@
-import { UserData } from "./UserData";
+import UserData from "./UserData";
 
-export interface Tenant {
+export default interface Tenant {
     user: UserData;
-    status: "Invited" | "Accepted" | "Declined" | "Host";
+    status: "Invited" | "Accepted" | "Declined" | "Host" | "Evicted";
 }

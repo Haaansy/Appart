@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 interface Owner {
     firstName?: string;
     lastName?: string;
@@ -5,7 +7,7 @@ interface Owner {
     ownerID?: string;
 }
 
-export interface Transient {
+export default interface Transient {
     owner?: Owner;
     images: string[];
     title: string;
@@ -25,4 +27,5 @@ export interface Transient {
     requirements: string[];
     createdAt: number;
     id?: string;
+    bookedDates: Timestamp[];
 }

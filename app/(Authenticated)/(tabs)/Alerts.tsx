@@ -13,9 +13,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/assets/styles/colors";
 import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import AlertBox from "@/app/components/Alerts/AlertBox";
-import { UserData } from "@/app/types/UserData";
+import UserData from "@/app/types/UserData";
 import getAlerts from "@/app/hooks/alerts/getAlerts";
-import { Alert } from "@/app/types/Alert";
+import Alert from "@/app/types/Alert";
 import useUpdateAlertRead from "@/app/hooks/alerts/useUpdateAlertRead";
 import { router } from "expo-router";
 
@@ -50,9 +50,11 @@ const Alerts = () => {
   const handleAlertPress = async (alert: Alert) => {
     await markAlertAsRead(alert);
 
-    if (alert.type === "booking") {
-      if(alert.bookingType === "apartment") {
+    if (alert.type === "Booking") {
+      if(alert.bookingType === "Apartment") {
         router.push(`/(Authenticated)/(bookings)/(viewbooking)/${alert.bookingId}?isApartment=true`);
+      } else {
+        router.push(`/(Authenticated)/(bookings)/(viewbooking)/${alert.bookingId}?isApartment=false`);
       }
     } else {
       // Navigate to conversation screen

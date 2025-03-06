@@ -1,7 +1,7 @@
 import { getFirestore, doc, updateDoc, getDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { getAuth } from "firebase/auth";
-import { UserData } from "@/app/types/UserData";
+import UserData from "@/app/types/UserData";
 import { updateUserData } from "./DatabaseService";
 import { auth } from "../FirebaseConfig";
 

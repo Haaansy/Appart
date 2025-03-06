@@ -18,9 +18,6 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({
   yourbookedDates,
 }) => {
 
-  console.log(bookedDates);
-  console.log(viewingDates);
-  console.log(yourbookedDates);
   // Convert Firestore timestamps to calendar-marked dates
   const getMarkedDates = () => {
     const markedDates: { 
@@ -60,8 +57,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({
         markDate(timestamp.toDate().toISOString().split("T")[0], Colors.info);
       }
     });
-
-    console.log(markedDates);
+    
     return markedDates;
   };
 

@@ -6,7 +6,7 @@ export interface BirthDate {
     year: string;
 }
 
-export interface UserData {
+export default interface UserData {
     id: string;
     firstName: string;
     lastName: string;

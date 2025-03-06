@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '@/app/Firebase/FirebaseConfig'; // Adjust path as needed
 import { FirebaseError } from 'firebase/app';
-import { Alert } from '@/app/types/Alert';
+import Alert from '@/app/types/Alert';
 
 const getAlerts = (userId: string) => {
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -13,10 +13,17 @@ const getAlerts = (userId: string) => {
     if (!userId) return;
 
     const alertsRef = collection(db, 'alerts');
-    const q = query(alertsRef, where('receiver.id', '==', userId));
+    const q = query(
+      alertsRef,
+      where('receiver.id', '==', userId),
+      orderBy('createdAt', 'desc') // Order alerts by time created (latest first)
+    );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const alertsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const alertsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
       setAlerts(alertsData as Alert[]);
       setLoading(false);
     }, (err) => {
@@ -25,7 +32,7 @@ const getAlerts = (userId: string) => {
       setLoading(false);
     });
 
-    return () => unsubscribe(); // Cleanup the listener on unmount
+    return () => unsubscribe(); // Cleanup listener on unmount
   }, [userId]);
 
   return { alerts, loading, error };

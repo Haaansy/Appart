@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { updateAlert } from "@/app/Firebase/Services/DatabaseService";
-import { Alert } from "@/app/types/Alert";
+import Alert from "@/app/types/Alert";
 
 const useUpdateAlertRead = () => {
   const [loading, setLoading] = useState(false);

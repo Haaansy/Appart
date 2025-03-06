@@ -14,7 +14,6 @@ import {
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { RelativePathString, router, useLocalSearchParams } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import Colors from "@/assets/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,6 +21,7 @@ import CustomBadge from "@/app/components/CustomBadge";
 import IconButton from "@/app/components/IconButton";
 import { deleteApartment } from "@/app/Firebase/Services/DatabaseService";
 import { useApartment } from "@/app/hooks/apartment/useApartment";
+import useCheckExistingBooking from "@/app/hooks/bookings/useCheckExistingBooking";
 
 const { width, height } = Dimensions.get("window");
 
@@ -30,19 +30,6 @@ const ViewApartment = () => {
   const { apartment, loading, error } = useApartment(String(apartmentId));
   const [currentUserData, setCurrentUserData] = useState<any>(null);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-
-  const formatCurrency = (
-    price: number,
-    locale = "en-US",
-    currency = "PHP"
-  ) => {
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -57,18 +44,27 @@ const ViewApartment = () => {
     fetchUserData();
   }, []);
 
+  const { hasExistingBooking, loading: hasExistingBookingLoading } = useCheckExistingBooking(
+    String(apartmentId)
+  );
+
+  const formatCurrency = (
+    price: number,
+    locale = "en-US",
+    currency = "PHP"
+  ) => {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
+  };
+
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const newIndex = Math.round(event.nativeEvent.contentOffset.x / width);
     setCurrentIndex(newIndex);
   };
-
-  if (loading) return <ActivityIndicator size="large" color="blue" />;
-  if (!apartment)
-    return (
-      <Text style={{ textAlign: "center", marginTop: 20 }}>
-        Apartment not found.
-      </Text>
-    );
 
   const handleDeleteApartment = async (apartmentId: string) => {
     Alert.alert(
@@ -96,10 +92,25 @@ const ViewApartment = () => {
   };
 
   const handleBookApartment = () => {
+    console.log("hasExistingBooking", hasExistingBooking);
+
+    if (hasExistingBooking) {
+      Alert.alert("Booking Error", "You already have an existing booking for this apartment.");
+      return;
+    }
+
     router.push(
       `/(Authenticated)/(bookings)/(bookproperty)/${apartmentId}?isApartment=true` as unknown as RelativePathString
     );
-  }
+  };
+
+  if (loading) return <ActivityIndicator size="large" color="blue" />;
+  if (!apartment)
+    return (
+      <Text style={{ textAlign: "center", marginTop: 20 }}>
+        Apartment not found.
+      </Text>
+    );
 
   return (
     <View style={{ marginBottom: 200 }}>

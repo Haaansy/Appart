@@ -19,7 +19,7 @@ import {
   storeUserDataLocally,
 } from "../Firebase/Services/AuthService";
 import { setInitialUserData } from "../Firebase/Services/DatabaseService";
-import { UserData } from "../types/UserData";
+import UserData from "../types/UserData";
 
 const RegisterScreen = () => {
   const insets = useSafeAreaInsets(); // Get safe area insets

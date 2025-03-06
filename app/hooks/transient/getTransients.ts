@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { collection, query, where, getDocs, orderBy, limit, startAfter } from "firebase/firestore";
 import { db } from "@/app/Firebase/FirebaseConfig";
-import { fetchUserRef } from "../../Firebase/Services/DatabaseService";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const getTransients = (role: string, userId: string) => {
     const [transients, setTransients] = useState<any[]>([]);
@@ -25,7 +23,7 @@ export const getTransients = (role: string, userId: string) => {
             const transientRef = collection(db, "transients");
             let transientQuery =
                 role === "home owner"
-                    ? query(transientRef, where("owner.ownerID", "==", userId)) // Ensure proper query
+                    ? query(transientRef, where("owner.id", "==", userId)) // Ensure proper query
                     : transientRef;
 
             transientQuery = query(transientQuery, orderBy("createdAt", "desc"), limit(LIMIT));
