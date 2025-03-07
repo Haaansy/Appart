@@ -6,32 +6,47 @@ import {
   Text,
   Image,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/assets/styles/colors";
 import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
+import useFetchConversations from "@/app/hooks/inbox/useFetchConversation";
+import UserData from "@/app/types/UserData";
+import ConversationCard from "@/app/components/InboxComponents/ConversationCard";
+import { router } from "expo-router";
+import useHandleConversationPress from "@/app/hooks/inbox/useHandleConversationPress";
 
 const Inbox = () => {
   const insets = useSafeAreaInsets();
-  const [currentUserData, setCurrentUserData] = useState<any>(null);
+  const [currentUserData, setCurrentUserData] = useState<UserData | null>(null);
   const [isLoading, setLoading] = useState<boolean>(true);
+  const { handleConversationPress } = useHandleConversationPress(currentUserData);
 
+  // Fetch user data first
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const userData = await getStoredUserData();
-        setCurrentUserData(userData);
+        if (userData) {
+          setCurrentUserData(userData);
+        }
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
-        setLoading(false); // ✅ Set loading to false
+        setLoading(false);
       }
     };
 
     fetchUserData();
   }, []);
 
-  if (isLoading) {
+  // Fetch conversations only after user data is available
+  const { conversations, loading, error } = useFetchConversations(
+    currentUserData as UserData
+  );
+
+  if (isLoading || loading) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color={Colors.primary} />
@@ -55,11 +70,20 @@ const Inbox = () => {
             <Text style={styles.greetings}>
               Hey, {currentUserData?.displayName || "Guest"}!
             </Text>
-            <Text style={styles.subtext}>Some people wants to message you.</Text>
+            <Text style={styles.subtext}>Some people want to message you.</Text>
           </View>
         </View>
         <View style={{ flex: 1, marginTop: 20 }}>
-            {/* Inbox content goes here */}
+          {/* Inbox content */}
+          {error ? (
+            <Text style={{ color: "red" }}>{error}</Text>
+          ) : (
+            conversations.map((conversation) => (
+              <TouchableOpacity key={conversation.id} style={{ marginVertical: 5}} onPress={()=>handleConversationPress(conversation)}>
+                <ConversationCard conversation={conversation} />
+              </TouchableOpacity>
+            ))
+          )}
         </View>
       </View>
     </>
@@ -110,7 +134,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 20,
     elevation: 10,
-  }
+  },
 });
 
 export default Inbox;

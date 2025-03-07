@@ -2,8 +2,8 @@ import { Timestamp } from "firebase/firestore";
 import UserData from "./UserData";
 
 export default interface Message {
-    id: string;
+    id?: string;
     sender: UserData;
     message: string;
-    createdAt: Timestamp;
+    createdAt?: Timestamp;
 }

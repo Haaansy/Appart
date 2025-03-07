@@ -2,17 +2,22 @@ import { Timestamp } from "firebase/firestore";
 import UserData from "./UserData";
 import Message from "./Message";
 
-interface unreadCounts {
+interface Member {
     user: UserData;
     count: number;
 }
 
 export default interface Conversation {
-    id: string;
-    createdAt: Timestamp;
+    id?: string;
+    createdAt?: Timestamp;
+    updatedAt?: Timestamp;
     lastMessage: string;
-    members: unreadCounts[];
+    lastSender: UserData;
+    members: Member[];
+    memberIds: string[];
     propertyId: string;
-    bookingRef: string;
+    bookingId?: string;
     messages: Message[];
+    type: "Inquiry" | "Booking";
+    inquiryType?: "Apartment" | "Transient"
 }

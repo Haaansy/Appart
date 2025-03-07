@@ -19,9 +19,10 @@ import Colors from "@/assets/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
 import CustomBadge from "@/app/components/CustomBadge";
 import IconButton from "@/app/components/IconButton";
-import { deleteApartment } from "@/app/Firebase/Services/DatabaseService";
+import { createConversation, deleteApartment } from "@/app/Firebase/Services/DatabaseService";
 import { useApartment } from "@/app/hooks/apartment/useApartment";
 import useCheckExistingBooking from "@/app/hooks/bookings/useCheckExistingBooking";
+import Conversation from "@/app/types/Conversation";
 
 const { width, height } = Dimensions.get("window");
 
@@ -103,6 +104,39 @@ const ViewApartment = () => {
       `/(Authenticated)/(bookings)/(bookproperty)/${apartmentId}?isApartment=true` as unknown as RelativePathString
     );
   };
+
+  const handleInquireApartment = async () => {
+    const conversationData: Conversation = {
+      lastMessage: "Started a conversation",
+      members: [
+        {
+          user: currentUserData,
+          count: 0,
+        },
+        {
+          user: apartment.owner,
+          count: 0,
+        },
+      ],
+      propertyId: String(apartmentId),
+      memberIds: [currentUserData.id, apartment.owner.id],
+      messages: [],
+      type: "Inquiry",
+      inquiryType: "Apartment",
+      lastSender: currentUserData,
+    }
+
+    try {
+      const createdConversationId = await createConversation(conversationData);
+      if(createdConversationId) {
+        router.push(
+          `/(Authenticated)/(tabs)/Inbox`
+        );
+      }
+    } catch (error) {
+      console.error("Failed to create conversation:", error);
+    }
+  }
 
   if (loading) return <ActivityIndicator size="large" color="blue" />;
   if (!apartment)
@@ -528,7 +562,7 @@ const ViewApartment = () => {
               <Text style={styles.title}>Actions</Text>
               <View>
                 <IconButton
-                  onPress={() => {}}
+                  onPress={handleInquireApartment}
                   icon={"chatbubbles"}
                   text={"Chat with Owner"}
                   iconColor={Colors.primary}

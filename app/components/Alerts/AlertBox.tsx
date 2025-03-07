@@ -3,7 +3,7 @@ import React from "react";
 import IconButton from "../IconButton";
 import Colors from "@/assets/styles/colors";
 import { Timestamp } from "firebase/firestore";
-import { Alert } from "@/app/types/Alert";
+import Alert from "@/app/types/Alert";
 
 interface AlertBoxProps {
   alert: Alert;
@@ -30,15 +30,21 @@ const AlertBox: React.FC<AlertBoxProps> = ({ alert }) => {
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <View style={{ flexDirection: "row" }}>
           <Image
-            source={{ uri: alert.sender.photoUrl }}
+            source={{
+              uri:
+                alert.sender?.photoUrl ||
+                "https://example.com/default-avatar.png",
+            }}
             style={styles.avatar}
           />
           <View style={{ marginLeft: 15 }}>
-            <Text
-              style={styles.senderName}
-            >{`${alert.sender.firstName} ${alert.sender.lastName}`}</Text>
+            <Text style={styles.senderName}>
+              {alert.sender
+                ? `${alert.sender.firstName} ${alert.sender.lastName}`
+                : "Unknown Sender"}
+            </Text>
             <Text style={styles.senderDisplayName}>
-              @{alert.sender.displayName}
+              {alert.sender ? `@${alert.sender.displayName}` : "@unknown"}
             </Text>
             <Text style={{ width: "80%" }}>{alert.message}</Text>
           </View>
@@ -50,7 +56,7 @@ const AlertBox: React.FC<AlertBoxProps> = ({ alert }) => {
 
       {/* Actions Section */}
       <View>
-        {alert.type == "inquiry" && (
+        {alert.type == "Inquiry" && (
           <View style={{ flexDirection: "row", justifyContent: "center" }}>
             <IconButton
               icon={"checkmark-outline"}
@@ -72,7 +78,7 @@ const AlertBox: React.FC<AlertBoxProps> = ({ alert }) => {
         )}
 
         <Text style={{ alignSelf: "flex-end", marginTop: 5 }}>
-          {formattedDate(alert.createdAt)}
+          {formattedDate(alert.createdAt as Timestamp)}
         </Text>
       </View>
     </View>

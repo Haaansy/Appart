@@ -11,6 +11,8 @@ const AuthenticatedLayout = () => {
       <Stack.Screen name="(apartments)"/>
       <Stack.Screen name="(transients)"/>
       <Stack.Screen name="(bookings)"/>
+      <Stack.Screen name="(profile)"/>
+      <Stack.Screen name="(inbox)"/>
     </Stack>
   );
 };

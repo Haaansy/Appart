@@ -9,15 +9,17 @@ import {
   TouchableOpacity,
 } from "react-native";
 import Colors from "@/assets/styles/colors";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 interface CustomInputWithButtonProps extends TextInputProps {
   label?: string;
-  buttonTitle: string;
+  buttonTitle?: string;
   onButtonPress: () => void;
+  iconName?: keyof typeof Ionicons.glyphMap; // Optional Ionicon name
 }
 
 const CustomInputWithButton = forwardRef<TextInput, CustomInputWithButtonProps>(
-  ({ label, buttonTitle, onButtonPress, value, onChangeText, ...props }, ref) => {
+  ({ label, buttonTitle, onButtonPress, iconName, value, onChangeText, ...props }, ref) => {
     const isFocused = useRef(false);
     const animatedLabel = useRef(new Animated.Value(value ? 1 : 0)).current;
 
@@ -83,7 +85,8 @@ const CustomInputWithButton = forwardRef<TextInput, CustomInputWithButtonProps>(
             {...props}
           />
           <TouchableOpacity style={styles.button} onPress={onButtonPress}>
-            <Text style={styles.buttonText}>{buttonTitle}</Text>
+            {iconName && <Ionicons name={iconName} size={20} color="white"/>}
+            {buttonTitle && <Text style={styles.buttonText}>{buttonTitle}</Text>}
           </TouchableOpacity>
         </View>
       </View>
@@ -123,17 +126,22 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
   },
   button: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.primary,
     paddingHorizontal: 15,
     paddingVertical: 10,
     borderRadius: 10,
     marginLeft: 10,
+    flexWrap: "wrap", // Allows wrapping content inside the button
   },
   buttonText: {
     color: "white",
     fontSize: 14,
     fontWeight: "bold",
+    flexShrink: 1, // Ensures text wraps instead of getting cut off
   },
 });
+
 
 export default CustomInputWithButton;

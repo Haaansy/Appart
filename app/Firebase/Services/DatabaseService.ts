@@ -100,7 +100,7 @@
  * */
 
 
-import { collection, getDocs, getDoc, doc, query, where, getFirestore, updateDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, query, where, getFirestore, updateDoc, setDoc, deleteDoc, serverTimestamp, addDoc } from 'firebase/firestore';
 import { db, auth } from '../FirebaseConfig'; // Make sure to update the import path for your firebase config
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import UserData from '@/app/types/UserData'; // UserData type
@@ -110,8 +110,8 @@ import Transient from '@/app/types/Transient';
 import Booking from '@/app/types/Booking';
 import Alert from '@/app/types/Alert';
 import Conversation from '@/app/types/Conversation';
-
-
+import Message from '@/app/types/Message';
+import { v4 as uuidv4 } from "uuid";
 
 // Fetch all documents from a collection
 export const fetchCollectionData = async (collectionName: string) => {
@@ -492,10 +492,47 @@ export const deleteAlert = async (alertId: string) => {
 export const createConversation = async (conversationData: Conversation) => {
   try {
     const conversationRef = doc(collection(db, "conversations"));
-    await setDoc(conversationRef, conversationData);
+    await setDoc(conversationRef, {
+      ...conversationData,
+      createdAt: serverTimestamp(),
+      id: conversationRef.id,
+      updatedAt: serverTimestamp(),
+    });
     return conversationRef.id;
   } catch (error) {
     console.error("Error creating conversation:", error);
     return null;
   }
 }
+
+export const updateConversation = async (conversationId: string, conversationData: Partial<Conversation>) => {
+  try {
+    const conversationRef = doc(db, "conversations", conversationId);
+    await updateDoc(conversationRef, {
+      ...conversationData,
+      updatedAt: serverTimestamp(),
+    });
+    console.log("Conversation updated successfully");
+  } catch (error) {
+    console.error("Error updating conversation:", error);
+  }
+}
+
+export const createMessage = async (conversationId: string, messageData: Omit<Message, "id" | "createdAt">) => {
+  try {
+    const messagesRef = collection(db, "conversations", conversationId, "messages");
+
+    const newMessageRef = await addDoc(messagesRef, {
+      ...messageData,
+      createdAt: serverTimestamp(), // Firestore timestamp
+    });
+
+    console.log("Message added successfully with ID:", newMessageRef.id);
+  } catch (error) {
+    console.error("Error adding message:", error);
+  }
+};
+
+
+
+

@@ -42,6 +42,8 @@ const Alerts = () => {
   // Get alerts only if user ID is available
   const { alerts, loading } = getAlerts(currentUserData?.id || "");
 
+  console.log(alerts)
+
   // Hook for marking alerts as read
   const { markAlertAsRead, loading: markedAlertLoading, error } =
     useUpdateAlertRead();

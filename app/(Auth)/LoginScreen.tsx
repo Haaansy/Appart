@@ -41,7 +41,7 @@ const LoginScreen = () => {
       Alert.alert('Login Successful');
       // Navigate to the home screen (or another screen) after successful login
       await storeUserDataLocally(user); // Store user data in AsyncStorage
-      router.navigate('/(Authenticated)/(tabs)/Home');
+      router.replace('/(Authenticated)/(tabs)/Home');
     } else {
       Alert.alert('Login Failed', 'Please check your credentials and try again.');
     }

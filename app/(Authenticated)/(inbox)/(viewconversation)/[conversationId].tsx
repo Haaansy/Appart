@@ -1,0 +1,168 @@
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Image,
+    FlatList,
+    KeyboardAvoidingView,
+    Platform,
+  } from "react-native";
+  import React, { useEffect, useState } from "react";
+  import { router, useLocalSearchParams } from "expo-router";
+  import { SafeAreaView } from "react-native-safe-area-context";
+  import Colors from "@/assets/styles/colors";
+  import { Ionicons } from "@expo/vector-icons";
+  import useConversation from "@/app/hooks/inbox/useConversation";
+  import MessageInput from "@/app/components/InboxComponents/MessageInput";
+  import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
+  import useFetchMessages from "@/app/hooks/inbox/useFetchMessages";
+  import SenderBubble from "@/app/components/InboxComponents/SenderBubble";
+  import useSendMessage from "@/app/hooks/inbox/useSendMessage";
+  import ReceiverBubble from "@/app/components/InboxComponents/ReceiverBubble";
+  import UserData from "@/app/types/UserData";
+  
+  const index = () => {
+    const [currentUserData, setCurrentUserData] = useState<UserData | null>(null);
+    const { conversationId } = useLocalSearchParams();
+    const {
+      conversation,
+      loading: conversationLoading,
+      error: conversationError,
+    } = useConversation(String(conversationId));
+    const {
+      messages,
+      loading: messagesLoading,
+      error: messageError,
+    } = useFetchMessages(String(conversationId));
+    const [message, setMessage] = useState("");
+    const { sendMessage, loading } = useSendMessage(
+      String(conversationId),
+      currentUserData
+    );
+  
+    useEffect(() => {
+      const fetchUserData = async () => {
+        try {
+          const userData = await getStoredUserData();
+          if (userData) {
+            setCurrentUserData(userData);
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      };
+  
+      fetchUserData();
+    }, []);
+  
+    const handleSend = async () => {
+      await sendMessage(message);
+      setMessage(""); // Clear input after sending
+    };
+  
+    return (
+      <SafeAreaView style={styles.safeContainer}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.container}
+        >
+          {/* Top Bar */}
+          <View style={styles.topBar}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={24} color={Colors.primaryText} />
+            </TouchableOpacity>
+            <View style={{ flexDirection: "row", marginLeft: 25 }}>
+              {conversation?.members.map((member) => (
+                <Image
+                  key={member.user.id}
+                  source={{ uri: member.user.photoUrl }}
+                  style={styles.membersAvatar}
+                />
+              ))}
+            </View>
+            <View style={{ flexDirection: "row", marginLeft: 15, flex: 1 }}>
+              {conversation?.members.map((member, index) => (
+                <Text key={member.user.id}>{`${member.user.displayName}${
+                  index < conversation.members.length - 1 ? ", " : " "
+                }`}</Text>
+              ))}
+            </View>
+            <TouchableOpacity>
+              <Ionicons
+                name="ellipsis-vertical"
+                size={24}
+                color={Colors.primaryText}
+              />
+            </TouchableOpacity>
+          </View>
+  
+          {/* Messages List */}
+          <View style={styles.messagesContainer}>
+            {!messagesLoading ? (
+              <FlatList
+                data={[...messages].reverse()} // Reverse messages without mutating original array
+                keyExtractor={(item, index) => item.id ?? index.toString()}
+                renderItem={({ item }) =>
+                  item.sender.id === currentUserData?.id ? (
+                    <SenderBubble message={item} />
+                  ) : (
+                    <ReceiverBubble message={item} />
+                  )
+                }
+                inverted
+                contentContainerStyle={{ paddingBottom: 10 }} // Prevents messages from sticking to top
+              />
+            ) : (
+              <Text>Loading...</Text>
+            )}
+          </View>
+  
+          {/* Message Input */}
+          <View style={styles.inputContainer}>
+            <MessageInput
+              value={message}
+              onChangeText={setMessage}
+              onSend={handleSend}
+            />
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
+  };
+  
+  const styles = StyleSheet.create({
+    safeContainer: {
+      flex: 1,
+      backgroundColor: Colors.primaryBackground,
+    },
+    container: {
+      flex: 1,
+      backgroundColor: Colors.primaryBackground,
+    },
+    topBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: 20,
+      backgroundColor: Colors.primaryBackground,
+    },
+    messagesContainer: {
+      flex: 1, // Ensures FlatList takes up all available space
+      paddingHorizontal: 10,
+    },
+    inputContainer: {
+      padding: 10,
+      backgroundColor: Colors.primaryBackground,
+    },
+    membersAvatar: {
+      width: 30,
+      height: 30,
+      borderRadius: 20,
+      backgroundColor: Colors.primary,
+      marginLeft: -10,
+    },
+  });
+  
+  export default index;
+  
