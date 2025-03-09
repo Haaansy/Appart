@@ -1,5 +1,5 @@
 import DateSelector from "@/app/components/DateSelector";
-import { View, Text } from "react-native";
+import { View, Text, KeyboardAvoidingView } from "react-native";
 import { styles } from "../styles/styles";
 import React from "react";
 
@@ -55,7 +55,7 @@ const PageTwo: React.FC<PageProps & { formData: any; updateFormData: any }> = ({
   };
 
   return (
-    <View>
+    <KeyboardAvoidingView>
       <Text style={styles.subtext}>When is your birthday?</Text>
       <DateSelector
         value={birthDate}
@@ -66,7 +66,7 @@ const PageTwo: React.FC<PageProps & { formData: any; updateFormData: any }> = ({
           You must be at least 18 years old.
         </Text>
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 

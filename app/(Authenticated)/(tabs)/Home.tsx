@@ -20,14 +20,19 @@ import ApartmentCards from "@/app/components/PropertyCards/ApartmentCards";
 import { getTransients } from "@/app/hooks/transient/getTransients";
 import TransientCard from "@/app/components/PropertyCards/TransientCard";
 import CustomAddDropdown from "@/app/components/HomeComponents/CustomAddDropdown";
+import UserData from "@/app/types/UserData";
 
-const height = Dimensions.get("window").height;
+interface HomeProps {
+  currentUserData: UserData
+}
 
-const Home = () => {
-  const insets = useSafeAreaInsets();
+const Home: React.FC<HomeProps> = ({
+  currentUserData
+}) => {
+  console.log(currentUserData)
+
   const [isTransient, setIsTransient] = useState(false);
-  const [currentUserData, setCurrentUserData] = useState<any>(null);
-  const [isLoading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
@@ -46,14 +51,23 @@ const Home = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const userData = await getStoredUserData();
+      try {
 
-      if (userData["firstName"] === "") {
-        router.replace("/(Authenticated)/(setup)/(initialsetup)");
-      } else if (userData["displayName"] === "") {
-        router.replace("/(Authenticated)/(setup)/(finishsetup)");
-      } else {
-        setCurrentUserData(userData);
+        if (!currentUserData) {
+          console.log("No user data found");
+          setLoading(false);
+          return;
+        }
+
+        if (currentUserData.firstName === undefined || currentUserData.firstName === "") {
+          router.replace("/(Authenticated)/(setup)/(initialsetup)");
+        } else if (currentUserData.displayName === undefined || currentUserData.displayName === "") {
+          router.replace("/(Authenticated)/(setup)/(finishsetup)");
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
         setLoading(false);
       }
     };
@@ -67,7 +81,7 @@ const Home = () => {
     error: apartmentsError,
     fetchMore: fetchMoreApartments,
     refresh: refreshApartments,
-  } = getApartments(currentUserData?.role || null, currentUserData?.id || null);
+  } = getApartments(currentUserData?.role, String(currentUserData?.id));
 
   const {
     transients,
@@ -75,7 +89,7 @@ const Home = () => {
     error: transientsError,
     fetchMore: fetchMoreTransients,
     refresh: refreshTransients,
-  } = getTransients(currentUserData?.role || null, currentUserData?.id || null);
+  } = getTransients(currentUserData?.role, String(currentUserData?.id));
 
   const handleRefresh = async () => {
     if (isRefreshing) return;
@@ -93,13 +107,18 @@ const Home = () => {
     }
   };
 
-  if(isLoading || !currentUserData || apartmentsLoading || transientsLoading) {
-    return <ActivityIndicator size="large" />;
-  }
-
   const handleSearch = () => {
     // Handle tenant search
   };
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={{ fontSize: 15, marginTop: 5 }}>Fetching User Data</Text>
+      </View>
+    );
+  }
 
   return (
     <>
@@ -107,7 +126,7 @@ const Home = () => {
         source={require("@/assets/images/Vectors/background.png")}
         style={styles.backgroundVector}
       />
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={[styles.container]}>
         <View style={styles.topBar}>
           <Image
             source={require("@/assets/images/Icons/Dark-Icon.png")}
@@ -146,8 +165,13 @@ const Home = () => {
             rightLabel={"Transients"}
           />
         </View>
-        <View style={{ flex: 1, marginTop: 20, marginBottom: height * 0.1 }}>
-          {isTransient ? (
+        <View style={{ flex: 1, marginTop: 20, marginBottom: 100 }}>
+          {loading ? (
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+              <ActivityIndicator size="large" color={Colors.primary} />
+              <Text style={{ fontSize: 15, marginTop: 5 }}> Fetching Properties </Text>
+            </View>
+          ) : isTransient ? (
             <FlatList
               data={transients}
               keyExtractor={(item, index) => `${item.id}_${index}`}
@@ -164,7 +188,14 @@ const Home = () => {
                   }
                 />
               )}
-              ListEmptyComponent={<Text>No transients available.</Text>}
+              ListEmptyComponent={
+                <View style={{ alignItems: "center", justifyContent: "center" }}>
+                  <Image source={require("@/assets/images/AI-Character-V1/confused.png")} style={styles.character}/>
+                  <Text style={{ fontSize: 16, fontWeight: "bold", textAlign: "center"}}> No Transients Found. {'\n'} 
+                    <Text style={{ fontSize: 12, fontWeight: "regular", textAlign: "center"}}> Pull to refresh </Text>
+                  </Text>
+                </View>
+              }
               onEndReached={fetchMoreTransients}
               onEndReachedThreshold={0.1}
               refreshing={isRefreshing}
@@ -192,7 +223,14 @@ const Home = () => {
                   }
                 />
               )}
-              ListEmptyComponent={<Text>No apartments available.</Text>}
+              ListEmptyComponent={
+                <View style={{ alignItems: "center", justifyContent: "center" }}>
+                  <Image source={require("@/assets/images/AI-Character-V1/confused.png")} style={styles.character}/>
+                  <Text style={{ fontSize: 16, fontWeight: "bold", textAlign: "center"}}> No Apartments Found. {'\n'} 
+                    <Text style={{ fontSize: 12, fontWeight: "regular", textAlign: "center"}}> Pull to refresh </Text>
+                  </Text>
+                </View>
+              }
               onEndReached={fetchMoreApartments}
               onEndReachedThreshold={0.1}
               refreshing={isRefreshing}
@@ -200,8 +238,8 @@ const Home = () => {
               ListFooterComponent={
                 apartmentsLoading ? <ActivityIndicator size="small" /> : null
               }
-              contentContainerStyle={{ marginBottom: 25 }}
-              style={{ marginBottom: 25 }}
+              contentContainerStyle={{ flexGrow: 1 }}
+              style={{ flex: 1 }}
             />
           )}
         </View>
@@ -249,6 +287,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  character: {
+    width: "50%",
+    height: "50%",
+    resizeMode: "contain",
+    marginBottom: 10
+  }
 });
 
 export default Home;

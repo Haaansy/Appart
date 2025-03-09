@@ -1,14 +1,9 @@
 import { Timestamp } from "firebase/firestore";
-
-interface Owner {
-    firstName?: string;
-    lastName?: string;
-    rating?: number;
-    ownerID?: string;
-}
+import UserData from "./UserData";
+import { BookingDate } from "./BookedDates";
 
 export default interface Transient {
-    owner?: Owner;
+    owner?: UserData;
     images: string[];
     title: string;
     status: string;
@@ -27,5 +22,5 @@ export default interface Transient {
     requirements: string[];
     createdAt: number;
     id?: string;
-    bookedDates: Timestamp[];
+    bookedDates: BookingDate[];
 }

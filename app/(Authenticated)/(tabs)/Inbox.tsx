@@ -7,46 +7,32 @@ import {
   Image,
   ActivityIndicator,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/assets/styles/colors";
 import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import useFetchConversations from "@/app/hooks/inbox/useFetchConversation";
 import UserData from "@/app/types/UserData";
 import ConversationCard from "@/app/components/InboxComponents/ConversationCard";
-import { router } from "expo-router";
 import useHandleConversationPress from "@/app/hooks/inbox/useHandleConversationPress";
+import Conversation from "@/app/types/Conversation";
+import { FlatList } from "react-native-gesture-handler";
 
-const Inbox = () => {
-  const insets = useSafeAreaInsets();
-  const [currentUserData, setCurrentUserData] = useState<UserData | null>(null);
-  const [isLoading, setLoading] = useState<boolean>(true);
-  const { handleConversationPress } = useHandleConversationPress(currentUserData);
+interface InboxProps {
+  conversations: Conversation[];
+  loading: boolean;
+  currentUserData: UserData;
+}
 
-  // Fetch user data first
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userData = await getStoredUserData();
-        if (userData) {
-          setCurrentUserData(userData);
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+const Inbox: React.FC<InboxProps> = ({
+  conversations,
+  loading,
+  currentUserData,
+}) => {
+  const { handleConversationPress } =
+    useHandleConversationPress(currentUserData);
 
-    fetchUserData();
-  }, []);
-
-  // Fetch conversations only after user data is available
-  const { conversations, loading, error } = useFetchConversations(
-    currentUserData as UserData
-  );
-
-  if (isLoading || loading) {
+  if (loading) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color={Colors.primary} />
@@ -60,7 +46,7 @@ const Inbox = () => {
         source={require("@/assets/images/Vectors/background.png")}
         style={styles.backgroundVector}
       />
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={[styles.container]}>
         <View style={styles.topBar}>
           <Image
             source={require("@/assets/images/Icons/Dark-Icon.png")}
@@ -73,18 +59,34 @@ const Inbox = () => {
             <Text style={styles.subtext}>Some people want to message you.</Text>
           </View>
         </View>
-        <View style={{ flex: 1, marginTop: 20 }}>
-          {/* Inbox content */}
-          {error ? (
-            <Text style={{ color: "red" }}>{error}</Text>
-          ) : (
-            conversations.map((conversation) => (
-              <TouchableOpacity key={conversation.id} style={{ marginVertical: 5}} onPress={()=>handleConversationPress(conversation)}>
-                <ConversationCard conversation={conversation} />
+          <FlatList
+          contentContainerStyle={{ paddingBottom: 100, flexGrow: 1 }}
+            data={conversations}
+            keyExtractor={(item) => item.id as string}
+            ListEmptyComponent={
+              <View style={{ alignItems: "center", justifyContent: "center", backgroundColor: Colors.primaryBackground, padding: 20, borderRadius: 15, elevation: 10 }}>
+                <Image
+                  source={require("@/assets/images/AI-Character-V1/reading-phone.png")}
+                  style={styles.character}
+                />
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  {" "}
+                  No Messages Found. {"\n"}
+                </Text>
+              </View>
+            }
+            renderItem={({ item }) => (
+              <TouchableOpacity onPress={() => handleConversationPress(item)}>
+                <ConversationCard conversation={item} />
               </TouchableOpacity>
-            ))
-          )}
-        </View>
+            )}
+          />
       </View>
     </>
   );
@@ -134,6 +136,12 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 20,
     elevation: 10,
+  },
+  character: {
+    width: "50%",
+    height: "50%",
+    resizeMode: "contain",
+    marginBottom: 10,
   },
 });
 

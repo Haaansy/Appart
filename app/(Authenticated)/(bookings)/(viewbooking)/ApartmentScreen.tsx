@@ -1,4 +1,11 @@
-import { View, Text, StyleSheet, ScrollView, Image } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  ActivityIndicator,
+} from "react-native";
 import React, { useEffect, useState } from "react";
 import Apartment from "@/app/types/Apartment";
 import PropertyCard from "@/app/components/BookingComponents/PropertyCard";
@@ -13,6 +20,8 @@ import IconButton from "@/app/components/IconButton";
 import UserData from "@/app/types/UserData";
 import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import {
+  createConversation,
+  fetchUserDataFromFirestore,
   updateApartment,
   updateBooking,
 } from "@/app/Firebase/Services/DatabaseService";
@@ -21,6 +30,7 @@ import useSendAlerts from "@/app/hooks/alerts/useSendAlerts";
 import Alert from "@/app/types/Alert";
 import Tenant from "@/app/types/Tenant";
 import EvictionPopup from "@/app/components/BookingComponents/EvictionPopup";
+import { checkExistingConversationWithTenants } from "@/app/hooks/inbox/useCheckExistingConversationWithTenants";
 
 interface ApartmentProps {
   apartment: Apartment;
@@ -31,9 +41,10 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
   const [currentUserData, setCurrentUserData] = useState<UserData>(
     {} as UserData
   );
+  const [ownerData, setOwnerData] = useState<UserData>({} as UserData);
   const [tenantEvictionModalVisible, setTenantEvictionModalVisible] =
     useState<boolean>(false);
-  const [ bookingData, setBookingData ] = useState<Booking>({} as Booking);
+  const [bookingData, setBookingData] = useState<Booking>({} as Booking);
   const [loading, setLoading] = useState<boolean>(true);
   const {
     sendAlerts,
@@ -44,24 +55,82 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
 
   const handleViewingApproval = async () => {
     try {
-      const updatedData = await updateBooking(String(booking.id), {
-        ...booking,
-        status: "Viewing Confirmed",
-      });
+      setLoading(true);
+      
+      const existingConversation = await checkExistingConversationWithTenants(
+        String(apartment.id),
+        booking.tenants.map((tenant) => tenant.user),
+        ownerData,
+        currentUserData
+      );
+
       const alertData: Alert = {
         message: "Your viewing appointment has been approved.",
-        type: "Booking", // Default value, change if needed
+        type: "Booking",
         bookingType: "Apartment",
         bookingId: String(booking.id),
         propertyId: String(apartment.id),
         isRead: false,
-        sender: currentUserData,
+        senderId: currentUserData.id as string,
         createdAt: Timestamp.now(),
       };
 
+      await updateApartment(String(apartment.id), {
+        ...apartment,
+        viewingDates: [
+          ...apartment.viewingDates,
+          {
+            bookingId: String(booking.id),
+            viewingDate: booking.viewingDate,
+          },
+        ]
+      });
+
       await sendAlerts(booking.tenants, alertData);
 
-      router.replace(`/(Authenticated)/(tabs)/Bookings`);
+      if (!existingConversation) {
+        const createdConversation = await createConversation({
+          members: [
+            ...booking.tenants.map((tenant) => ({
+              user: tenant.user,
+              count: 0,
+            })),
+            {
+              user: currentUserData,
+              count: 0,
+            },
+          ],
+          propertyId: String(apartment.id),
+          bookingId: String(booking.id),
+          type: "Booking",
+          lastMessage: "Started a conversation",
+          lastSender: currentUserData,
+        });
+        setLoading(false);
+        if (createdConversation) {
+          
+          await updateBooking(String(booking.id), {
+            ...booking,
+            status: "Viewing Confirmed",
+            conversationId: createdConversation.id,
+          });
+
+          router.replace(
+            `/(Authenticated)/(inbox)/(viewconversation)/${createdConversation?.id}`
+          );
+          return;
+        }
+      }
+
+      await updateBooking(String(booking.id), {
+        ...booking,
+        status: "Viewing Confirmed",
+        conversationId: existingConversation?.id,
+      });
+
+      router.replace(
+        `/(Authenticated)/(inbox)/(viewconversation)/${existingConversation?.id}`
+      );
     } catch (error) {
       console.error("Error approving viewing:", error);
     }
@@ -69,14 +138,21 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
 
   const handleBookingApproval = async () => {
     try {
-      const updatedData = await updateBooking(String(booking.id), {
+      await updateBooking(String(booking.id), {
         ...booking,
         status: "Booking Confirmed",
       });
 
-      const updatedApartment = await updateApartment(String(apartment.id), {
+      await updateApartment(String(apartment.id), {
         ...apartment,
-        bookedDates: [...booking.bookedDate, ...(booking.viewingDate ? [booking.viewingDate] : [])],
+        bookedDates: [
+          ...apartment.bookedDates,
+          {
+            bookingId: String(booking.id),
+            bookedDates: booking.bookedDate,
+          },
+        ],
+        status: "Unavailable"
       });
 
       const alertData: Alert = {
@@ -86,7 +162,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
         bookingId: String(booking.id),
         propertyId: String(apartment.id),
         isRead: false,
-        sender: currentUserData,
+        senderId: currentUserData.id as string,
         createdAt: Timestamp.now(),
       };
 
@@ -123,6 +199,16 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
       }
     };
 
+    const fetchOwnerData = async () => {
+      try {
+        const ownerData = await fetchUserDataFromFirestore(booking.owner);
+        setOwnerData(ownerData as UserData);
+      } catch (error) {
+        console.error("Error fetching owner data:", error);
+      }
+    }
+
+    fetchOwnerData();
     fetchUserData();
   }, []);
 
@@ -135,15 +221,12 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
   }
 
   const handleEviction = async (tenants: Tenant[]) => {
-    setBookingData((prevData) => {
-      const updatedData = {
-        ...prevData,
-        tenants: tenants, // Ensure it's an array
-      };
-      return updatedData;
-    });
+    setBookingData((prevData) => ({
+      ...prevData,
+      tenants: tenants,
+    }));
 
-    const updatedBooking = await updateBooking(String(booking.id), {
+    await updateBooking(String(booking.id), {
       ...booking,
       tenants: tenants,
     });

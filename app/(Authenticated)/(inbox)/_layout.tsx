@@ -5,7 +5,7 @@ import { Stack } from 'expo-router';
 
 const InboxLayout = () => {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false}}>
       <Stack.Screen name="(viewconversation)"/>
     </Stack>
   );

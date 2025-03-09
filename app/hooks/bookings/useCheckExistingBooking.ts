@@ -11,7 +11,6 @@ const useCheckExistingBooking = (propertyId: string) => {
 
   useEffect(() => {
     const checkBooking = async () => {
-      console.log("propertyId:", propertyId);
 
       const userData: UserData = await getStoredUserData();
       if (!userData || !propertyId) {
@@ -24,7 +23,7 @@ const useCheckExistingBooking = (propertyId: string) => {
         const q = query(
           bookingsRef,
           where("propertyId", "==", propertyId),
-          where("status", "in", ["Booked", "Pending Invitation"]) // ✅ Active bookings
+          where("status", "in", ["Booked", "Pending Invitation", "Booking Confirmed", "Viewing Confirmed"]) // ✅ Active bookings
         );
 
         const snapshot = await getDocs(q);

@@ -26,7 +26,7 @@ const useSendAlerts = () => {
 
     try {
       const alertPromises = tenants.map((tenant) => 
-        createAlert({ ...alertData, receiver: tenant.user})
+        createAlert({ ...alertData, receiverId: tenant.user.id })
       );
 
       await Promise.all(alertPromises);

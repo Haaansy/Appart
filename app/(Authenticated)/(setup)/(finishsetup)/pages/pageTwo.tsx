@@ -10,15 +10,13 @@ interface PageProps {
   onValidation: (isValid: boolean) => void;
 }
 
-const DEFAULT_AVATAR = "https://example.com/default-avatar.png"; // Replace with actual default URL
-
 const PageTwo: React.FC<PageProps & { formData: any; updateFormData: any }> = ({
   onValidation,
   formData,
   updateFormData,
 }) => {
   const [avatar, setAvatar] = useState<string>(
-    formData.photoUrl || DEFAULT_AVATAR
+    formData.photoUrl
   );
 
   // Open Image Picker
@@ -31,9 +29,9 @@ const PageTwo: React.FC<PageProps & { formData: any; updateFormData: any }> = ({
 
     if (!result.canceled) {
       const imageUri = result.assets[0].uri;
-      const uploadedAvatar = (await uploadAvatar(imageUri)) || DEFAULT_AVATAR; // Upload to Firebase Storage
+      const uploadedAvatar = (await uploadAvatar(imageUri)); // Upload to Firebase Storage
       updateFormData("photoUrl", uploadedAvatar);
-      setAvatar(uploadedAvatar || DEFAULT_AVATAR);
+      setAvatar(uploadedAvatar as string);
     }
   };
 
@@ -52,7 +50,7 @@ const PageTwo: React.FC<PageProps & { formData: any; updateFormData: any }> = ({
             height: 100,
             borderRadius: 50,
             borderWidth: 2,
-            borderColor: "#ccc",
+            borderColor: "gray",
           }}
         />
         {/* Upload Icon in Center */}

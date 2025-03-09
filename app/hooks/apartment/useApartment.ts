@@ -1,6 +1,7 @@
 import { doc, getDoc } from "firebase/firestore";
 import { useState, useEffect } from "react";
 import { db } from "../../Firebase/FirebaseConfig";
+import Apartment from "@/app/types/Apartment";
 
 export const useApartment = (apartmentId: string) => {
     const [apartment, setApartment] = useState<any | null>(null);

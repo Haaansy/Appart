@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   ImageBackground,
   StyleSheet,
@@ -9,57 +9,61 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler"; // Import GestureHandlerRootView
+import { Swipeable } from "react-native-gesture-handler"; // Correct import for Swipeable from gesture-handler
 import Colors from "@/assets/styles/colors";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import AlertBox from "@/app/components/Alerts/AlertBox";
 import UserData from "@/app/types/UserData";
-import getAlerts from "@/app/hooks/alerts/getAlerts";
 import Alert from "@/app/types/Alert";
 import useUpdateAlertRead from "@/app/hooks/alerts/useUpdateAlertRead";
 import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { deleteAlert } from "@/app/Firebase/Services/DatabaseService";
 
-const Alerts = () => {
-  const insets = useSafeAreaInsets();
-  const [currentUserData, setCurrentUserData] = useState<UserData>(
-    {} as UserData
-  );
+interface AlertsProps {
+  alerts: Alert[];
+  loading: boolean;
+  currentUserData: UserData;
+}
 
-  // Fetch user data on component mount
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userData = await getStoredUserData();
-        setCurrentUserData(userData);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
-
-  // Get alerts only if user ID is available
-  const { alerts, loading } = getAlerts(currentUserData?.id || "");
-
-  console.log(alerts)
-
+const Alerts: React.FC<AlertsProps> = ({
+  alerts,
+  loading,
+  currentUserData,
+}) => {
   // Hook for marking alerts as read
-  const { markAlertAsRead, loading: markedAlertLoading, error } =
-    useUpdateAlertRead();
+  const {
+    markAlertAsRead,
+    loading: markedAlertLoading,
+    error,
+  } = useUpdateAlertRead();
 
   // Handle alert press
   const handleAlertPress = async (alert: Alert) => {
     await markAlertAsRead(alert);
 
     if (alert.type === "Booking") {
-      if(alert.bookingType === "Apartment") {
-        router.push(`/(Authenticated)/(bookings)/(viewbooking)/${alert.bookingId}?isApartment=true`);
+      if (alert.bookingType === "Apartment") {
+        router.push(
+          `/(Authenticated)/(bookings)/(viewbooking)/${alert.bookingId}?isApartment=true`
+        );
       } else {
-        router.push(`/(Authenticated)/(bookings)/(viewbooking)/${alert.bookingId}?isApartment=false`);
+        router.push(
+          `/(Authenticated)/(bookings)/(viewbooking)/${alert.bookingId}?isApartment=false`
+        );
       }
     } else {
       // Navigate to conversation screen
+    }
+  };
+
+  // Blank function for deleting alert
+  const handleDeleteAlert = async (alertId: string) => {
+    try {
+      // Delete alert
+      await deleteAlert(alertId);
+    } catch (error) {
+      console.error("Error deleting alert: ", error);
     }
   };
 
@@ -72,12 +76,12 @@ const Alerts = () => {
   }
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <ImageBackground
         source={require("@/assets/images/Vectors/background.png")}
         style={styles.backgroundVector}
       />
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={[styles.container]}>
         <View style={styles.topBar}>
           <Image
             source={require("@/assets/images/Icons/Dark-Icon.png")}
@@ -93,18 +97,62 @@ const Alerts = () => {
         <View style={{ flex: 1, marginTop: 20 }}>
           <View style={styles.form}>
             <FlatList
+              contentContainerStyle={{ flexGrow: 1 }}
               data={alerts}
               keyExtractor={(item) => item.id ?? Math.random().toString()}
+              ListEmptyComponent={
+                <View
+                  style={{ alignItems: "center", justifyContent: "center" }}
+                >
+                  <Image
+                    source={require("@/assets/images/AI-Character-V1/alert.png")}
+                    style={styles.character}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      textAlign: "center",
+                    }}
+                  >
+                    {" "}
+                    No Alerts Found. {"\n"}
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: "regular",
+                        textAlign: "center",
+                      }}
+                    >
+                      {" "}
+                      Stay Updated{" "}
+                    </Text>
+                  </Text>
+                </View>
+              }
               renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => handleAlertPress(item)}>
-                  <AlertBox alert={item} />
-                </TouchableOpacity>
+                <Swipeable
+                  renderRightActions={() => (
+                    <View style={styles.deleteButtonContainer}>
+                      <TouchableOpacity
+                        style={styles.deleteButton}
+                        onPress={() => handleDeleteAlert(String(item.id))}
+                      >
+                        <Ionicons name="trash" style={styles.deleteIcon} />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                >
+                  <TouchableOpacity onPress={() => handleAlertPress(item)}>
+                    <AlertBox alert={item} />
+                  </TouchableOpacity>
+                </Swipeable>
               )}
             />
           </View>
         </View>
       </View>
-    </>
+    </GestureHandlerRootView>
   );
 };
 
@@ -154,6 +202,30 @@ const styles = StyleSheet.create({
     padding: 20,
     elevation: 10,
   },
+  deleteButtonContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    width: 80,
+    height: "100%",
+    backgroundColor: "red",
+  },
+  deleteButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    height: "100%",
+  },
+  deleteIcon: {
+    width: 24,
+    height: 24,
+    color: "white",
+  },
+  character: {
+    width: "50%",
+    height: "50%",
+    resizeMode: "cover",
+    marginBottom: 10
+  }
 });
 
 export default Alerts;

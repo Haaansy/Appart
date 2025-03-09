@@ -14,10 +14,9 @@ export default interface Conversation {
     lastMessage: string;
     lastSender: UserData;
     members: Member[];
-    memberIds: string[];
+    memberIds?: string[];
     propertyId: string;
     bookingId?: string;
-    messages: Message[];
     type: "Inquiry" | "Booking";
     inquiryType?: "Apartment" | "Transient"
 }

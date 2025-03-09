@@ -49,20 +49,9 @@ const ConversationCard: React.FC<ConversationCardProps> = ({ conversation }) => 
     return () => clearInterval(interval);
   }, [conversation.updatedAt]);
 
-  // ✅ Debug log to check if `currentUserData` is available
-  useEffect(() => {
-    console.log("Current User Data:", currentUserData);
-  }, [currentUserData]);
-
-  // ✅ Ensure `currentUserData` is not null before accessing members
   const currentUserMember = currentUserData
     ? conversation.members.find((member) => member.user.id === currentUserData.id)
     : null;
-
-  // ✅ Debug log to check members
-  useEffect(() => {
-    console.log("Conversation Members:", conversation.members);
-  }, [conversation]);
 
   return (
     <View style={styles.container}>

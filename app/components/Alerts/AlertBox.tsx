@@ -1,15 +1,35 @@
 import { View, Text, StyleSheet, Image } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import IconButton from "../IconButton";
 import Colors from "@/assets/styles/colors";
 import { Timestamp } from "firebase/firestore";
 import Alert from "@/app/types/Alert";
+import UserData from "@/app/types/UserData";
+import { fetchUserDataFromFirestore } from "@/app/Firebase/Services/DatabaseService";
 
 interface AlertBoxProps {
   alert: Alert;
 }
 
 const AlertBox: React.FC<AlertBoxProps> = ({ alert }) => {
+  const [ senderData, setSenderData ] = useState<UserData | null>(null);
+
+  useEffect(() => {
+    try {
+      const fetchSenderData = async () => {
+        const fetchedSenderData = await fetchUserDataFromFirestore(alert.senderId);
+
+        if(fetchedSenderData) {
+          setSenderData(fetchedSenderData);
+        }
+      }
+
+      fetchSenderData();
+    } catch (error) {
+      console.error("Error fetching sender data: ", error);
+    }
+  }, []);
+
   const formattedDate = (createdAt?: Timestamp | Date) => {
     if (!createdAt) return "N/A"; // Handle undefined case
 
@@ -32,21 +52,21 @@ const AlertBox: React.FC<AlertBoxProps> = ({ alert }) => {
           <Image
             source={{
               uri:
-                alert.sender?.photoUrl ||
+                senderData?.photoUrl ||
                 "https://example.com/default-avatar.png",
             }}
             style={styles.avatar}
           />
           <View style={{ marginLeft: 15 }}>
             <Text style={styles.senderName}>
-              {alert.sender
-                ? `${alert.sender.firstName} ${alert.sender.lastName}`
+              {alert.senderId
+                ? `${senderData?.firstName} ${senderData?.lastName}`
                 : "Unknown Sender"}
             </Text>
             <Text style={styles.senderDisplayName}>
-              {alert.sender ? `@${alert.sender.displayName}` : "@unknown"}
+              {alert.senderId ? `@${senderData?.displayName}` : "@unknown"}
             </Text>
-            <Text style={{ width: "80%" }}>{alert.message}</Text>
+            <Text style={{ width: "70%" }}>{alert.message}</Text>
           </View>
         </View>
         <View

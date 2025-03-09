@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, Query } from "firebase/firestore";
 import { db } from "@/app/Firebase/FirebaseConfig"; // Adjust import as needed
+import { getStoredUserData } from "@/app/Firebase/Services/AuthService"; // Import getStoredUserData
+import UserData from "@/app/types/UserData";
 
-const useFetchBookings = (status: string, type: "Apartment" | "Transient") => {
+const useFetchBookings = (status: string, type: "Apartment" | "Transient" | "home owner") => {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -13,15 +15,43 @@ const useFetchBookings = (status: string, type: "Apartment" | "Transient") => {
       setError(null);
 
       try {
+        console.log("Fetching current user data...");
+        const currentUser: UserData = await getStoredUserData(); // Fetch current user data
+        console.log("Current user data:", currentUser);
+
         const bookingsRef = collection(db, "bookings");
-        const q = query(bookingsRef, where("status", "==", status), where("type", "==", type));
+        let q;
+
+        if (currentUser.role === "home owner") {
+          console.log("User is a home owner. Fetching bookings for owner:", currentUser.id);
+          q = query(
+            bookingsRef,
+            where("status", "==", status),
+            where("type", "==", type),
+            where("owner", "==", currentUser.id) // Filter by owner
+          );
+        } else if (currentUser.role === "tenant") {
+          console.log("User is a tenant. Fetching bookings for tenant:", currentUser.id);
+          q = query(
+            bookingsRef,
+            where("status", "==", status),
+            where("type", "==", type),
+            where("tenantIds", "array-contains", currentUser.id) // Filter by tenantIds
+          );
+        } else {
+          throw new Error("Invalid user role");
+        }
+
+        console.log("Executing query...");
         const querySnapshot = await getDocs(q);
+        console.log("Query executed. Number of bookings fetched:", querySnapshot.size);
 
         const fetchedBookings = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
 
+        console.log("Fetched bookings:", fetchedBookings);
         setBookings(fetchedBookings);
       } catch (err) {
         setError("Failed to fetch bookings.");

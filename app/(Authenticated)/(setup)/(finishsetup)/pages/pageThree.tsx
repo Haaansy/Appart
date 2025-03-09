@@ -5,7 +5,6 @@ import { View, TouchableOpacity, Text, Image } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { styles } from "../styles/styles";
 
-const DEFAULT_COVER = "https://example.com/default-cover.png"; // Replace with actual default cover URL
 interface PageProps {
   onValidation: (isValid: boolean) => void;
 }
@@ -14,7 +13,7 @@ const PageThree: React.FC<
   PageProps & { formData: any; updateFormData: any }
 > = ({ formData, updateFormData, onValidation }) => {
   const [cover, setCover] = useState<string>(
-    formData.coverUrl || DEFAULT_COVER
+    formData.coverUrl
   );
 
   // Open Image Picker
@@ -28,9 +27,9 @@ const PageThree: React.FC<
 
     if (!result.canceled) {
       const imageUri = result.assets[0].uri;
-      const uploadedCover = (await uploadCover(imageUri)) || DEFAULT_COVER; // Upload to Firebase Storage
+      const uploadedCover = (await uploadCover(imageUri))
       updateFormData("coverUrl", uploadedCover);
-      setCover(uploadedCover);
+      setCover(uploadedCover as string);
     }
   };
 
@@ -43,13 +42,14 @@ const PageThree: React.FC<
         style={{ position: "relative", marginVertical: 25 }}
       >
         <Image
-          source={cover ? { uri: cover } : { uri: DEFAULT_COVER }}
+          source={{ uri: cover }}
           style={{
             width: 250,
             height: 150,
             borderRadius: 10,
             borderWidth: 2,
             borderColor: "#ccc",
+            backgroundColor: "gray"
           }}
         />
         {/* Upload Icon in Center */}

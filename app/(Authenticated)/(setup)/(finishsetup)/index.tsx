@@ -3,16 +3,13 @@ import { updateUserData } from "@/app/Firebase/Services/DatabaseService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Animated, ImageBackground, View, Image, Text } from "react-native";
+import { Animated, ImageBackground, View, Image, Text, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "react-native/Libraries/NewAppScreen";
 import { styles } from "./styles/styles";
 import PageOne from "./pages/pageOne";
 import PageTwo from "./pages/pageTwo";
 import PageThree from "./pages/pageThree";
-
-const DEFAULT_AVATAR = "https://example.com/default-avatar.png"; // Replace with actual default URL
-const DEFAULT_COVER = "https://example.com/default-cover.png"; // Replace with actual default cover URL
+import Colors from "@/assets/styles/colors";
 
 // Pages array with components
 const pages = [PageOne, PageTwo, PageThree];
@@ -24,9 +21,10 @@ export default function MultiStepForm() {
   const fadeAnim = new Animated.Value(1);
   const [formData, setFormData] = useState({
     displayName: "",
-    photoUrl: DEFAULT_AVATAR,
-    coverUrl: DEFAULT_AVATAR,
+    photoUrl: "",
+    coverUrl: "",
   });
+  const [loading, setLoading] = useState(false);
 
   // Function to update form data
   const updateFormData = (key: string, value: string) => {
@@ -50,11 +48,9 @@ export default function MultiStepForm() {
       // Ensure the latest formData is used
       const updatedUser = {
         displayName: formData.displayName,
-        photoUrl: formData.photoUrl, // Ensure this is updated
+        photoUrl: formData.photoUrl,
         coverUrl: formData.coverUrl,
       };
-
-      console.log("Final Updated User Data:", updatedUser);
 
       if (step < pages.length - 1) {
         Animated.timing(fadeAnim, {
@@ -71,7 +67,9 @@ export default function MultiStepForm() {
           JSON.stringify({ ...user, ...updatedUser })
         );
       } else {
+        setLoading(true);
         await updateUserData(user.id, updatedUser);
+        setLoading(false);
         router.push("/(Authenticated)/(tabs)/Home");
       }
     } catch (error) {
@@ -80,6 +78,14 @@ export default function MultiStepForm() {
   };
 
   const CurrentPage = pages[step]; // Get current page component
+
+  if(loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <>
@@ -130,28 +136,6 @@ export default function MultiStepForm() {
                 : { backgroundColor: Colors.primary },
             ]}
           />
-
-          {/* "Skip for now" for PageTwo and PageThree */}
-          {(step === 1 || step === 2) && (
-            <Text
-              onPress={() => {
-                if (step === 1) {
-                  updateFormData("photoUrl", DEFAULT_AVATAR);
-                } else if (step === 2) {
-                  updateFormData("coverUrl", DEFAULT_COVER);
-                }
-                handleNext(); // Move to next step after skipping
-              }}
-              style={{
-                textAlign: "center",
-                color: "#007AFF",
-                textDecorationLine: "underline",
-                marginVertical: 10,
-              }}
-            >
-              Skip for now
-            </Text>
-          )}
         </View>
       </View>
     </>

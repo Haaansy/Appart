@@ -10,7 +10,7 @@ export default interface Alert {
     conversationId?: string;
     propertyId: string;
     isRead: boolean;
-    sender: UserData;
-    receiver?: UserData;
+    senderId: string;
+    receiverId?: string;
     createdAt: Timestamp | FieldValue;
 }

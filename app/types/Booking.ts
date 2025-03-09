@@ -9,6 +9,10 @@ export default interface Booking {
     bookedDate: Timestamp[];
     leaseDuration: number;
     tenants: Tenant[];
+    tenantIds?: string[];
     viewingDate?: Timestamp;
-    createdAt: Timestamp | FieldValue;
+    owner: string;
+    createdAt?: Timestamp | FieldValue;
+    conversationId?: string;
+    declinedReason?: string;
 }

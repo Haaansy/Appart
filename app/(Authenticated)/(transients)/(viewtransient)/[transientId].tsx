@@ -20,8 +20,13 @@ import { Ionicons } from "@expo/vector-icons";
 import CustomBadge from "@/app/components/CustomBadge";
 import IconButton from "@/app/components/IconButton";
 import { useTransient } from "@/app/hooks/transient/useTransient";
-import { deleteTransient } from "@/app/Firebase/Services/DatabaseService";
+import {
+  createConversation,
+  deleteTransient,
+} from "@/app/Firebase/Services/DatabaseService";
 import useCheckExistingBooking from "@/app/hooks/bookings/useCheckExistingBooking";
+import { checkExistingConversation } from "@/app/hooks/inbox/useCheckExistingConversation";
+import Conversation from "@/app/types/Conversation";
 
 const { width, height } = Dimensions.get("window");
 
@@ -57,9 +62,8 @@ const ViewApartment = () => {
     fetchUserData();
   }, []);
 
-  const { hasExistingBooking, loading: hasExistingBookingLoading } = useCheckExistingBooking(
-    String(transientId)
-  );
+  const { hasExistingBooking, loading: hasExistingBookingLoading } =
+    useCheckExistingBooking(String(transientId));
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const newIndex = Math.round(event.nativeEvent.contentOffset.x / width);
@@ -98,24 +102,84 @@ const ViewApartment = () => {
       ]
     );
   };
-  
+
   const handleBookTransient = () => {
-      console.log("hasExistingBooking", hasExistingBooking);
-  
-      if (hasExistingBooking) {
-        Alert.alert("Booking Error", "You already have an existing booking for this transient.");
+    console.log("hasExistingBooking", hasExistingBooking);
+
+    if (hasExistingBooking) {
+      Alert.alert(
+        "Booking Error",
+        "You already have an existing booking for this transient."
+      );
+      return;
+    }
+
+    router.push(
+      `/(Authenticated)/(bookings)/(bookproperty)/${transientId}?isApartment=false` as unknown as RelativePathString
+    );
+  };
+
+  const handleInquireTransient = async () => {
+    try {
+      const existingConversation = await checkExistingConversation(
+        String(transientId),
+        currentUserData,
+        transient.owner
+      );
+
+      if (existingConversation) {
+        console.log(
+          "[DEBUG] Existing conversation found:",
+          existingConversation.id
+        );
+        router.push(`/(Authenticated)/(tabs)/Inbox`);
         return;
       }
-  
-      router.push(
-        `/(Authenticated)/(bookings)/(bookproperty)/${transientId}?isApartment=false` as unknown as RelativePathString
-      );
-    };
+
+      console.log("[DEBUG] No existing conversation. Creating a new one...");
+
+      const conversationData: Conversation = {
+        lastMessage: "Started a conversation",
+        members: [
+          { user: currentUserData, count: 0 },
+          { user: transient.owner, count: 0 },
+        ],
+        propertyId: String(transientId),
+        memberIds: [currentUserData.id, transient.owner.id],
+        type: "Inquiry",
+        inquiryType: "Transient",
+        lastSender: currentUserData,
+      };
+
+      const createdConversationId = await createConversation(conversationData);
+      if (createdConversationId) {
+        console.log("[DEBUG] New conversation created:", createdConversationId);
+        router.push(`/(Authenticated)/(tabs)/Inbox`);
+      }
+    } catch (error) {
+      console.error("[ERROR] Failed to create or check conversation:", error);
+    }
+  };
+
+  const handleImagePress = (imageUri: string) => {
+    console.log(
+      "Navigation to: ",
+      `/(Authenticated)/(utilities)/(image-viewer)/${encodeURIComponent(
+        imageUri
+      )}` as unknown as RelativePathString
+    );
+    router.push(
+      `/(Authenticated)/(utilities)/(image-viewer)/${encodeURIComponent(
+        imageUri
+      )}` as unknown as RelativePathString
+    );
+  };
 
   return (
     <View style={{ marginBottom: 200 }}>
       {/* ✅ Scrollable Image Gallery with Centered Indicator */}
       <FlatList
+        contentContainerStyle={{ height: height }}
         data={transient.images || []}
         horizontal
         keyExtractor={(_, index: number) => index.toString()}
@@ -124,14 +188,16 @@ const ViewApartment = () => {
         onMomentumScrollEnd={handleScroll}
         renderItem={({ item }) => (
           <View>
-            <Image
-              source={{ uri: item }}
-              style={{
-                width: width,
-                height: height * 0.4,
-                resizeMode: "cover",
-              }}
-            />
+            <TouchableOpacity onPress={() => handleImagePress(item)}>
+              <Image
+                source={{ uri: item }}
+                style={{
+                  width: width,
+                  height: height * 0.4,
+                  resizeMode: "cover",
+                }}
+              />
+            </TouchableOpacity>
             {/* 🔹 Pagination Dots Positioned at the Center-Bottom */}
             <View
               style={{
@@ -164,7 +230,7 @@ const ViewApartment = () => {
         )}
       />
       <View style={styles.container}>
-        <ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false} style={{ marginBottom: height * .35 }}>
           <View
             style={{
               flexDirection: "row",
@@ -287,7 +353,7 @@ const ViewApartment = () => {
               <Image
                 source={{
                   uri:
-                  transient.owner?.photoURL ||
+                    transient.owner?.photoURL ||
                     "https://fastly.picsum.photos/id/998/200/300.jpg?hmac=g3P0EcqrmgGwQk4lFB8zLuXtwjQa0rV_Z9MpUQNWiHg",
                 }}
                 style={{

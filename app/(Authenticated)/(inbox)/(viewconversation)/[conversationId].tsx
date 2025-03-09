@@ -7,6 +7,7 @@ import {
     FlatList,
     KeyboardAvoidingView,
     Platform,
+    StatusBar,
   } from "react-native";
   import React, { useEffect, useState } from "react";
   import { router, useLocalSearchParams } from "expo-router";
@@ -25,22 +26,29 @@ import {
   const index = () => {
     const [currentUserData, setCurrentUserData] = useState<UserData | null>(null);
     const { conversationId } = useLocalSearchParams();
+
     const {
       conversation,
       loading: conversationLoading,
       error: conversationError,
     } = useConversation(String(conversationId));
+
     const {
       messages,
       loading: messagesLoading,
       error: messageError,
     } = useFetchMessages(String(conversationId));
+    
     const [message, setMessage] = useState("");
     const { sendMessage, loading } = useSendMessage(
       String(conversationId),
       currentUserData
     );
-  
+
+    useEffect(() => {
+      console.log("[DEBUG] Retrieved conversation ID in viewconversation page:", conversationId);
+    }, [conversationId]);
+
     useEffect(() => {
       const fetchUserData = async () => {
         try {
@@ -80,13 +88,20 @@ import {
                   style={styles.membersAvatar}
                 />
               ))}
+
             </View>
             <View style={{ flexDirection: "row", marginLeft: 15, flex: 1 }}>
-              {conversation?.members.map((member, index) => (
+              {conversation?.members && conversation.members.length < 5 && conversation.members.map((member, index) => (
                 <Text key={member.user.id}>{`${member.user.displayName}${
                   index < conversation.members.length - 1 ? ", " : " "
                 }`}</Text>
               ))}
+
+              {conversation?.members && conversation.members.length >= 5 && (
+                <Text>{`${
+                  conversation.members[0].user.displayName
+                } and ${conversation.members.length - 1} others`}</Text>
+              )}
             </View>
             <TouchableOpacity>
               <Ionicons
@@ -116,6 +131,9 @@ import {
             ) : (
               <Text>Loading...</Text>
             )}
+            { !messagesLoading && messages.length === 0 && (
+              <Text style={{ textAlign: "center"}}>{conversation?.lastSender.displayName} Started a conversation. {'\n'} Say hello!</Text>
+            ) }
           </View>
   
           {/* Message Input */}
@@ -146,10 +164,11 @@ import {
       justifyContent: "space-between",
       padding: 20,
       backgroundColor: Colors.primaryBackground,
+      marginTop: StatusBar.currentHeight,
     },
     messagesContainer: {
       flex: 1, // Ensures FlatList takes up all available space
-      paddingHorizontal: 10,
+      paddingHorizontal: 25,
     },
     inputContainer: {
       padding: 10,
@@ -165,4 +184,3 @@ import {
   });
   
   export default index;
-  

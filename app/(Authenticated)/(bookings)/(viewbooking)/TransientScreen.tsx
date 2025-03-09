@@ -13,11 +13,13 @@ import {
   updateBooking,
   updateApartment,
   updateTransient,
+  createConversation,
 } from "@/app/Firebase/Services/DatabaseService";
 import { router } from "expo-router";
 import { Timestamp } from "firebase/firestore";
 import UserData from "@/app/types/UserData";
 import Alert from "@/app/types/Alert";
+import { checkExistingConversationWithTenants } from "@/app/hooks/inbox/useCheckExistingConversationWithTenants";
 
 interface TransientProps {
   transient: Transient;
@@ -35,33 +37,59 @@ const TransientScreen: React.FC<TransientProps> = ({ transient, booking }) => {
 
   const handleBookingApproval = async () => {
     try {
+      const existingConversation = await checkExistingConversationWithTenants(
+        String(transient.id),
+        booking.tenants.map((tenant) => tenant.user),
+        transient.owner as UserData,
+        currentUserData as UserData
+      );
+
       const updatedData = await updateBooking(String(booking.id), {
         ...booking,
         status: "Booking Confirmed",
       });
 
-      const updatedApartment = await updateTransient(String(transient.id), {
-        ...transient,
-        bookedDates: [
-          ...booking.bookedDate,
-          ...(booking.viewingDate ? [booking.viewingDate] : []),
-        ],
-      });
-
       const alertData: Alert = {
-        message: "Your booking has been approved.",
+        message: "Your viewing appointment has been approved.",
         type: "Booking", // Default value, change if needed
-        bookingType: "Transient",
+        bookingType: "Apartment",
         bookingId: String(booking.id),
         propertyId: String(transient.id),
         isRead: false,
-        sender: currentUserData as UserData,
+        senderId: currentUserData?.id as string,
         createdAt: Timestamp.now(),
       };
 
       await sendAlerts(booking.tenants, alertData);
 
-      router.replace(`/(Authenticated)/(tabs)/Bookings`);
+      if (!existingConversation) {
+        const createdConversation = await createConversation({
+          members: [
+            ...booking.tenants.map((tenant) => ({
+              user: tenant.user,
+              count: 0,
+            })),
+            {
+              user: currentUserData as UserData,
+              count: 0,
+            },
+          ],
+          propertyId: String(transient.id),
+          bookingId: String(booking.id),
+          type: "Booking",
+          lastMessage: "Started a conversation",
+          lastSender: currentUserData as UserData,
+        });
+
+        if(createdConversation) {
+          router.push(
+            `/(Authenticated)/(inbox)/(viewconversation)/${createdConversation}`
+          );
+          return;
+        }
+      }
+
+      router.push(`/(Authenticated)/(inbox)/(viewconversation)/${existingConversation?.id}`)
     } catch (error) {
       console.error("Error approving viewing:", error);
     }

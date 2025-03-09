@@ -19,17 +19,30 @@ import Colors from "@/assets/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
 import CustomBadge from "@/app/components/CustomBadge";
 import IconButton from "@/app/components/IconButton";
-import { createConversation, deleteApartment } from "@/app/Firebase/Services/DatabaseService";
+import {
+  createConversation,
+  deleteApartment,
+  fetchUserDataFromFirestore,
+} from "@/app/Firebase/Services/DatabaseService";
 import { useApartment } from "@/app/hooks/apartment/useApartment";
 import useCheckExistingBooking from "@/app/hooks/bookings/useCheckExistingBooking";
 import Conversation from "@/app/types/Conversation";
+import { checkExistingConversation } from "@/app/hooks/inbox/useCheckExistingConversation";
+import UserData from "@/app/types/UserData";
 
 const { width, height } = Dimensions.get("window");
 
 const ViewApartment = () => {
+  {
+    /* User Data States */
+  }
+  const [currentUserData, setCurrentUserData] = useState<UserData>(
+    {} as UserData
+  );
+  const [ownerData, setOwnerData] = useState<UserData>({} as UserData);
+
   const { apartmentId } = useLocalSearchParams();
   const { apartment, loading, error } = useApartment(String(apartmentId));
-  const [currentUserData, setCurrentUserData] = useState<any>(null);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
 
   useEffect(() => {
@@ -45,9 +58,25 @@ const ViewApartment = () => {
     fetchUserData();
   }, []);
 
-  const { hasExistingBooking, loading: hasExistingBookingLoading } = useCheckExistingBooking(
-    String(apartmentId)
-  );
+  useEffect(() => {
+    const fetchOwnerData = async () => {
+      try {
+        const ownerData = await fetchUserDataFromFirestore(apartment.ownerId);
+        if (ownerData) {
+          setOwnerData(ownerData);
+        }
+      } catch (error) {
+        console.error("Error fetching owner data:", error);
+      }
+    };
+
+    if (apartment) {
+      fetchOwnerData();
+    }
+  }, [apartment]);
+
+  const { hasExistingBooking, loading: hasExistingBookingLoading } =
+    useCheckExistingBooking(String(apartmentId));
 
   const formatCurrency = (
     price: number,
@@ -93,10 +122,11 @@ const ViewApartment = () => {
   };
 
   const handleBookApartment = () => {
-    console.log("hasExistingBooking", hasExistingBooking);
-
     if (hasExistingBooking) {
-      Alert.alert("Booking Error", "You already have an existing booking for this apartment.");
+      Alert.alert(
+        "Booking Error",
+        "You already have an existing booking for this apartment."
+      );
       return;
     }
 
@@ -106,39 +136,69 @@ const ViewApartment = () => {
   };
 
   const handleInquireApartment = async () => {
-    const conversationData: Conversation = {
-      lastMessage: "Started a conversation",
-      members: [
-        {
-          user: currentUserData,
-          count: 0,
-        },
-        {
-          user: apartment.owner,
-          count: 0,
-        },
-      ],
-      propertyId: String(apartmentId),
-      memberIds: [currentUserData.id, apartment.owner.id],
-      messages: [],
-      type: "Inquiry",
-      inquiryType: "Apartment",
-      lastSender: currentUserData,
-    }
-
     try {
-      const createdConversationId = await createConversation(conversationData);
-      if(createdConversationId) {
-        router.push(
-          `/(Authenticated)/(tabs)/Inbox`
+      const existingConversation = await checkExistingConversation(
+        String(apartmentId),
+        currentUserData,
+        ownerData
+      );
+
+      if (existingConversation) {
+        console.log(
+          "[DEBUG] Existing conversation found:",
+          existingConversation.id
         );
+        router.push(`/(Authenticated)/(tabs)/Inbox`);
+        return;
+      }
+
+      console.log("[DEBUG] No existing conversation. Creating a new one...");
+
+      const conversationData: Conversation = {
+        lastMessage: "Started a conversation",
+        members: [
+          { user: currentUserData, count: 0 },
+          { user: ownerData, count: 0 },
+        ],
+        propertyId: String(apartmentId),
+        memberIds: [currentUserData.id, apartment.owner],
+        type: "Inquiry",
+        inquiryType: "Apartment",
+        lastSender: currentUserData,
+      };
+
+      const createdConversationId = await createConversation(conversationData);
+      if (createdConversationId) {
+        console.log("[DEBUG] New conversation created:", createdConversationId);
+        router.push(`/(Authenticated)/(tabs)/Inbox`);
       }
     } catch (error) {
-      console.error("Failed to create conversation:", error);
+      console.error("[ERROR] Failed to create or check conversation:", error);
     }
+  };
+
+  const handleImagePress = (imageUri: string) => {
+    console.log(
+      "Navigation to: ",
+      `/(Authenticated)/(utilities)/(image-viewer)/${encodeURIComponent(
+        imageUri
+      )}` as unknown as RelativePathString
+    );
+    router.push(
+      `/(Authenticated)/(utilities)/(image-viewer)/${encodeURIComponent(
+        imageUri
+      )}` as unknown as RelativePathString
+    );
+  };
+
+  if (loading) {
+    return (
+      <View>
+        <ActivityIndicator size="large" color="blue" />
+      </View>
+    );
   }
 
-  if (loading) return <ActivityIndicator size="large" color="blue" />;
   if (!apartment)
     return (
       <Text style={{ textAlign: "center", marginTop: 20 }}>
@@ -150,6 +210,7 @@ const ViewApartment = () => {
     <View style={{ marginBottom: 200 }}>
       {/* ✅ Scrollable Image Gallery with Centered Indicator */}
       <FlatList
+        contentContainerStyle={{ height: height }}
         data={apartment.images || []}
         horizontal
         keyExtractor={(_, index: number) => index.toString()}
@@ -158,14 +219,16 @@ const ViewApartment = () => {
         onMomentumScrollEnd={handleScroll}
         renderItem={({ item }) => (
           <View>
-            <Image
-              source={{ uri: item }}
-              style={{
-                width: width,
-                height: height * 0.4,
-                resizeMode: "cover",
-              }}
-            />
+            <TouchableOpacity onPress={() => handleImagePress(item)}>
+              <Image
+                source={{ uri: item }}
+                style={{
+                  width: width,
+                  height: height * 0.4,
+                  resizeMode: "cover",
+                }}
+              />
+            </TouchableOpacity>
             {/* 🔹 Pagination Dots Positioned at the Center-Bottom */}
             <View
               style={{
@@ -198,7 +261,10 @@ const ViewApartment = () => {
         )}
       />
       <View style={styles.container}>
-        <ScrollView>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          style={{ marginBottom: height * 0.35 }}
+        >
           <View
             style={{
               flexDirection: "row",
@@ -310,43 +376,46 @@ const ViewApartment = () => {
           </View>
           <View style={styles.line} />
           <View>
-            <Text style={styles.title}>Owner Details</Text>
+            <Text style={styles.title}>Owner</Text>
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                justifyContent: "flex-start",
+                justifyContent: "space-between",
               }}
             >
-              <Image
-                source={{
-                  uri:
-                    apartment.owner?.photoURL ||
-                    "https://fastly.picsum.photos/id/998/200/300.jpg?hmac=g3P0EcqrmgGwQk4lFB8zLuXtwjQa0rV_Z9MpUQNWiHg",
-                }}
-                style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: 25,
-                  marginRight: 10,
-                }}
-              />
-              <View style={{ flexDirection: "column", marginLeft: 10 }}>
-                <Text style={styles.contents}>
-                  {`${apartment.owner.firstName} ${apartment.owner.lastName}` ||
-                    "Owner Name"}
-                </Text>
-                <Text style={[styles.contents, { fontSize: 12 }]}>
-                  {apartment.owner?.rating || "5.0 Rating"}
-                </Text>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Ionicons name="star" size={16} color={Colors.primary} />
-                  <Ionicons name="star" size={16} color={Colors.primary} />
-                  <Ionicons name="star" size={16} color={Colors.primary} />
-                  <Ionicons name="star" size={16} color={Colors.primary} />
-                  <Ionicons name="star" size={16} color={Colors.primary} />
+              <View style={{ flexDirection: "row", alignItems: "center"}}>
+                <Image
+                  source={{
+                    uri: ownerData?.photoUrl,
+                  }}
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: 25,
+                    marginRight: 10,
+                  }}
+                />
+                <View style={{ flexDirection: "column", marginLeft: 10 }}>
+                  <Text style={styles.contents}>
+                    {`${ownerData?.firstName} ${ownerData?.lastName}` ||
+                      "Owner Name"}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: Colors.primary }}>
+                    @{ownerData?.displayName || "Username"}
+                  </Text>
                 </View>
               </View>
+              <TouchableOpacity style={{ alignItems: "center", flexDirection: "row", marginLeft: 10 }}>
+                <Text style={{ fontSize: 12, color: Colors.primary }}>
+                  View Profile
+                </Text>
+                <Ionicons
+                  name="chevron-forward-outline"
+                  size={24}
+                  color={Colors.primaryText}
+                />
+              </TouchableOpacity>
             </View>
           </View>
           <View style={styles.line} />
@@ -367,6 +436,9 @@ const ViewApartment = () => {
                 />
               );
             })}
+            {apartment.tags?.length == 0 && (
+              <Text style={styles.contents}>No tags specified.</Text>
+            )}
           </View>
           <View style={styles.line} />
           <View>
@@ -591,7 +663,7 @@ const styles = StyleSheet.create({
     height: "75%",
     borderTopLeftRadius: 25, // ✅ Rounded top edges
     borderTopRightRadius: 25, // ✅ Rounded top edges
-    marginTop: -15, // ✅ Slight overlap with the image
+    marginTop: -25, // ✅ Overlapping the image
     padding: 20, // Optional padding for content inside
   },
   line: {

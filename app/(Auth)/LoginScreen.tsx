@@ -38,8 +38,6 @@ const LoginScreen = () => {
     setLoading(false); // End loading
 
     if (user) {
-      Alert.alert('Login Successful');
-      // Navigate to the home screen (or another screen) after successful login
       await storeUserDataLocally(user); // Store user data in AsyncStorage
       router.replace('/(Authenticated)/(tabs)/Home');
     } else {

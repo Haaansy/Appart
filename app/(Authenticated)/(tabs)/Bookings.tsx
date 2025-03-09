@@ -21,7 +21,9 @@ import UserData from "@/app/types/UserData";
 type MainTabType = "Apartment" | "Transient";
 
 const Bookings = () => {
-  const [currentUserData, setCurrentUserData] = useState<UserData>({} as UserData);
+  const [currentUserData, setCurrentUserData] = useState<UserData>(
+    {} as UserData
+  );
   const SUB_TABS: Record<MainTabType, string[]> = {
     Apartment: [
       ...(currentUserData.role === "tenant" ? ["Pending Invitation"] : []), // Add only if tenant
@@ -71,7 +73,7 @@ const Bookings = () => {
         source={require("@/assets/images/Vectors/background.png")}
         style={styles.backgroundVector}
       />
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={[styles.container]}>
         {/* Header */}
         <View style={styles.topBar}>
           <Image
@@ -149,24 +151,46 @@ const Bookings = () => {
         {/* Bookings List */}
         <View style={styles.contentContainer}>
           {loading ? (
-            <ActivityIndicator size="large" color={Colors.primary} />
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+              <ActivityIndicator size="large" color={Colors.primary} style={{ marginBottom: 5}}/>
+              <Text> Please wait for a moment. </Text>
+            </View>
           ) : error ? (
             <Text style={styles.errorText}>{error}</Text>
           ) : bookings.length === 0 ? (
-            <Text style={styles.emptyText}>No bookings found.</Text>
+            <View style={{ alignItems: "center", justifyContent: "center" }}>
+              <Image
+                source={require("@/assets/images/AI-Character-V1/sad-reading.png")}
+                style={styles.character}
+              />
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "bold",
+                  textAlign: "center",
+                }}
+              >
+                {" "}
+                No Bookings Found. {"\n"}
+              </Text>
+            </View>
           ) : (
             <FlatList
               data={bookings}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                 onPress={() => {
-                  if(item.type === "Apartment") {
-                    router.push(`/(Authenticated)/(bookings)/(viewbooking)/${item.id}?isApartment=true`);
-                  } else {
-                    router.push(`/(Authenticated)/(bookings)/(viewbooking)/${item.id}?isApartment=false`);
-                  }
-                 }}
+                  onPress={() => {
+                    if (item.type === "Apartment") {
+                      router.push(
+                        `/(Authenticated)/(bookings)/(viewbooking)/${item.id}?isApartment=true`
+                      );
+                    } else {
+                      router.push(
+                        `/(Authenticated)/(bookings)/(viewbooking)/${item.id}?isApartment=false`
+                      );
+                    }
+                  }}
                 >
                   <BookingCard booking={item} />
                 </TouchableOpacity>
@@ -252,6 +276,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   bookingTitle: { fontSize: 16, fontWeight: "bold" },
+  character: {
+    width: "50%",
+    height: "50%",
+    resizeMode: "contain",
+    marginBottom: 10,
+  },
 });
 
 export default Bookings;

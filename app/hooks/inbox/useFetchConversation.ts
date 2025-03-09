@@ -1,10 +1,9 @@
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { db } from "@/app/Firebase/FirebaseConfig";
 import Conversation from "@/app/types/Conversation";
-import UserData from "@/app/types/UserData";
 import { useState, useEffect } from "react";
 
-const useFetchConversations = (user: UserData | null) => {
+const useFetchConversations = (user: string) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +29,7 @@ const useFetchConversations = (user: UserData | null) => {
 
           // 🔍 Filter members manually since Firestore can't query inside arrays
           const isMember = data.members.some(
-            (member: { user: { id: string }; count: number }) => member.user.id === user.id
+            (member: { user: { id: string }; count: number }) => member.user.id === user
           );
 
           if (isMember) {
@@ -42,7 +41,6 @@ const useFetchConversations = (user: UserData | null) => {
               members: data.members,
               propertyId: Array.isArray(data.propertyId) ? data.propertyId[0] : data.propertyId,
               bookingId: data.bookingId,
-              messages: data.messages || [],
               type: data.type,
               inquiryType: data.inquiryType,
               updatedAt: data.updatedAt

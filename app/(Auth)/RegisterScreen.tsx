@@ -20,6 +20,7 @@ import {
 } from "../Firebase/Services/AuthService";
 import { setInitialUserData } from "../Firebase/Services/DatabaseService";
 import UserData from "../types/UserData";
+import { Notifier, Easing, NotifierWrapper } from "react-native-notifier";
 
 const RegisterScreen = () => {
   const insets = useSafeAreaInsets(); // Get safe area insets
@@ -29,59 +30,135 @@ const RegisterScreen = () => {
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
 
+  // Email validation function
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSignup = async () => {
     setIsLoading(true);
 
-    if (!email || !password || !confirmPassword) {
-      Alert.alert("Error", "Please fill in all fields.");
-      setIsLoading(false);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match.");
-      setIsLoading(false);
-      return;
-    }
-
-    const user = await signupUser(email, password);
-    setIsLoading(false);
-
-    if (user) {
-      const userData: UserData = {
-        email: user.email,
-        role: isHomeOwner ? "home owner" : "tenant",
-        id: "",
-        firstName: "",
-        lastName: "",
-        birthDate: {
-          month: "",
-          day: "",
-          year: "",
-        },
-        emergencyContact: "",
-        emergentContactNumber: "",
-        coverUrl: "",
-        sex: "",
-        displayName: "",
-        photoUrl: "",
-        phoneNumber: "",
-        isAdmin: false,
-      };
-
-      // ✅ Save user data to Firestore
-      const isUserSaved = await setInitialUserData(user.uid, userData);
-
-      if (isUserSaved) {
-        // ✅ Store user data locally
-        await storeUserDataLocally(user);
-        router.replace("/(Authenticated)/(tabs)/Home");
-      } else {
-        Alert.alert("Error", "User not saved.");
+    try {
+      // Validation checks with clearer alerts
+      if (!email.trim()) {
+        Notifier.showNotification({
+          title: "❌ Missing Email",
+          description: "Please fill in all fields.",
+          duration: 3000,
+          showAnimationDuration: 800,
+          showEasing: Easing.bounce,
+          hideOnPress: false,
+          containerStyle: {
+            marginTop: 50
+          },
+        });
+        setIsLoading(false);
+        return;
       }
-    } else {
-      Alert.alert("Error", "cant create.");
-    }
+
+      // Add email format validation
+      if (!isValidEmail(email.trim())) {
+        Notifier.showNotification({
+          title: "❌ Invalid Email",
+          description: "Please check your email format.",
+          duration: 3000,
+          showAnimationDuration: 800,
+          showEasing: Easing.bounce,
+          hideOnPress: false,
+          containerStyle: {
+            marginTop: 50
+          },
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (!password.trim()) {
+        Notifier.showNotification({
+          title: "❌ Missing Password",
+          description: "Please fill in all fields.",
+          duration: 3000,
+          showAnimationDuration: 800,
+          showEasing: Easing.bounce,
+          hideOnPress: false,
+          containerStyle: {
+            marginTop: 50
+          },
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (!confirmPassword.trim()) {
+        Notifier.showNotification({
+          title: "❌ Missing Confirm Password",
+          description: "Please fill in all fields.",
+          duration: 3000,
+          showAnimationDuration: 800,
+          showEasing: Easing.bounce,
+          hideOnPress: false,
+          containerStyle: {
+            marginTop: 50
+          },
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        Notifier.showNotification({
+          title: "❌ Password don't match",
+          description: "Make sure to confirm your password correctly.",
+          duration: 3000,
+          showAnimationDuration: 800,
+          showEasing: Easing.bounce,
+          hideOnPress: false,
+          containerStyle: {
+            marginTop: 50
+          },
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      console.log("Attempting to sign up with email:", email.trim());
+      const user = await signupUser(email.trim(), password);
+
+      if (user) {
+        const userData: UserData = {
+          email: user.email,
+          role: isHomeOwner ? "home owner" : "tenant",
+          id: "",
+          firstName: "",
+          lastName: "",
+          birthDate: {
+            month: "",
+            day: "",
+            year: "",
+          },
+          emergencyContact: "",
+          emergentContactNumber: "",
+          coverUrl: "",
+          sex: "",
+          displayName: "",
+          photoUrl: "",
+          phoneNumber: "",
+          isAdmin: false,
+        };
+
+        // ✅ Save user data to Firestore
+        const isUserSaved = await setInitialUserData(user.uid, userData);
+
+        if (isUserSaved) {
+          // ✅ Store user data locally
+          await storeUserDataLocally(user);
+          router.replace("/(Authenticated)/(tabs)/Home");
+        } else {
+          Alert.alert("Error", "Failed to save user data.");
+        }
+      }
+    } catch (error) {}
   };
 
   if (IsLoading) {
@@ -97,7 +174,8 @@ const RegisterScreen = () => {
       <ImageBackground
         source={require("@/assets/images/Vectors/background.png")}
         style={styles.backgroundVector}
-      ></ImageBackground>
+      />
+      <NotifierWrapper>
       <View
         style={{
           paddingTop: -insets.top,
@@ -174,6 +252,7 @@ const RegisterScreen = () => {
           </Text>
         </View>
       </View>
+      </NotifierWrapper>
     </>
   );
 };

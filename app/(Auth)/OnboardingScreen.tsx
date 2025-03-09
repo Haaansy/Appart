@@ -9,7 +9,6 @@ import { router } from "expo-router";
 
 const OnboardingScreen = () => {
   const insets = useSafeAreaInsets(); // Get safe area insets
-
   return (
     <View
       style={{
@@ -81,7 +80,7 @@ const OnboardingScreen = () => {
           <CustomButton
             title="Get Started"
             onPress={() => {
-              router.replace("/(Auth)/LoginScreen" as any);
+              router.replace("/(Auth)/LoginScreen");
             }}
             style={[styles.button, { backgroundColor: Colors.primary }]}
           />

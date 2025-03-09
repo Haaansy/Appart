@@ -7,7 +7,7 @@ export interface BirthDate {
 }
 
 export default interface UserData {
-    id: string;
+    id?: string;
     firstName: string;
     lastName: string;
     birthDate?: BirthDate;

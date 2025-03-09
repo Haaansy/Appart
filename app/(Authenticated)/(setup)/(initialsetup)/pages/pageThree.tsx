@@ -1,6 +1,6 @@
 import CustomTextInput from "@/app/components/CustomTextInput";
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { styles } from "../styles/styles";
 
 interface PageProps {
@@ -64,43 +64,55 @@ const PageThree: React.FC<
   ]);
 
   return (
-    <View>
-      <Text style={[styles.subtext, { marginBottom: 25 }]}>
-        How can we reach you?
-      </Text>
-      <CustomTextInput
-        label="Contact Number"
-        value={formData.phoneNumber}
-        onChangeText={(text) => handlePhoneChange("phoneNumber", text)}
-        keyboardType="numeric"
-      />
-      {!isValidPhoneNumber && formData.phoneNumber !== "" && (
-        <Text style={{ color: "red", textAlign: "center", marginTop: 5 }}>
-          Invalid format. Use +63 XXX XXX XXXX
-        </Text>
-      )}
-
-      <View style={{ marginTop: 25 }}>
-        <CustomTextInput
-          label="Emergency Contact Person"
-          value={formData.emergencyContact}
-          onChangeText={(text) => updateFormData("emergencyContact", text)}
-        />
-        <CustomTextInput
-          label="Emergency Contact Number"
-          value={formData.emergentContactNumber}
-          onChangeText={(text) =>
-            handlePhoneChange("emergentContactNumber", text)
-          }
-          keyboardType="numeric"
-        />
-        {!isValidEmergencyNumber && formData.emergentContactNumber !== "" && (
-          <Text style={{ color: "red", textAlign: "center", marginTop: 5 }}>
-            Invalid format. Use +63 XXX XXX XXXX
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+      >
+        <ScrollView 
+          contentContainerStyle={{ 
+            flexGrow: 1,
+            paddingHorizontal: 10
+          }}
+          showsVerticalScrollIndicator={true}
+          keyboardShouldPersistTaps="always"
+        >
+          <Text style={[styles.subtext, { marginBottom: 25 }]}>
+            How can we reach you?
           </Text>
-        )}
-      </View>
-    </View>
+          <CustomTextInput
+            label="Contact Number"
+            value={formData.phoneNumber}
+            onChangeText={(text) => handlePhoneChange("phoneNumber", text)}
+            keyboardType="numeric"
+          />
+          {!isValidPhoneNumber && formData.phoneNumber !== "" && (
+            <Text style={{ color: "red", textAlign: "center", marginTop: 5 }}>
+              Invalid format. Use +63 XXX XXX XXXX
+            </Text>
+          )}
+
+          <View style={{ marginTop: 25 }}>
+            <CustomTextInput
+              label="Emergency Contact Person"
+              value={formData.emergencyContact}
+              onChangeText={(text) => updateFormData("emergencyContact", text)}
+            />
+            <CustomTextInput
+              label="Emergency Contact Number"
+              value={formData.emergentContactNumber}
+              onChangeText={(text) =>
+                handlePhoneChange("emergentContactNumber", text)
+              }
+              keyboardType="numeric"
+            />
+            {!isValidEmergencyNumber && formData.emergentContactNumber !== "" && (
+              <Text style={{ color: "red", textAlign: "center", marginTop: 5 }}>
+                Invalid format. Use +63 XXX XXX XXXX
+              </Text>
+            )}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 };
 

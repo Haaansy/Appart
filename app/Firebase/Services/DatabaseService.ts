@@ -112,6 +112,7 @@ import Alert from '@/app/types/Alert';
 import Conversation from '@/app/types/Conversation';
 import Message from '@/app/types/Message';
 import { v4 as uuidv4 } from "uuid";
+import { storeUserDataLocally } from './AuthService';
 
 // Fetch all documents from a collection
 export const fetchCollectionData = async (collectionName: string) => {
@@ -284,6 +285,7 @@ export const createApartment = async (apartmentData: Apartment): Promise<string 
       images: uploadedImageUrls, // Replace local paths with URLs
       createdAt: Date.now(),
       id: apartmentRef.id,
+      ownerId: userSnap.id
     };
 
     await setDoc(apartmentRef, apartmentDataWithOwner);
@@ -438,7 +440,12 @@ export const updateTransient = async (transientId: string, transientData: Partia
 export const createBooking = async (bookingData: Booking) => {
   try {
     const bookingRef = doc(collection(db, "bookings")); // Generate new document reference
-    const bookingWithId = { ...bookingData, id: bookingRef.id }; // Add the generated ID to the data
+    const bookingWithId = { 
+      ...bookingData, 
+      id: bookingRef.id,
+      createdAt: serverTimestamp(),
+      tenantIds: bookingData.tenants.map((tenant) => tenant.user.id),
+    }; // Add the generated ID to the data
 
     await setDoc(bookingRef, bookingWithId);
 
@@ -497,8 +504,9 @@ export const createConversation = async (conversationData: Conversation) => {
       createdAt: serverTimestamp(),
       id: conversationRef.id,
       updatedAt: serverTimestamp(),
+      memberIds: conversationData.members.map((member) => member.user.id),
     });
-    return conversationRef.id;
+    return conversationRef;
   } catch (error) {
     console.error("Error creating conversation:", error);
     return null;
@@ -518,6 +526,7 @@ export const updateConversation = async (conversationId: string, conversationDat
   }
 }
 
+
 export const createMessage = async (conversationId: string, messageData: Omit<Message, "id" | "createdAt">) => {
   try {
     const messagesRef = collection(db, "conversations", conversationId, "messages");
@@ -530,6 +539,27 @@ export const createMessage = async (conversationId: string, messageData: Omit<Me
     console.log("Message added successfully with ID:", newMessageRef.id);
   } catch (error) {
     console.error("Error adding message:", error);
+  }
+};
+
+// Function to fetch the number of properties for a user
+export const fetchUserPropertiesCount = async (userId: string): Promise<number> => {
+  try {
+    const apartmentsQuery = query(collection(db, "apartments"), where("owner.id", "==", userId));
+    const transientsQuery = query(collection(db, "transients"), where("owner.id", "==", userId));
+
+    const [apartmentsSnapshot, transientsSnapshot] = await Promise.all([
+      getDocs(apartmentsQuery),
+      getDocs(transientsQuery),
+    ]);
+
+    const apartmentsCount = apartmentsSnapshot.size;
+    const transientsCount = transientsSnapshot.size;
+
+    return apartmentsCount + transientsCount; // Return the total number of documents
+  } catch (error) {
+    console.error("Error fetching user properties count:", error);
+    return 0;
   }
 };
 

@@ -46,7 +46,7 @@ export const getApartments = (role: string, userId: string) => {
             const apartmentsRef = collection(db, "apartments");
             let apartmentsQuery =
                 role === "home owner"
-                    ? query(apartmentsRef, where("owner.id", "==", userId)) // Ensure proper query
+                    ? query(apartmentsRef, where("ownerId", "==", userId)) // Ensure proper query
                     : apartmentsRef;
 
             apartmentsQuery = query(apartmentsQuery, orderBy("createdAt", "desc"), limit(LIMIT));

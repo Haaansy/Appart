@@ -1,9 +1,13 @@
 // app/navigation/AppStack.tsx
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
+import * as NavigationBar from 'expo-navigation-bar';
 
 const AuthenticatedLayout = () => {
+  useEffect(() => {
+    NavigationBar.setVisibilityAsync('hidden');
+  }, []);
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)"/>
@@ -13,6 +17,7 @@ const AuthenticatedLayout = () => {
       <Stack.Screen name="(bookings)"/>
       <Stack.Screen name="(profile)"/>
       <Stack.Screen name="(inbox)"/>
+      <Stack.Screen name="(utilities)"/>
     </Stack>
   );
 };

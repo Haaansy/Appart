@@ -1,8 +1,9 @@
 import { Timestamp } from "firebase/firestore";
 import UserData from "./UserData";
+import { BookingDate } from "./BookedDates";
 
 export default interface Apartment {
-    owner?: UserData;
+    ownerId?: string;
     images: string[];
     title: string;
     status: string;
@@ -28,6 +29,6 @@ export default interface Apartment {
     leaseTerms: number[];
     createdAt: number;
     id?: string;
-    bookedDates: Timestamp[];
-    viewingDates: Timestamp[];
+    bookedDates: BookingDate[];
+    viewingDates: BookingDate[];
 }

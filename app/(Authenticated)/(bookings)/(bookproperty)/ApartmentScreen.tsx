@@ -51,7 +51,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
     leaseDuration: 0,
     tenants: [], // Ensure it's an array initially
     viewingDate: Timestamp.fromMillis(Date.now()),
-    createdAt: serverTimestamp(),
+    owner: apartment.ownerId as string
   });
 
   useEffect(() => {
@@ -169,6 +169,8 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
         updatedBookingData.status = "Pending Invitation"; // Directly update status
       }
 
+      console.log("Updated booking data:", updatedBookingData); // Logs the correct updated state
+
       const booking = await createBooking(updatedBookingData); // Use updated data
 
       if (booking) {
@@ -181,8 +183,8 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
             createdAt: serverTimestamp(),
             propertyId: apartment.id || "",
             isRead: false,
-            sender: updatedBookingData.tenants[0].user,
-            receiver: apartment.owner as UserData,
+            senderId: updatedBookingData.tenants[0].user.id as string,
+            receiverId: apartment.ownerId as string,
           };
 
           await createAlert(alertData);
@@ -198,8 +200,8 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
                 createdAt: serverTimestamp(),
                 propertyId: apartment.id || "",
                 isRead: false,
-                sender: currentUserData as UserData,
-                receiver: tenant.user,
+                senderId: updatedBookingData.tenants[0].user.id as string,
+                receiverId: tenant.user.id as string,
               };
 
               await createAlert(alertData);
@@ -304,9 +306,9 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
         <DateSelectPopup
           visible={leaseDateModalVisible}
           onSelect={handleSelectStartDate}
-          viewingDates={apartment.viewingDates}
+          viewingDates={apartment.viewingDates.map((bd) => bd.viewingDate as Timestamp)}
           onClose={() => setLeaseDateModalVisible(false)}
-          bookedDates={apartment.bookedDates}
+          bookedDates={apartment.bookedDates.map((bd) => bd.bookedDates as Timestamp[]).flat()}
           title="Select Lease Date"
           subtitle="Select the start date of the lease"
         />
@@ -329,9 +331,9 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
         <DateSelectPopup
           visible={viewingDateModalVisible}
           onSelect={handleSelectViewingDate}
-          viewingDates={apartment.viewingDates}
+          viewingDates={apartment.viewingDates.map((bd) => bd.viewingDate as Timestamp)}
           onClose={() => setViewingDateModalVisible(false)}
-          bookedDates={apartment.bookedDates}
+          bookedDates={apartment.bookedDates.map((bd) => bd.bookedDates as Timestamp[]).flat()}
           title="Select Viewing Date"
           subtitle="Select the viewing appointment date"
           yourbookedDates={bookingData.bookedDate}
