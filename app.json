@@ -43,6 +43,12 @@
           "locationAlwaysAndWhenInUsePermission": "Allow App to access your location for mapping and navigation."
         }
       ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow the app to access your photos"
+        }
+      ],
       "expo-build-properties"
     ],
     "experiments": {

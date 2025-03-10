@@ -7,6 +7,7 @@ import {
   Dimensions,
   TextInput,
   Switch,
+  Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
@@ -21,7 +22,7 @@ import CustomCounter from "@/app/components/CustomCounter";
 const { width } = Dimensions.get("window");
 
 const formatNumberWithCommas = (value: number) => {
-    const numericValue = value.toString().replace(/[^0-9]/g, ""); // Remove non-numeric characters
+  const numericValue = value.toString().replace(/[^0-9]/g, ""); // Remove non-numeric characters
   return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ","); // Add commas
 };
 
@@ -80,6 +81,12 @@ const PageOne: React.FC<PageProps> = ({
   }, []);
 
   const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission Required", "You need to allow access to photos.");
+      return;
+    }
+
     if (imageList.length >= 20) {
       alert("You can only add up to 20 images.");
       return;
@@ -279,7 +286,7 @@ const PageOne: React.FC<PageProps> = ({
                 title={tag}
                 icon="close"
                 onPress={() => handleRemoveTag(tag)}
-                style={{ backgroundColor: Colors.primary, margin: 5}}
+                style={{ backgroundColor: Colors.primary, margin: 5 }}
               />
             </View>
           ))}
@@ -318,7 +325,10 @@ const PageOne: React.FC<PageProps> = ({
           />
           <CustomTextInput
             onChangeText={(value) =>
-              updateFormData("securityDeposit", Number(value.replace(/[^0-9]/g, "")))
+              updateFormData(
+                "securityDeposit",
+                Number(value.replace(/[^0-9]/g, ""))
+              )
             }
             label={"Security Deposit"}
             value={formatNumberWithCommas(securityDeposit)}

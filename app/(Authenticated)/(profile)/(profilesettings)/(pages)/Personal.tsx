@@ -63,6 +63,12 @@ const Personal = () => {
   const pickImage = async (
     setImage: React.Dispatch<React.SetStateAction<string | null>>
   ) => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission Required", "You need to allow access to photos.");
+      return;
+    }
+    
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -280,7 +286,10 @@ const Personal = () => {
                 </Text>
               </View>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <Text style={{ color: Colors.primary }}> {email !== null ? email : currentUserData?.email} </Text>
+                <Text style={{ color: Colors.primary }}>
+                  {" "}
+                  {email !== null ? email : currentUserData?.email}{" "}
+                </Text>
               </View>
             </View>
             <View

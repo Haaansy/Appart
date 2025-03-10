@@ -30,7 +30,7 @@ import Apartment from "@/app/types/Apartment";
 
 const pages = [PageOne, PageTwo, PageThree, PageFour];
 
-const Index = () => {
+const index = () => {
   const [currentUserData, setCurrentUserData] = useState<UserData | null>(null);
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState(0);
@@ -259,4 +259,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default index;

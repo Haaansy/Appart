@@ -7,6 +7,7 @@ import {
   Dimensions,
   TextInput,
   Switch,
+  Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
@@ -60,6 +61,12 @@ const PageOne: React.FC<PageProps> = ({
   }, [imageList, title, description, price, onValidation]);
 
   const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission Required", "You need to allow access to photos.");
+      return;
+    }
+    
     if (imageList.length >= 20) {
       alert("You can only add up to 20 images.");
       return;

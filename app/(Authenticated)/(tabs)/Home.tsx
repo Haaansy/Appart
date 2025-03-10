@@ -29,8 +29,6 @@ interface HomeProps {
 const Home: React.FC<HomeProps> = ({
   currentUserData
 }) => {
-  console.log(currentUserData)
-
   const [isTransient, setIsTransient] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
