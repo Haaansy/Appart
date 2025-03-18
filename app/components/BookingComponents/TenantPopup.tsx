@@ -86,6 +86,7 @@ const TenantPopup: React.FC<PopupProps> = ({ visible, onConfirm, tenant, onClose
             onButtonPress={handleInviteButton}
             value={displayNameInput}
             onChangeText={setDisplayNameInput}
+            disabled={!displayNameInput.trim()}
           />
           {loading ? (
             <Text>Loading...</Text>

@@ -28,7 +28,6 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({
     const markDate = (date: string, color: string) => {
       if (markedDates[date]) {
         markedDates[date] = { 
-          ...markedDates[date], 
           marked: true, 
           dotColor: color 
         };

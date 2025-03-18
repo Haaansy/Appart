@@ -38,7 +38,7 @@ export const checkExistingConversationWithTenants = async (
     let foundConversation: Conversation | null = null;
     snapshot.forEach((doc) => {
       const data = doc.data() as Conversation;
-      const hasAllMembers = memberIds.every((id) => data.memberIds?.includes(id));
+      const hasAllMembers = memberIds.every((id) => data.memberIds?.includes(id as string));
       if (hasAllMembers) {
         foundConversation = { id: doc.id, ...data };
         console.log("[DEBUG] Found existing conversation:", foundConversation);

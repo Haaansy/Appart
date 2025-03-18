@@ -9,13 +9,19 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.capstone.appart"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/App-Icon.png"
       },
-      "package": "com.capstone.appart"
+      "package": "com.capstone.appart",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",

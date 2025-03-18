@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, Image } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PropertyCard from "@/app/components/BookingComponents/PropertyCard";
 import Colors from "@/assets/styles/colors";
 import TenantCard from "@/app/components/BookingComponents/TenantCard";
@@ -14,12 +14,14 @@ import {
   updateApartment,
   updateTransient,
   createConversation,
+  fetchUserDataFromFirestore,
 } from "@/app/Firebase/Services/DatabaseService";
 import { router } from "expo-router";
 import { Timestamp } from "firebase/firestore";
 import UserData from "@/app/types/UserData";
 import Alert from "@/app/types/Alert";
 import { checkExistingConversationWithTenants } from "@/app/hooks/inbox/useCheckExistingConversationWithTenants";
+import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 
 interface TransientProps {
   transient: Transient;
@@ -28,6 +30,7 @@ interface TransientProps {
 
 const TransientScreen: React.FC<TransientProps> = ({ transient, booking }) => {
   const [currentUserData, setCurrentUserData] = useState<UserData | null>(null);
+  const [ownerData, setOwnerData] = useState<UserData | null>(null);
   const {
     sendAlerts,
     loading: sendAlertsLoading,
@@ -35,16 +38,42 @@ const TransientScreen: React.FC<TransientProps> = ({ transient, booking }) => {
     success,
   } = useSendAlerts();
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const currentUserData = await getStoredUserData();
+      if(currentUserData) {
+        setCurrentUserData(currentUserData);
+      } else {
+        console.error("Error fetching user data.");
+      }
+    }
+
+    fetchUserData();
+  }, [])
+
+  useEffect(() => {
+    const fetchOwnerData = async () => {
+      const ownerData = await fetchUserDataFromFirestore(transient.ownerId as string);
+      if(ownerData) {
+        setOwnerData(ownerData);
+      } else {
+        console.error("Error fetching owner data.");
+      }
+    }
+
+    fetchOwnerData();
+  }, [currentUserData])
+
   const handleBookingApproval = async () => {
     try {
       const existingConversation = await checkExistingConversationWithTenants(
         String(transient.id),
         booking.tenants.map((tenant) => tenant.user),
-        transient.owner as UserData,
+        ownerData as UserData,
         currentUserData as UserData
       );
 
-      const updatedData = await updateBooking(String(booking.id), {
+      await updateBooking(String(booking.id), {
         ...booking,
         status: "Booking Confirmed",
       });

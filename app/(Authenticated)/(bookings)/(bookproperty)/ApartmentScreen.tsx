@@ -108,6 +108,31 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
       return;
     }
 
+    // Check for conflict with existing apartment bookings
+    const startDate = new Date(date);
+    const leaseDuration = bookingData.leaseDuration || 0;
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + leaseDuration);
+
+    // Flatten all booked dates from the apartment
+    const apartmentBookedDates = apartment.bookedDates.map(bd => bd.bookedDates as Timestamp[]).flat();
+    
+    // Check if any date in the selected range is already booked
+    let currentCheckDate = new Date(startDate);
+    while (currentCheckDate <= endDate) {
+      const checkTimestamp = Timestamp.fromDate(new Date(currentCheckDate));
+      const isBooked = apartmentBookedDates.some(bookedDate => 
+        checkTimestamp.toDate().setHours(0,0,0,0) === bookedDate.toDate().setHours(0,0,0,0)
+      );
+      
+      if (isBooked) {
+        ReactAlert.alert("Booking Conflict", "Some dates in your selected range are already booked. Please select a different date range.");
+        return;
+      }
+      
+      currentCheckDate.setDate(currentCheckDate.getDate() + 1);
+    }
+
     setBookingData((prevData) => {
       const startDate = new Date(date);
       const leaseDuration = prevData.leaseDuration || 0; // Default to 0 if undefined
@@ -168,8 +193,6 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
       if (updatedBookingData.tenants.length > 1) {
         updatedBookingData.status = "Pending Invitation"; // Directly update status
       }
-
-      console.log("Updated booking data:", updatedBookingData); // Logs the correct updated state
 
       const booking = await createBooking(updatedBookingData); // Use updated data
 

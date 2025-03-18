@@ -164,7 +164,7 @@ import {
       justifyContent: "space-between",
       padding: 20,
       backgroundColor: Colors.primaryBackground,
-      marginTop: StatusBar.currentHeight,
+      // marginTop: StatusBar.currentHeight removed to fix Android spacing
     },
     messagesContainer: {
       flex: 1, // Ensures FlatList takes up all available space

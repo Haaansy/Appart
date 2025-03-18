@@ -7,6 +7,7 @@ import {
   Image,
   StyleSheet,
   ScrollView,
+  Dimensions,
 } from "react-native";
 import React, { useEffect } from "react";
 import {
@@ -19,8 +20,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import UserData from "@/app/types/UserData";
 import Colors from "@/assets/styles/colors";
-
 const index = () => {
+  const { height } = Dimensions.get('window');
   const [currentUserData, setCurrentUserData] = React.useState<UserData | null>(
     null
   );
@@ -100,7 +101,7 @@ const index = () => {
         <View style={styles.line} />
 
         {/* Settings Section */}
-        <ScrollView style={{ width: "100%" }}>
+        <ScrollView style={{ width: "100%", marginBottom: height * 0.1}}>
           <Text style={styles.title}> Settings </Text>
           <TouchableOpacity
             style={{

@@ -23,18 +23,24 @@ import { useTransient } from "@/app/hooks/transient/useTransient";
 import {
   createConversation,
   deleteTransient,
+  fetchUserDataFromFirestore,
 } from "@/app/Firebase/Services/DatabaseService";
 import useCheckExistingBooking from "@/app/hooks/bookings/useCheckExistingBooking";
 import { checkExistingConversation } from "@/app/hooks/inbox/useCheckExistingConversation";
 import Conversation from "@/app/types/Conversation";
+import UserData from "@/app/types/UserData";
 
 const { width, height } = Dimensions.get("window");
 
 const ViewApartment = () => {
   const { transientId } = useLocalSearchParams();
-  const { transient, loading, error } = useTransient(String(transientId));
-  const [currentUserData, setCurrentUserData] = useState<any>(null);
+  const { transient, loading: transientLoading, error: transientError } = useTransient(String(transientId));
+  const [currentUserData, setCurrentUserData] = useState<UserData>(
+    {} as UserData
+  );
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [ownerData, setOwnerData] = useState<UserData>({} as UserData);
+  const [ loading, setLoading ] = useState<boolean>(false);
 
   const formatCurrency = (
     price: number,
@@ -61,6 +67,23 @@ const ViewApartment = () => {
 
     fetchUserData();
   }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    const fetchOwnerData = async () => {
+      const ownerData = await fetchUserDataFromFirestore(transient.ownerId);
+      if (ownerData) {
+        setOwnerData(ownerData);
+        setLoading(false);
+      }
+    };
+
+    fetchOwnerData();
+  }, [transient]);
+
+  useEffect(() => {
+    setLoading(transientLoading);
+  }, [transientLoading])
 
   const { hasExistingBooking, loading: hasExistingBookingLoading } =
     useCheckExistingBooking(String(transientId));
@@ -104,8 +127,6 @@ const ViewApartment = () => {
   };
 
   const handleBookTransient = () => {
-    console.log("hasExistingBooking", hasExistingBooking);
-
     if (hasExistingBooking) {
       Alert.alert(
         "Booking Error",
@@ -124,28 +145,22 @@ const ViewApartment = () => {
       const existingConversation = await checkExistingConversation(
         String(transientId),
         currentUserData,
-        transient.owner
+        ownerData
       );
 
       if (existingConversation) {
-        console.log(
-          "[DEBUG] Existing conversation found:",
-          existingConversation.id
-        );
         router.push(`/(Authenticated)/(tabs)/Inbox`);
         return;
       }
-
-      console.log("[DEBUG] No existing conversation. Creating a new one...");
 
       const conversationData: Conversation = {
         lastMessage: "Started a conversation",
         members: [
           { user: currentUserData, count: 0 },
-          { user: transient.owner, count: 0 },
+          { user: ownerData, count: 0 },
         ],
         propertyId: String(transientId),
-        memberIds: [currentUserData.id, transient.owner.id],
+        memberIds: [currentUserData.id, transient.ownerId],
         type: "Inquiry",
         inquiryType: "Transient",
         lastSender: currentUserData,
@@ -153,7 +168,6 @@ const ViewApartment = () => {
 
       const createdConversationId = await createConversation(conversationData);
       if (createdConversationId) {
-        console.log("[DEBUG] New conversation created:", createdConversationId);
         router.push(`/(Authenticated)/(tabs)/Inbox`);
       }
     } catch (error) {
@@ -230,7 +244,10 @@ const ViewApartment = () => {
         )}
       />
       <View style={styles.container}>
-        <ScrollView showsVerticalScrollIndicator={false} style={{ marginBottom: height * .35 }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          style={{ marginBottom: height * 0.4 }}
+        >
           <View
             style={{
               flexDirection: "row",
@@ -353,7 +370,7 @@ const ViewApartment = () => {
               <Image
                 source={{
                   uri:
-                    transient.owner?.photoURL ||
+                    ownerData.photoUrl ||
                     "https://fastly.picsum.photos/id/998/200/300.jpg?hmac=g3P0EcqrmgGwQk4lFB8zLuXtwjQa0rV_Z9MpUQNWiHg",
                 }}
                 style={{
@@ -365,19 +382,13 @@ const ViewApartment = () => {
               />
               <View style={{ flexDirection: "column", marginLeft: 10 }}>
                 <Text style={styles.contents}>
-                  {`${transient.owner.firstName} ${transient.owner.lastName}` ||
+                  {`${ownerData.firstName} ${ownerData.lastName}` ||
                     "Owner Name"}
                 </Text>
-                <Text style={[styles.contents, { fontSize: 12 }]}>
-                  {transient.owner?.rating || "5.0 Rating"}
+                <Text style={styles.contents}>
+                  {`@${ownerData.displayName}` ||
+                    "Owner Name"}
                 </Text>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Ionicons name="star" size={16} color={Colors.primary} />
-                  <Ionicons name="star" size={16} color={Colors.primary} />
-                  <Ionicons name="star" size={16} color={Colors.primary} />
-                  <Ionicons name="star" size={16} color={Colors.primary} />
-                  <Ionicons name="star" size={16} color={Colors.primary} />
-                </View>
               </View>
             </View>
           </View>

@@ -23,12 +23,10 @@ import CustomAddDropdown from "@/app/components/HomeComponents/CustomAddDropdown
 import UserData from "@/app/types/UserData";
 
 interface HomeProps {
-  currentUserData: UserData
+  currentUserData: UserData;
 }
 
-const Home: React.FC<HomeProps> = ({
-  currentUserData
-}) => {
+const Home: React.FC<HomeProps> = ({ currentUserData }) => {
   const [isTransient, setIsTransient] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -50,16 +48,21 @@ const Home: React.FC<HomeProps> = ({
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-
         if (!currentUserData) {
           console.log("No user data found");
           setLoading(false);
           return;
         }
 
-        if (currentUserData.firstName === undefined || currentUserData.firstName === "") {
+        if (
+          currentUserData.firstName === undefined ||
+          currentUserData.firstName === ""
+        ) {
           router.replace("/(Authenticated)/(setup)/(initialsetup)");
-        } else if (currentUserData.displayName === undefined || currentUserData.displayName === "") {
+        } else if (
+          currentUserData.displayName === undefined ||
+          currentUserData.displayName === ""
+        ) {
           router.replace("/(Authenticated)/(setup)/(finishsetup)");
         } else {
           setLoading(false);
@@ -165,12 +168,22 @@ const Home: React.FC<HomeProps> = ({
         </View>
         <View style={{ flex: 1, marginTop: 20, marginBottom: 100 }}>
           {loading ? (
-            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
               <ActivityIndicator size="large" color={Colors.primary} />
-              <Text style={{ fontSize: 15, marginTop: 5 }}> Fetching Properties </Text>
+              <Text style={{ fontSize: 15, marginTop: 5 }}>
+                {" "}
+                Fetching Properties{" "}
+              </Text>
             </View>
           ) : isTransient ? (
             <FlatList
+              showsVerticalScrollIndicator={false}
               data={transients}
               keyExtractor={(item, index) => `${item.id}_${index}`}
               renderItem={({ item }) => (
@@ -187,10 +200,32 @@ const Home: React.FC<HomeProps> = ({
                 />
               )}
               ListEmptyComponent={
-                <View style={{ alignItems: "center", justifyContent: "center" }}>
-                  <Image source={require("@/assets/images/AI-Character-V1/confused.png")} style={styles.character}/>
-                  <Text style={{ fontSize: 16, fontWeight: "bold", textAlign: "center"}}> No Transients Found. {'\n'} 
-                    <Text style={{ fontSize: 12, fontWeight: "regular", textAlign: "center"}}> Pull to refresh </Text>
+                <View
+                  style={{ alignItems: "center", justifyContent: "center" }}
+                >
+                  <Image
+                    source={require("@/assets/images/AI-Character-V1/confused.png")}
+                    style={styles.character}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      textAlign: "center",
+                    }}
+                  >
+                    {" "}
+                    No Transients Found. {"\n"}
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: "regular",
+                        textAlign: "center",
+                      }}
+                    >
+                      {" "}
+                      Pull to refresh{" "}
+                    </Text>
                   </Text>
                 </View>
               }
@@ -206,6 +241,7 @@ const Home: React.FC<HomeProps> = ({
             />
           ) : (
             <FlatList
+              showsVerticalScrollIndicator={false}
               data={apartments}
               keyExtractor={(item, index) => `${item.id}_${index}`}
               renderItem={({ item }) => (
@@ -222,10 +258,32 @@ const Home: React.FC<HomeProps> = ({
                 />
               )}
               ListEmptyComponent={
-                <View style={{ alignItems: "center", justifyContent: "center" }}>
-                  <Image source={require("@/assets/images/AI-Character-V1/confused.png")} style={styles.character}/>
-                  <Text style={{ fontSize: 16, fontWeight: "bold", textAlign: "center"}}> No Apartments Found. {'\n'} 
-                    <Text style={{ fontSize: 12, fontWeight: "regular", textAlign: "center"}}> Pull to refresh </Text>
+                <View
+                  style={{ alignItems: "center", justifyContent: "center" }}
+                >
+                  <Image
+                    source={require("@/assets/images/AI-Character-V1/confused.png")}
+                    style={styles.character}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      textAlign: "center",
+                    }}
+                  >
+                    {" "}
+                    No Apartments Found. {"\n"}
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: "regular",
+                        textAlign: "center",
+                      }}
+                    >
+                      {" "}
+                      Pull to refresh{" "}
+                    </Text>
                   </Text>
                 </View>
               }
@@ -289,8 +347,8 @@ const styles = StyleSheet.create({
     width: "50%",
     height: "50%",
     resizeMode: "contain",
-    marginBottom: 10
-  }
+    marginBottom: 10,
+  },
 });
 
 export default Home;

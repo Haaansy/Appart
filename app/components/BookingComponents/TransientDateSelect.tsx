@@ -5,6 +5,7 @@ import CustomCalendar from "../CustomCalendar";
 import { Timestamp } from "firebase/firestore";
 import Colors from "@/assets/styles/colors";
 import CustomButton from "../CustomButton";
+import { BookingDate } from "@/app/types/BookedDates";
 
 interface PopupProps {
   visible: boolean;

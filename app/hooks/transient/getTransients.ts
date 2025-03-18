@@ -23,7 +23,7 @@ export const getTransients = (role: string, userId: string) => {
             const transientRef = collection(db, "transients");
             let transientQuery =
                 role === "home owner"
-                    ? query(transientRef, where("owner.id", "==", userId)) // Ensure proper query
+                    ? query(transientRef, where("ownerId", "==", userId)) // Ensure proper query
                     : transientRef;
 
             transientQuery = query(transientQuery, orderBy("createdAt", "desc"), limit(LIMIT));

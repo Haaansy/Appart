@@ -16,10 +16,11 @@ interface CustomInputWithButtonProps extends TextInputProps {
   buttonTitle?: string;
   onButtonPress: () => void;
   iconName?: keyof typeof Ionicons.glyphMap; // Optional Ionicon name
+  disabled?: boolean; // Add disabled prop
 }
 
 const CustomInputWithButton = forwardRef<TextInput, CustomInputWithButtonProps>(
-  ({ label, buttonTitle, onButtonPress, iconName, value, onChangeText, ...props }, ref) => {
+  ({ label, buttonTitle, onButtonPress, iconName, value, onChangeText, disabled = false, ...props }, ref) => {
     const isFocused = useRef(false);
     const animatedLabel = useRef(new Animated.Value(value ? 1 : 0)).current;
 
@@ -84,9 +85,13 @@ const CustomInputWithButton = forwardRef<TextInput, CustomInputWithButtonProps>(
             onChangeText={onChangeText}
             {...props}
           />
-          <TouchableOpacity style={styles.button} onPress={onButtonPress}>
-            {iconName && <Ionicons name={iconName} size={20} color="white"/>}
-            {buttonTitle && <Text style={styles.buttonText}>{buttonTitle}</Text>}
+          <TouchableOpacity 
+            style={[styles.button, disabled && styles.disabledButton]} 
+            onPress={disabled ? undefined : onButtonPress}
+            disabled={disabled}
+          >
+            {iconName && <Ionicons name={iconName} size={20} color={disabled ? "#A0A0A0" : "white"}/>}
+            {buttonTitle && <Text style={[styles.buttonText, disabled && styles.disabledButtonText]}>{buttonTitle}</Text>}
           </TouchableOpacity>
         </View>
       </View>
@@ -140,6 +145,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
     flexShrink: 1, // Ensures text wraps instead of getting cut off
+  },
+  disabledButton: {
+    backgroundColor: '#CCCCCC',
+    opacity: 0.7,
+  },
+  disabledButtonText: {
+    color: '#A0A0A0',
   },
 });
 

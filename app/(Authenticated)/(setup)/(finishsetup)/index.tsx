@@ -70,7 +70,7 @@ export default function MultiStepForm() {
         setLoading(true);
         await updateUserData(user.id, updatedUser);
         setLoading(false);
-        router.push("/(Authenticated)/(tabs)/Home");
+        router.replace("/(Authenticated)/(tabs)/Home");
       }
     } catch (error) {
       console.error("Error in handleNext:", error);

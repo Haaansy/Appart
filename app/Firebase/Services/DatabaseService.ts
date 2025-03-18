@@ -373,7 +373,7 @@ export const createTransient = async (transientData: Transient): Promise<string 
     const apartmentDataWithOwner = {
       ...transientData,
       images: uploadedImageUrls, // Replace local paths with URLs
-      owner: userData,
+      ownerId: userData.id,
       createdAt: Date.now(),
       id: transientRef.id,
     };

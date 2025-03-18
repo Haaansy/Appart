@@ -50,6 +50,7 @@ const Index = () => {
     requirements: [],
     coordinates: [0, 0],
     createdAt: Date.now(),
+    bookedDates: []
   });
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
 
@@ -82,8 +83,6 @@ const Index = () => {
   const updateFormData = (key: string, value: any) => {
     setFormData((prev) => {
       const updatedFormData = { ...prev, [key]: value };
-      console.log(isValid);
-      console.log(updatedFormData);
       return updatedFormData;
     });
   };

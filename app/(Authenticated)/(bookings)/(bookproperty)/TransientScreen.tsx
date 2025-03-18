@@ -50,6 +50,7 @@ const TransientScreen: React.FC<ApartmentProps> = ({ transient }) => {
     leaseDuration: 0,
     tenants: [], // Ensure it's an array initially
     createdAt: serverTimestamp(),
+    owner: transient.ownerId as string,
   });
 
   useEffect(() => {
@@ -101,8 +102,8 @@ const TransientScreen: React.FC<ApartmentProps> = ({ transient }) => {
           createdAt: serverTimestamp(),
           propertyId: transient.id || "",
           isRead: false,
-          sender: updatedBookingData.tenants[0].user,
-          receiver: transient.owner as UserData,
+          senderId: updatedBookingData.tenants[0].user.id as string,
+          receiverId: transient.ownerId as string,
         };
 
         await createAlert(alertData);
@@ -165,7 +166,7 @@ const TransientScreen: React.FC<ApartmentProps> = ({ transient }) => {
         <TransientDateSelect
           visible={leaseDateModalVisible}
           onClose={() => setLeaseDateModalVisible(false)}
-          bookedDates={transient.bookedDates}
+          bookedDates={transient.bookedDates.map((bd) => bd.bookedDates as Timestamp[]).flat()}
           title="Select Dates"
           subtitle="Select Dates for renting"
           onConfirm={handleSelectDate}
@@ -209,7 +210,7 @@ const TransientScreen: React.FC<ApartmentProps> = ({ transient }) => {
           </Text>
         </View>
         <CustomButton
-          title={"Book Apartment"}
+          title={"Book Transient"}
           onPress={handleBookTransient}
           style={styles.bookButton}
           disabled={

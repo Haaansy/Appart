@@ -3,7 +3,7 @@ import UserData from "./UserData";
 import { BookingDate } from "./BookedDates";
 
 export default interface Transient {
-    owner?: UserData;
+    ownerId?: string;
     images: string[];
     title: string;
     status: string;

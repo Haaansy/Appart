@@ -18,7 +18,6 @@ import UserData from "@/app/types/UserData";
 import Manage from "./Manage";
 import { getAuth } from "firebase/auth";
 import useFetchConversations from "@/app/hooks/inbox/useFetchConversation";
-import AITest from "./AITest";
 
 // Create the bottom tab navigator
 const Tab = createBottomTabNavigator();
@@ -219,16 +218,6 @@ const _layout = () => {
               <Ionicons name="person-outline" size={24} color={color} />
             ),
             tabBarLabel: "Profile",
-          }}
-        />
-        <Tab.Screen
-          name="AITEST"
-          component={AITest}
-          options={{
-            tabBarIcon: ({ color }) => (
-              <Ionicons name="person-outline" size={24} color={color} />
-            ),
-            tabBarLabel: "AI TEST",
           }}
         />
       </Tab.Navigator>

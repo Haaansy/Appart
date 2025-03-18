@@ -29,6 +29,7 @@ import useCheckExistingBooking from "@/app/hooks/bookings/useCheckExistingBookin
 import Conversation from "@/app/types/Conversation";
 import { checkExistingConversation } from "@/app/hooks/inbox/useCheckExistingConversation";
 import UserData from "@/app/types/UserData";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
@@ -263,7 +264,7 @@ const ViewApartment = () => {
       <View style={styles.container}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          style={{ marginBottom: height * 0.35 }}
+          style={{ marginBottom: height * 0.4 }}
         >
           <View
             style={{
@@ -276,18 +277,17 @@ const ViewApartment = () => {
             <Text style={{ fontSize: 24, fontWeight: "bold" }}>
               {apartment.title || "Apartment"}
             </Text>
-            <Text
-              style={{
-                fontSize: 12,
-                color:
-                  apartment.status == "Available"
-                    ? Colors.success
-                    : Colors.error,
-              }}
-            >
-              {apartment.status || "Status"}
-            </Text>
           </View>
+          <Text
+            style={{
+              paddingHorizontal: 10,
+              fontSize: 12,
+              color:
+                apartment.status == "Available" ? Colors.success : Colors.error,
+            }}
+          >
+            {apartment.status || "Status"}
+          </Text>
           <View
             style={{
               flexDirection: "row",
@@ -384,7 +384,7 @@ const ViewApartment = () => {
                 justifyContent: "space-between",
               }}
             >
-              <View style={{ flexDirection: "row", alignItems: "center"}}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Image
                   source={{
                     uri: ownerData?.photoUrl,
@@ -406,7 +406,13 @@ const ViewApartment = () => {
                   </Text>
                 </View>
               </View>
-              <TouchableOpacity style={{ alignItems: "center", flexDirection: "row", marginLeft: 10 }}>
+              <TouchableOpacity
+                style={{
+                  alignItems: "center",
+                  flexDirection: "row",
+                  marginLeft: 10,
+                }}
+              >
                 <Text style={{ fontSize: 12, color: Colors.primary }}>
                   View Profile
                 </Text>
@@ -632,7 +638,7 @@ const ViewApartment = () => {
           {currentUserData.role === "tenant" && (
             <View>
               <Text style={styles.title}>Actions</Text>
-              <View>
+              <View style={{ marginBottom: 10 }}>
                 <IconButton
                   onPress={handleInquireApartment}
                   icon={"chatbubbles"}
