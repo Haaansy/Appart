@@ -17,6 +17,7 @@ interface IconButtonProps {
   width?: number | "auto";
   style?: ViewStyle;
   textStyle?: TextStyle;
+  disabled?: boolean; // Added the disabled prop
 }
 
 const IconButton: React.FC<IconButtonProps> = ({
@@ -33,6 +34,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   width = "auto",
   style,
   textStyle,
+  disabled = false, // Added default value
 }) => {
   return (
     <TouchableOpacity
@@ -43,6 +45,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       ]}
       onPress={onPress}
       activeOpacity={0.7}
+      disabled={disabled} // Use the disabled prop
     >
       {/* Start Icon */}
       {icon && (

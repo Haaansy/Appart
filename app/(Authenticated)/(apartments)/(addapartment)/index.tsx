@@ -11,6 +11,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
@@ -27,6 +28,7 @@ import { getApartments } from "@/app/hooks/apartment/getApartments";
 import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import UserData from "@/app/types/UserData";
 import Apartment from "@/app/types/Apartment";
+import { Ionicons } from "@expo/vector-icons";
 
 const pages = [PageOne, PageTwo, PageThree, PageFour];
 
@@ -86,7 +88,7 @@ const index = () => {
     const fetchUserData = async () => {
       const userData = await getStoredUserData();
       setCurrentUserData(userData);
-      setFormData
+      setFormData;
     };
 
     fetchUserData();
@@ -142,9 +144,7 @@ const index = () => {
       if (newApartmentID) {
         console.log("New apartment created with ID:", newApartmentID);
 
-        router.push(
-          `/(Authenticated)/(tabs)/Home`
-        );
+        router.push(`/(Authenticated)/(tabs)/Home`);
       } else {
         console.error("Failed to create an apartment");
         Alert.alert(
@@ -198,10 +198,13 @@ const index = () => {
           }}
         >
           <View style={styles.titleContainer}>
-            <Image
-              source={require("@/assets/images/Icons/Dark-Icon.png")}
-              style={styles.icon}
-            />
+            <TouchableOpacity onPress={() => router.back()}>
+              <Ionicons
+                name="chevron-back"
+                size={40}
+                color={Colors.primaryBackground}
+              />
+            </TouchableOpacity>
             <Text style={styles.text}>Add a {"\n"} New Apartment</Text>
           </View>
 

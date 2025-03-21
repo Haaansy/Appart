@@ -60,7 +60,7 @@ const Inbox: React.FC<InboxProps> = ({
           </View>
         </View>
           <FlatList
-          contentContainerStyle={{ paddingBottom: 100, flexGrow: 1 }}
+          contentContainerStyle={{ paddingBottom: 100, flexGrow: 1, marginTop: 20 }}
             data={conversations}
             keyExtractor={(item) => item.id as string}
             ListEmptyComponent={

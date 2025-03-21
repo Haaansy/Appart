@@ -49,7 +49,7 @@ export const getApartments = (role: string, userId: string) => {
                     ? query(apartmentsRef, where("ownerId", "==", userId)) // Ensure proper query
                     : apartmentsRef;
 
-            apartmentsQuery = query(apartmentsQuery, orderBy("createdAt", "desc"), limit(LIMIT));
+            apartmentsQuery = query(apartmentsQuery,where("status", "==", "Available"), orderBy("createdAt", "desc"), limit(LIMIT));
             if (!reset && lastDoc) {
                 apartmentsQuery = query(apartmentsQuery, startAfter(lastDoc));
             }

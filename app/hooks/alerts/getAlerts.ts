@@ -22,8 +22,6 @@ const getAlerts = (userId: string) => {
     if (!userId) return;
 
     const setupListener = debounce(() => {
-      console.log('Setting up Firestore listener for user:', userId);  // Debugging log
-
       const alertsRef = collection(db, 'alerts');
       const q = query(
         alertsRef,
@@ -36,7 +34,6 @@ const getAlerts = (userId: string) => {
           id: doc.id,
           ...doc.data()
         }));
-        console.log('Received alerts snapshot:', alertsData);  // Debugging log
         setAlerts(alertsData as Alert[]);
         setLoading(false);
       }, (err) => {
@@ -46,7 +43,6 @@ const getAlerts = (userId: string) => {
       });
 
       return () => {
-        console.log('Cleaning up Firestore listener');  // Debugging log
         unsubscribe();
       }; // Cleanup listener on unmount
     }, 300); // Adjust delay as needed

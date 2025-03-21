@@ -51,7 +51,6 @@ const useFetchBookings = (status: string, type: "Apartment" | "Transient" | "hom
           ...doc.data(),
         }));
 
-        console.log("Fetched bookings:", fetchedBookings);
         setBookings(fetchedBookings);
       } catch (err) {
         setError("Failed to fetch bookings.");

@@ -52,49 +52,18 @@ const ApartmentCards: React.FC<ApartmentCardsProps> = ({
     <TouchableOpacity onPress={onPress}>
       <View style={styles.card}>
         <View style={styles.imageContainer}>
-          {/* Image Carousel */}
-          <FlatList
-            ref={flatListRef}
-            data={imageList}
-            horizontal
-            pagingEnabled
-            onScroll={handleScroll}
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item, index) => item + index}
-            renderItem={({ item }) => (
-              <Image source={{ uri: item }} style={styles.image} />
-            )}
-            snapToAlignment="center"
-            snapToInterval={width * 0.9} // Snaps to each image width
-            decelerationRate="fast"
-          />
-
-          {/* Dots Indicator (Overlayed on Image) */}
-          <View style={styles.dotsContainer}>
-            {imageList.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.dot,
-                  {
-                    backgroundColor:
-                      activeIndex === index ? Colors.primary : "white",
-                  },
-                ]}
-              />
-            ))}
-          </View>
+          <Image source={{ uri: images[0] as string }} style={styles.image} />
         </View>
 
         {/* Apartment Details */}
         <View style={styles.contents}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View>
             <Text style={styles.title}>{title}</Text>
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                justifyContent: "flex-end",
+                marginTop: 10,
                 flex: 1,
               }}
             >
@@ -123,6 +92,7 @@ const ApartmentCards: React.FC<ApartmentCardsProps> = ({
               flexDirection: "row",
               justifyContent: "flex-end",
               alignItems: "flex-end",
+              marginTop: 15
             }}
           >
             <Text style={styles.price}>{formattedPrice}</Text>

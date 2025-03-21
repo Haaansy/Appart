@@ -29,18 +29,9 @@ const TransientCard: React.FC<TransientCardProps> = ({
   address,
   price,
   rating,
-  onPress
+  onPress,
 }) => {
-  const flatListRef = useRef<FlatList<string> | null>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-
   const imageList = images.flat(); // Flatten in case of nested array
-
-  const handleScroll = (event: any) => {
-    const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / (width * 0.9)); // Adjusted to match snap interval
-    setActiveIndex(index);
-  };
 
   // Format price as PHP currency
   const formattedPrice = new Intl.NumberFormat("en-PH", {
@@ -53,49 +44,18 @@ const TransientCard: React.FC<TransientCardProps> = ({
     <TouchableOpacity onPress={onPress}>
       <View style={styles.card}>
         <View style={styles.imageContainer}>
-          {/* Image Carousel */}
-          <FlatList
-            ref={flatListRef}
-            data={imageList}
-            horizontal
-            pagingEnabled
-            onScroll={handleScroll}
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item, index) => item + index}
-            renderItem={({ item }) => (
-              <Image source={{ uri: item }} style={styles.image} />
-            )}
-            snapToAlignment="center"
-            snapToInterval={width * 0.9} // Snaps to each image width
-            decelerationRate="fast"
-          />
-
-          {/* Dots Indicator (Overlayed on Image) */}
-          <View style={styles.dotsContainer}>
-            {imageList.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.dot,
-                  {
-                    backgroundColor:
-                      activeIndex === index ? Colors.primary : "white",
-                  },
-                ]}
-              />
-            ))}
-          </View>
+          <Image source={{ uri: imageList[0]}} style={styles.image} />
         </View>
 
         {/* Apartment Details */}
         <View style={styles.contents}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View>
             <Text style={styles.title}>{title}</Text>
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                justifyContent: "flex-end",
+                marginTop: 10,
                 flex: 1,
               }}
             >
@@ -111,11 +71,12 @@ const TransientCard: React.FC<TransientCardProps> = ({
           <View
             style={{
               flexDirection: "row",
-              alignItems: "center",
+              alignItems: "flex-start",
               justifyContent: "flex-start",
+              marginTop: 15,
             }}
           >
-            <Ionicons name="location" size={16} color={Colors.primary} />
+            <Ionicons name="location" size={20} color={Colors.primary} />
             <Text style={styles.address}>{address}</Text>
           </View>
           <View
@@ -123,6 +84,7 @@ const TransientCard: React.FC<TransientCardProps> = ({
               flexDirection: "row",
               justifyContent: "flex-end",
               alignItems: "flex-end",
+              marginTop: 15
             }}
           >
             <Text style={styles.price}> {formattedPrice} </Text>
@@ -145,6 +107,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
+    marginVertical: 15,
   },
   imageContainer: {
     position: "relative",
@@ -173,12 +136,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   address: {
-    marginTop: 5,
     fontSize: 14,
     color: "gray",
+    marginLeft: 5,
   },
   price: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
     color: Colors.primaryText,
     textAlign: "right",

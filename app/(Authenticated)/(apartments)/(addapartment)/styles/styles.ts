@@ -12,7 +12,7 @@ export default StyleSheet.create({
         backgroundColor: Colors.secondaryBackground,
     },
     titleContainer: {
-        marginTop: 50,
+        marginTop: 30,
         flexDirection: "row",
         alignItems: "center",
     },

@@ -178,7 +178,7 @@ const PageTwo: React.FC<PageProps> = ({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   mapContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  map: { flex: 1, width: width, height: height * 0.5, marginVertical: 25 },
+  map: { flex: 1, width: width, height: height * 0.4 },
   markerContainer: { alignItems: "center", justifyContent: "center" },
   marker: {
     width: 20,

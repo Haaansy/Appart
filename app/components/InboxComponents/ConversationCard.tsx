@@ -55,7 +55,7 @@ const ConversationCard: React.FC<ConversationCardProps> = ({ conversation }) => 
 
   return (
     <View style={styles.container}>
-      <View style={{ flexDirection: "row" }}>
+      <View style={{ flexDirection: "row", justifyContent: 'center', alignItems: 'center' }}>
         <View style={{ flexDirection: "row" }}>
           {conversation.members.map((member) => (
             <Image
@@ -65,14 +65,21 @@ const ConversationCard: React.FC<ConversationCardProps> = ({ conversation }) => 
             />
           ))}
         </View>
-        <View style={{ flexDirection: "row", marginLeft: 25, flex: 1 }}>
-          {conversation.members.map((member, index) => (
+        <View style={{ flexDirection: "row", marginLeft: 10, flex: 1 }}>
+          {conversation.members.length < 4 && conversation.members.map((member, index) => (
             <Text key={member.user.id}>{`${member.user.displayName}${
               index < conversation.members.length - 1 ? ", " : " "
             }`}</Text>
           ))}
-        </View>
 
+          {conversation.members.length >= 4 && (
+            <Text>
+              {`${conversation.members[0].user.displayName}, ${
+                conversation.members[1].user.displayName
+              }, ${conversation.members.length - 2} more`}
+            </Text>
+          )}
+        </View>
         {/* ✅ Check if `currentUserMember` exists and has unread messages */}
         {currentUserMember && currentUserMember.count > 0 && (
           <View style={styles.unreadIndicator} />
@@ -82,7 +89,7 @@ const ConversationCard: React.FC<ConversationCardProps> = ({ conversation }) => 
         <Text>{`${conversation.lastSender.displayName}: ${conversation.lastMessage}`}</Text>
       </View>
       <View style={{ marginTop: 15, alignItems: "flex-end" }}>
-        <Text>{relativeTime}</Text>
+        <Text style={{ color: Colors.primary}}>{relativeTime}</Text>
       </View>
     </View>
   );
@@ -100,6 +107,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: Colors.primary,
     marginLeft: -10,
+    borderStyle: "solid",
+    borderWidth: 2,
+    borderColor: Colors.primaryBackground,
   },
   unreadIndicator: {
     width: 15,

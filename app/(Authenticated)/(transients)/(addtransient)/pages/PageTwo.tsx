@@ -177,8 +177,8 @@ const PageTwo: React.FC<PageProps> = ({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  mapContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  map: { flex: 1, width: width, height: height * 0.5, marginVertical: 25 },
+  mapContainer: { flex: 1, marginTop: 15, justifyContent: "center", alignItems: "center" },
+  map: { flex: 1, width: width, height: height * 0.45},
   markerContainer: { alignItems: "center", justifyContent: "center" },
   marker: {
     width: 20,
@@ -190,10 +190,9 @@ const styles = StyleSheet.create({
   },
   infoBox: {
     position: "absolute",
-    bottom: 20,
+    bottom: 10,
     backgroundColor: "white",
     padding: 10,
-    borderRadius: 8,
     width: "100%",
   },
   addressText: { fontSize: 14, fontWeight: "600", marginLeft: 10 },

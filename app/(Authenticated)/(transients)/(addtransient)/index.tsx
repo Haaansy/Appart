@@ -11,6 +11,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
@@ -24,6 +25,7 @@ import PageThree from "./pages/PageThree";
 import { createTransient } from "@/app/Firebase/Services/DatabaseService";
 import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import UserData from "@/app/types/UserData";
+import { Ionicons } from "@expo/vector-icons";
 
 const pages = [PageOne, PageTwo, PageThree];
 
@@ -50,7 +52,7 @@ const Index = () => {
     requirements: [],
     coordinates: [0, 0],
     createdAt: Date.now(),
-    bookedDates: []
+    bookedDates: [],
   });
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
 
@@ -128,9 +130,7 @@ const Index = () => {
       if (newTransientID) {
         console.log("New transient created with ID:", newTransientID);
 
-        router.push(
-          `/(Authenticated)/(tabs)/Home`
-        );
+        router.push(`/(Authenticated)/(tabs)/Home`);
       } else {
         console.error("Failed to create an transient");
         Alert.alert(
@@ -184,10 +184,13 @@ const Index = () => {
           }}
         >
           <View style={styles.titleContainer}>
-            <Image
-              source={require("@/assets/images/Icons/Dark-Icon.png")}
-              style={styles.icon}
-            />
+            <TouchableOpacity onPress={() => router.back()}>
+              <Ionicons
+                name="chevron-back"
+                size={40}
+                color={Colors.primaryBackground}
+              />
+            </TouchableOpacity>
             <Text style={styles.text}>Add a {"\n"} New Transient</Text>
           </View>
 

@@ -481,7 +481,6 @@ export const updateAlert = async (alertId: string, alertData: Partial<Alert>) =>
   try {
     const alertRef = doc(db, "alerts", alertId);
     await updateDoc(alertRef, alertData);
-    console.log("Alert updated successfully");
   } catch (error) {
     console.error("Error updating alert:", error);
   }
@@ -490,7 +489,6 @@ export const updateAlert = async (alertId: string, alertData: Partial<Alert>) =>
 export const deleteAlert = async (alertId: string) => {
   try {
     await deleteDoc(doc(db, "alerts", alertId));
-    console.log("alert deleted successfully");
   } catch (error) {
     console.error("Error deleting alert:", error);
   }
