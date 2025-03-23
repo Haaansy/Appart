@@ -11,11 +11,9 @@ import Colors from "@/assets/styles/colors";
 import { StatusBar, Platform, View, Text } from "react-native"; // Import StatusBar, Platform, View, and Text
 import getAlerts from "@/app/hooks/alerts/getAlerts"; // Import getAlerts hook
 import {
-  getCurrentUser,
   getStoredUserData,
 } from "@/app/Firebase/Services/AuthService"; // Import getCurrentUser from AuthService
 import UserData from "@/app/types/UserData";
-import Manage from "./Manage";
 import { getAuth } from "firebase/auth";
 import useFetchConversations from "@/app/hooks/inbox/useFetchConversation";
 
@@ -198,18 +196,6 @@ const _layout = () => {
         >
           {() => <Inbox conversations={conversations} loading={Loading} currentUserData={currentUserData as UserData} />}
         </Tab.Screen>
-        {currentUserData?.role === "home owner" && (
-          <Tab.Screen
-            name="Manage"
-            component={Manage}
-            options={{
-              tabBarIcon: ({ color }) => (
-                <Ionicons name="build-outline" size={24} color={color} />
-              ),
-              tabBarLabel: "Manage",
-            }}
-          />
-        )}
         <Tab.Screen
           name="Profile"
           component={Profile}

@@ -29,7 +29,6 @@ import useCheckExistingBooking from "@/app/hooks/bookings/useCheckExistingBookin
 import Conversation from "@/app/types/Conversation";
 import { checkExistingConversation } from "@/app/hooks/inbox/useCheckExistingConversation";
 import UserData from "@/app/types/UserData";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
