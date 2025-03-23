@@ -44,7 +44,7 @@ const index = () => {
   } = useFetchMessages(String(conversationId));
 
   const [message, setMessage] = useState("");
-  const { sendMessage, loading } = useSendMessage(
+  const { sendMessage, loading:sendMessageLoading } = useSendMessage(
     String(conversationId),
     currentUserData
   );
@@ -75,6 +75,10 @@ const index = () => {
     await sendMessage(message);
     setMessage(""); // Clear input after sending
   };
+
+  if(conversationLoading || messagesLoading) {
+    return <Text>Loading...</Text>
+  }
 
   return (
     <SafeAreaView style={styles.safeContainer}>

@@ -23,6 +23,7 @@ const ConversationPopup: React.FC<PopupProps> = ({
 }) => {
   const [showMembers, setShowMembers] = useState(false);
 
+  console.log(conversation)
   return (
     <Modal transparent={true} visible={visible} animationType="fade">
       <TouchableOpacity
@@ -47,7 +48,6 @@ const ConversationPopup: React.FC<PopupProps> = ({
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => {
-              onSelect();
               setShowMembers(true);
             }}
           >
@@ -75,7 +75,8 @@ const ConversationPopup: React.FC<PopupProps> = ({
                 <Ionicons name="close" size={24} color={Colors.primaryText} />
               </TouchableOpacity>
             </View>
-            <FlatList
+            {conversation.members.length > 0 && (
+              <FlatList
               data={conversation.members}
               keyExtractor={(member) => member.user.id as string}
               renderItem={({ item }) => (
@@ -85,6 +86,7 @@ const ConversationPopup: React.FC<PopupProps> = ({
                 </View>
               )}
             />
+            )}
           </View>
         </TouchableOpacity>
       </Modal>

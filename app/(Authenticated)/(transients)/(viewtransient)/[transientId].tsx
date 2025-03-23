@@ -26,9 +26,9 @@ import {
   fetchUserDataFromFirestore,
 } from "@/app/Firebase/Services/DatabaseService";
 import useCheckExistingBooking from "@/app/hooks/bookings/useCheckExistingBooking";
-import { checkExistingConversation } from "@/app/hooks/inbox/useCheckExistingConversation";
 import Conversation from "@/app/types/Conversation";
 import UserData from "@/app/types/UserData";
+import { checkExistingConversationWithTenants } from "@/app/hooks/inbox/useCheckExistingConversationWithTenants";
 
 const { width, height } = Dimensions.get("window");
 
@@ -142,9 +142,9 @@ const ViewApartment = () => {
 
   const handleInquireTransient = async () => {
     try {
-      const existingConversation = await checkExistingConversation(
+      const existingConversation = await checkExistingConversationWithTenants(
         String(transientId),
-        currentUserData,
+        [currentUserData],
         ownerData
       );
 

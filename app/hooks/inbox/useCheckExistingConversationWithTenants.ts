@@ -7,12 +7,11 @@ export const checkExistingConversationWithTenants = async (
   propertyId: string,
   tenants: UserData[],
   owner: UserData,
-  currentUser: UserData
 ): Promise<Conversation | null> => {
   try {
     console.log("[DEBUG] Checking for existing conversation...");
 
-    if (!propertyId || tenants.length === 0 || !owner || !currentUser) {
+    if (!propertyId || tenants.length === 0 || !owner) {
       console.log("[DEBUG] Missing required parameters.");
       return null;
     }
@@ -29,7 +28,7 @@ export const checkExistingConversationWithTenants = async (
     const q = query(
       conversationsRef,
       where("propertyId", "==", propertyId),
-      where("memberIds", "array-contains", currentUser.id) // Ensure user is part of the conversation
+      where("memberIds", "==", memberIds) // Ensure user is part of the conversation
     );
 
     const snapshot = await getDocs(q);

@@ -82,7 +82,7 @@ const Inbox: React.FC<InboxProps> = ({
               </View>
             }
             renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => handleConversationPress(item)}>
+              <TouchableOpacity onPress={() => handleConversationPress(item)} style={{ marginBottom: 10 }}>
                 <ConversationCard conversation={item} />
               </TouchableOpacity>
             )}

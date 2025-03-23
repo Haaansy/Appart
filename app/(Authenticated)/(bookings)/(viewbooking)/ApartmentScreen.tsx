@@ -56,12 +56,11 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
   const handleViewingApproval = async () => {
     try {
       setLoading(true);
-      
+
       const existingConversation = await checkExistingConversationWithTenants(
         String(apartment.id),
         booking.tenants.map((tenant) => tenant.user),
         ownerData,
-        currentUserData
       );
 
       const alertData: Alert = {
@@ -83,7 +82,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
             bookingId: String(booking.id),
             viewingDate: booking.viewingDate,
           },
-        ]
+        ],
       });
 
       await sendAlerts(booking.tenants, alertData);
@@ -108,7 +107,6 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
         });
         setLoading(false);
         if (createdConversation) {
-          
           await updateBooking(String(booking.id), {
             ...booking,
             status: "Viewing Confirmed",
@@ -152,7 +150,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
             bookedDates: booking.bookedDate,
           },
         ],
-        status: "Unavailable"
+        status: "Unavailable",
       });
 
       const alertData: Alert = {
@@ -206,7 +204,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
       } catch (error) {
         console.error("Error fetching owner data:", error);
       }
-    }
+    };
 
     fetchOwnerData();
     fetchUserData();

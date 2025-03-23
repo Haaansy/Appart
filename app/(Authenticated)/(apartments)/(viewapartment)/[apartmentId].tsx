@@ -27,8 +27,8 @@ import {
 import { useApartment } from "@/app/hooks/apartment/useApartment";
 import useCheckExistingBooking from "@/app/hooks/bookings/useCheckExistingBooking";
 import Conversation from "@/app/types/Conversation";
-import { checkExistingConversation } from "@/app/hooks/inbox/useCheckExistingConversation";
 import UserData from "@/app/types/UserData";
+import { checkExistingConversationWithTenants } from "@/app/hooks/inbox/useCheckExistingConversationWithTenants";
 
 const { width, height } = Dimensions.get("window");
 
@@ -137,9 +137,9 @@ const ViewApartment = () => {
 
   const handleInquireApartment = async () => {
     try {
-      const existingConversation = await checkExistingConversation(
+      const existingConversation = await checkExistingConversationWithTenants(
         String(apartmentId),
-        currentUserData,
+        apartment.tenants || [],
         ownerData
       );
 

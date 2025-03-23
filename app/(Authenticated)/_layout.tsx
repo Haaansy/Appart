@@ -18,6 +18,7 @@ const AuthenticatedLayout = () => {
       <Stack.Screen name="(profile)"/>
       <Stack.Screen name="(inbox)"/>
       <Stack.Screen name="(utilities)"/>
+      <Stack.Screen name="(review)"/>
     </Stack>
   );
 };
