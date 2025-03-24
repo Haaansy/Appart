@@ -31,7 +31,7 @@ const storage = getStorage(app);
 const functions = getFunctions(app);
 
 // 🔥 Connect to Emulator in Development
-const localhost = "192.168.1.8" // Change this to your local IP
+const localhost = "192.168.1.14" // Change this to your local IP
 
 if (__DEV__) {
   console.log("🔥 Connecting to Firebase Emulators...");
@@ -43,4 +43,4 @@ if (__DEV__) {
 
 // 🔹 Export Firebase Services
 // 🔹 Export Firebase Services
-export { app, auth, db, storage, firebaseConfig };
+export { app, auth, db, storage, firebaseConfig }; 
