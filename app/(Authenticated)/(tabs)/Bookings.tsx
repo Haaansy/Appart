@@ -32,6 +32,7 @@ const Bookings = () => {
       "Booking Confirmed",
       "Booking Completed",
       "Booking Declined",
+      "Booking Cancelled"
     ],
     Transient: [
       "Booked",

@@ -20,6 +20,7 @@ import IconButton from "@/app/components/IconButton";
 import UserData from "@/app/types/UserData";
 import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import {
+  createAlert,
   createConversation,
   fetchUserDataFromFirestore,
   updateApartment,
@@ -31,6 +32,10 @@ import Alert from "@/app/types/Alert";
 import Tenant from "@/app/types/Tenant";
 import EvictionPopup from "@/app/components/BookingComponents/EvictionPopup";
 import { checkExistingConversationWithTenants } from "@/app/hooks/inbox/useCheckExistingConversationWithTenants";
+import useBatchDeclineBooking from "@/app/hooks/bookings/useBatchDeclineBooking";
+import ReasonPopup from "@/app/components/BookingComponents/ReasonPopup";
+import { set } from "date-fns";
+import clearApartment from "@/app/hooks/apartment/clearApartment";
 
 interface ApartmentProps {
   apartment: Apartment;
@@ -43,6 +48,8 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
   );
   const [ownerData, setOwnerData] = useState<UserData>({} as UserData);
   const [tenantEvictionModalVisible, setTenantEvictionModalVisible] =
+    useState<boolean>(false);
+  const [ReasonPopupModalVisible, setReasonPopupModalVisible] =
     useState<boolean>(false);
   const [bookingData, setBookingData] = useState<Booking>({} as Booking);
   const [loading, setLoading] = useState<boolean>(true);
@@ -60,7 +67,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
       const existingConversation = await checkExistingConversationWithTenants(
         String(apartment.id),
         booking.tenants.map((tenant) => tenant.user),
-        ownerData,
+        ownerData
       );
 
       const alertData: Alert = {
@@ -83,6 +90,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
             viewingDate: booking.viewingDate,
           },
         ],
+        status: "Unavailable",
       });
 
       await sendAlerts(booking.tenants, alertData);
@@ -125,6 +133,8 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
         status: "Viewing Confirmed",
         conversationId: existingConversation?.id,
       });
+
+      await useBatchDeclineBooking(String(apartment.id), String(booking.id));
 
       router.replace(
         `/(Authenticated)/(inbox)/(viewconversation)/${existingConversation?.id}`
@@ -181,6 +191,61 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
           : tenant
       ),
     });
+
+    router.replace(`/(Authenticated)/(tabs)/Bookings`);
+  };
+
+  const handleDecline = async (
+    reason: string
+  ) => {
+    console.log(reason)   
+
+    await updateBooking(String(booking.id), {
+      ...booking,
+      status: currentUserData.role === "home owner" ? "Booking Declined" : "Booking Cancelled",
+      reason: reason,
+      reasonType: currentUserData.role === "home owner" ? "Decline" : "Cancel",
+    });
+
+    await updateApartment(String(apartment.id), {
+      ...apartment,
+      status: "Available",
+      viewingDates: [],
+      bookedDates: []
+    });
+
+    let AlertData: Alert
+
+    if (currentUserData.role === "home owner") {
+      AlertData = {
+        message: "Your booking has been declined.",
+        type: "Booking",
+        bookingType: "Apartment",
+        bookingId: String(booking.id),
+        propertyId: String(apartment.id),
+        isRead: false,
+        senderId: currentUserData.id as string,
+        createdAt: Timestamp.now(),
+      };
+    } else {
+      AlertData = {
+        message: "Cancelled the booking.",
+        type: "Booking",
+        bookingType: "Apartment",
+        bookingId: String(booking.id),
+        propertyId: String(apartment.id),
+        isRead: false,
+        senderId: currentUserData.id as string,
+        receiverId: ownerData.id as string,
+        createdAt: Timestamp.now(),
+      };
+    }
+
+    if(currentUserData.role === "home owner") {
+      await sendAlerts(booking.tenants, AlertData);
+    } else {
+      await createAlert(AlertData);
+    }
 
     router.replace(`/(Authenticated)/(tabs)/Bookings`);
   };
@@ -271,6 +336,16 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
             {booking.status}
           </Text>
         )}
+        { booking.reason && (
+          <Text
+            style={[
+              styles.title,
+              { fontSize: 14, textAlign: "center", marginTop: 15, color: Colors.error, fontWeight: "regular"},
+            ]}
+          >
+            Reason: {booking.reason}
+          </Text>
+        )}
         <View style={styles.line} />
         <PropertyCard
           image={apartment.images[0]}
@@ -292,7 +367,15 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
         {/* Tenant Section */}
         <Text style={styles.subtitle}>Tenant</Text>
         {booking.tenants.map((tenant: Tenant) => (
-          <TenantCard key={tenant.user.id} tenant={tenant} />
+          <TenantCard
+            key={tenant.user.id}
+            tenant={tenant}
+            onPress={() => {
+              router.push(
+                `/(Authenticated)/(profile)/(viewprofile)/${tenant.user.id}`
+              );
+            }}
+          />
         ))}
 
         {/* Lease Duration Section */}
@@ -396,7 +479,9 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
                 }}
               />
               <IconButton
-                onPress={() => {}}
+                onPress={() => {
+                  setReasonPopupModalVisible(true);
+                }}
                 icon="close"
                 text="Decline Booking"
                 iconColor={Colors.primaryBackground}
@@ -429,7 +514,9 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
                 }}
               />
               <IconButton
-                onPress={() => {}}
+                onPress={() => {
+                  setReasonPopupModalVisible(true);
+                }}
                 icon="close"
                 text="Decline Booking"
                 iconColor={Colors.primaryBackground}
@@ -471,8 +558,21 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
           onClose={() => setTenantEvictionModalVisible(false)}
         />
 
+        <ReasonPopup
+          visible={ReasonPopupModalVisible}
+          onClose={() => {
+            setReasonPopupModalVisible(false);
+          }}
+          onSubmit={(reason) => {
+            handleDecline(reason);
+            setReasonPopupModalVisible(false);
+          }}
+        />
+
         {/* Actions - Tenants */}
         {booking.status !== "Viewing Confirmed" &&
+          booking.status !== "Booking Declined" &&
+          booking.status !== "Booking Cancelled" &&
           currentUserData.role === "tenant" &&
           booking.tenants?.some(
             (tenant: Tenant) =>
@@ -483,7 +583,9 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
                 Booking Actions
               </Text>
               <IconButton
-                onPress={() => {}}
+                onPress={() => {
+                  setReasonPopupModalVisible(true);
+                }}
                 icon="close"
                 text="Cancel Booking"
                 iconColor={Colors.primaryBackground}

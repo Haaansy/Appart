@@ -5,7 +5,7 @@ export default interface Booking {
     id?: string;
     type: "Apartment" | "Transient";
     propertyId: string;
-    status: "Booked" | "Pending Invitation" | "Viewing Confirmed" | "Booking Confirmed" | "Booking Declined" | "Booking Completed";
+    status: "Booked" | "Pending Invitation" | "Viewing Confirmed" | "Booking Confirmed" | "Booking Declined" | "Booking Completed" | "Booking Cancelled";
     bookedDate: Timestamp[];
     leaseDuration: number;
     tenants: Tenant[];
@@ -19,4 +19,6 @@ export default interface Booking {
         rating: number;
         feedback: string;
     }
+    reason?: string;
+    reasonType?: "Decline" | "Cancel";
 }

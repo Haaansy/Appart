@@ -143,6 +143,7 @@ const index = () => {
           onClose={() => setConversationModalVisible(false)}
           bookingId={conversation?.bookingId as string}
           conversation={conversation as Conversation}
+          isInquiry={conversation?.type === "Inquiry" ? true : false}
         />
 
         {/* Messages List */}

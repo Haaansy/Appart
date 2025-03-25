@@ -139,20 +139,14 @@ const ViewApartment = () => {
     try {
       const existingConversation = await checkExistingConversationWithTenants(
         String(apartmentId),
-        apartment.tenants || [],
-        ownerData
+        [currentUserData.id as string],
+        ownerData.id as string
       );
 
       if (existingConversation) {
-        console.log(
-          "[DEBUG] Existing conversation found:",
-          existingConversation.id
-        );
-        router.push(`/(Authenticated)/(tabs)/Inbox`);
+        router.push(`/(Authenticated)/(inbox)/(viewconversation)/${existingConversation.id}`);
         return;
       }
-
-      console.log("[DEBUG] No existing conversation. Creating a new one...");
 
       const conversationData: Conversation = {
         lastMessage: "Started a conversation",
@@ -169,8 +163,7 @@ const ViewApartment = () => {
 
       const createdConversationId = await createConversation(conversationData);
       if (createdConversationId) {
-        console.log("[DEBUG] New conversation created:", createdConversationId);
-        router.push(`/(Authenticated)/(tabs)/Inbox`);
+        router.push(`/(Authenticated)/(inbox)/(viewconversation)/${createdConversationId.id}`);
       }
     } catch (error) {
       console.error("[ERROR] Failed to create or check conversation:", error);
@@ -207,63 +200,64 @@ const ViewApartment = () => {
     );
 
   return (
-    <View style={{ marginBottom: 200 }}>
+    <View style={{ marginBottom: 5 }}>
       {/* ✅ Scrollable Image Gallery with Centered Indicator */}
-      <FlatList
-        contentContainerStyle={{ height: height }}
-        data={apartment.images || []}
-        horizontal
-        keyExtractor={(_, index: number) => index.toString()}
-        showsHorizontalScrollIndicator={false}
-        pagingEnabled
-        onMomentumScrollEnd={handleScroll}
-        renderItem={({ item }) => (
-          <View>
+        <View style={{ height: height * 0.4 }}>
+          <FlatList
+            data={apartment.images || []}
+            horizontal
+            keyExtractor={(_, index: number) => index.toString()}
+            showsHorizontalScrollIndicator={false}
+            pagingEnabled
+            onMomentumScrollEnd={handleScroll}
+            renderItem={({ item }) => (
+          <View style={{ width, height: height * 0.4 }}>
             <TouchableOpacity onPress={() => handleImagePress(item)}>
               <Image
-                source={{ uri: item }}
-                style={{
-                  width: width,
-                  height: height * 0.4,
-                  resizeMode: "cover",
-                }}
+            source={{ uri: item }}
+            style={{
+              width,
+              height: height * 0.4,
+              resizeMode: "cover",
+            }}
               />
             </TouchableOpacity>
             {/* 🔹 Pagination Dots Positioned at the Center-Bottom */}
             <View
               style={{
-                position: "absolute",
-                bottom: 50,
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
-                paddingVertical: 5,
-                borderRadius: 10,
-                alignSelf: "center",
-                width: "30%",
+            position: "absolute",
+            bottom: 50,
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+            paddingVertical: 5,
+            borderRadius: 10,
+            alignSelf: "center",
+            width: "30%",
               }}
             >
               {apartment.images?.map((_: number, index: number) => (
-                <View
-                  key={index}
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor:
-                      index === currentIndex ? Colors.primary : "white",
-                    marginHorizontal: 5,
-                  }}
-                />
+            <View
+              key={index}
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor:
+              index === currentIndex ? Colors.primary : "white",
+                marginHorizontal: 5,
+              }}
+            />
               ))}
             </View>
           </View>
-        )}
-      />
+            )}
+          />
+        </View>
       <View style={styles.container}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          style={{ marginBottom: height * 0.4 }}
+          style={{ marginBottom: height * 0.2 }}
         >
           <View
             style={{

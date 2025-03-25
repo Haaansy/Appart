@@ -144,8 +144,8 @@ const ViewApartment = () => {
     try {
       const existingConversation = await checkExistingConversationWithTenants(
         String(transientId),
-        [currentUserData],
-        ownerData
+        [currentUserData.id as string],
+        transient.ownerId
       );
 
       if (existingConversation) {

@@ -5,6 +5,7 @@ import Colors from "@/assets/styles/colors";
 import Conversation from "@/app/types/Conversation";
 import { router } from "expo-router";
 import { FlatList } from "react-native-gesture-handler";
+import useBooking from "@/app/hooks/bookings/useBooking";
 
 interface PopupProps {
   visible: boolean;
@@ -12,6 +13,7 @@ interface PopupProps {
   onClose: () => void; // Close the popup
   bookingId: string;
   conversation: Conversation;
+  isInquiry: boolean;
 }
 
 const ConversationPopup: React.FC<PopupProps> = ({
@@ -20,10 +22,10 @@ const ConversationPopup: React.FC<PopupProps> = ({
   onClose,
   bookingId,
   conversation,
+  isInquiry
 }) => {
   const [showMembers, setShowMembers] = useState(false);
 
-  console.log(conversation)
   return (
     <Modal transparent={true} visible={visible} animationType="fade">
       <TouchableOpacity
@@ -32,7 +34,8 @@ const ConversationPopup: React.FC<PopupProps> = ({
         onPress={onClose}
       >
         <View style={styles.dropdown}>
-          <TouchableOpacity
+          { !isInquiry && (
+            <TouchableOpacity
             style={styles.menuItem}
             onPress={() => {
               onSelect();
@@ -44,6 +47,7 @@ const ConversationPopup: React.FC<PopupProps> = ({
             <Ionicons name="eye-outline" size={20} color={Colors.primaryText} />
             <Text style={styles.menuText}>View Booking</Text>
           </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={styles.menuItem}

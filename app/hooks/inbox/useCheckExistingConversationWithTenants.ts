@@ -5,24 +5,21 @@ import UserData from "@/app/types/UserData";
 
 export const checkExistingConversationWithTenants = async (
   propertyId: string,
-  tenants: UserData[],
-  owner: UserData,
+  tenantIds: string[],
+  ownerId: string,
 ): Promise<Conversation | null> => {
   try {
-    console.log("[DEBUG] Checking for existing conversation...");
+    console.log(tenantIds, ownerId);
 
-    if (!propertyId || tenants.length === 0 || !owner) {
-      console.log("[DEBUG] Missing required parameters.");
+    if (!propertyId || tenantIds.length === 0 || !ownerId) {
       return null;
     }
 
     // Collect all member IDs
     const memberIds = [
-      ...tenants.map((tenant) => tenant.id),
-      owner.id,
+      ...tenantIds.map((tenant) => tenant),
+      ownerId,
     ];
-
-    console.log("[DEBUG] Member IDs to check:", memberIds);
 
     const conversationsRef = collection(db, "conversations");
     const q = query(
@@ -40,7 +37,6 @@ export const checkExistingConversationWithTenants = async (
       const hasAllMembers = memberIds.every((id) => data.memberIds?.includes(id as string));
       if (hasAllMembers) {
         foundConversation = { id: doc.id, ...data };
-        console.log("[DEBUG] Found existing conversation:", foundConversation);
       }
     });
 
