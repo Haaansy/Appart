@@ -79,6 +79,17 @@ const TransientScreen: React.FC<ApartmentProps> = ({ transient }) => {
   }, []); // No need to add dependencies since fetchCurrentUser is declared inside
 
   const handleSelectDate = (dates: Timestamp[]) => {
+    // Validate to make sure no past dates are selected
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const allDatesValid = dates.every((date) => date.toDate() >= today);
+
+    if (!allDatesValid) {
+      ReactAlert.alert("Invalid Selection", "You cannot select dates in the past.");
+      return;
+    }
+
     setBookingData((prevData) => {
       const updatedData = { ...prevData, bookedDate: dates, leaseDuration: dates.length - 1 };
       console.log("Updated data:", updatedData); // Logs the correct updated state
@@ -115,7 +126,7 @@ const TransientScreen: React.FC<ApartmentProps> = ({ transient }) => {
   };
 
   useEffect(() => {
-    console.log(bookingData)
+    console.log(bookingData);
   }, [bookingData]);
 
   return (
@@ -170,6 +181,8 @@ const TransientScreen: React.FC<ApartmentProps> = ({ transient }) => {
           title="Select Dates"
           subtitle="Select Dates for renting"
           onConfirm={handleSelectDate}
+          minimumDate={new Date()} // Add minimum date (today)
+          disablePastDates={true} // Explicitly disable past dates
         />
 
         <View style={styles.line} />

@@ -9,6 +9,10 @@ dist/
 web-build/
 expo-env.d.ts
 
+# Builds
+/android
+/ios
+
 # Native
 *.orig.*
 *.jks
