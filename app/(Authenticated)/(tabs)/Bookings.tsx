@@ -39,6 +39,7 @@ const Bookings = () => {
       "Booking Confirmed",
       "Booking Completed",
       "Booking Declined",
+      "Booking Cancelled",
     ],
   };
 
@@ -220,7 +221,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: Colors.primaryBackground,
   },
-  subtext: { fontSize: 12, color: Colors.primaryBackground },
+  subtext: { fontSize: 15, color: Colors.primaryBackground },
   topBar: { flexDirection: "row", marginTop: 65, alignItems: "center" },
 
   /* Main Tabs */

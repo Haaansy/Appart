@@ -42,6 +42,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.3)", // Slight dark overlay
   },
   dropdown: {
+    position: "absolute",
+    top: 75, // Positioned below the header
+    right: 20,
     backgroundColor: "white",
     borderRadius: 25,
     paddingVertical: 10,

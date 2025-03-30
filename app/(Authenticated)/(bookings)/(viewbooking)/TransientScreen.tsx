@@ -11,7 +11,6 @@ import IconButton from "@/app/components/IconButton";
 import useSendAlerts from "@/app/hooks/alerts/useSendAlerts";
 import {
   updateBooking,
-  updateApartment,
   updateTransient,
   createConversation,
   fetchUserDataFromFirestore,
@@ -68,9 +67,8 @@ const TransientScreen: React.FC<TransientProps> = ({ transient, booking }) => {
     try {
       const existingConversation = await checkExistingConversationWithTenants(
         String(transient.id),
-        booking.tenants.map((tenant) => tenant.user),
-        ownerData as UserData,
-        currentUserData as UserData
+        booking.tenants.map((tenant) => tenant.user.id as string),
+        ownerData?.id as string,
       );
 
       await updateBooking(String(booking.id), {
@@ -78,10 +76,21 @@ const TransientScreen: React.FC<TransientProps> = ({ transient, booking }) => {
         status: "Booking Confirmed",
       });
 
+      await updateTransient(String(transient.id), {
+        ...transient,
+        bookedDates: [
+          ...transient.bookedDates,
+          {
+            bookingId: String(booking.id),
+            bookedDates: booking.bookedDate,
+          },
+        ],
+      });
+
       const alertData: Alert = {
-        message: "Your viewing appointment has been approved.",
+        message: "Your Booking has been approved.",
         type: "Booking", // Default value, change if needed
-        bookingType: "Apartment",
+        bookingType: "Transient",
         bookingId: String(booking.id),
         propertyId: String(transient.id),
         isRead: false,
@@ -111,14 +120,14 @@ const TransientScreen: React.FC<TransientProps> = ({ transient, booking }) => {
         });
 
         if(createdConversation) {
-          router.push(
-            `/(Authenticated)/(inbox)/(viewconversation)/${createdConversation}`
+          router.replace(
+            `/(Authenticated)/(inbox)/(viewconversation)/${createdConversation.id}`
           );
           return;
         }
       }
 
-      router.push(`/(Authenticated)/(inbox)/(viewconversation)/${existingConversation?.id}`)
+      router.replace(`/(Authenticated)/(inbox)/(viewconversation)/${existingConversation?.id}`)
     } catch (error) {
       console.error("Error approving viewing:", error);
     }

@@ -147,9 +147,8 @@ const Home: React.FC<HomeProps> = ({ currentUserData }) => {
                 : () => setDropdownVisible(true)
             }
             style={styles.iconButton}
-            iconColor={Colors.primary}
-            iconSize={24}
-            width={60}
+            iconColor={Colors.primaryBackground}
+            iconSize={34}
             borderWidth={0}
           />
           <CustomAddDropdown
@@ -328,7 +327,7 @@ const styles = StyleSheet.create({
     color: Colors.primaryBackground,
   },
   subtext: {
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: "regular",
     color: Colors.primaryBackground,
   },
@@ -342,6 +341,7 @@ const styles = StyleSheet.create({
     height: 55,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: Colors.primary
   },
   character: {
     width: "50%",

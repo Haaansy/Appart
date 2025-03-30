@@ -138,7 +138,7 @@ const Alerts: React.FC<AlertsProps> = ({
                         style={styles.deleteButton}
                         onPress={() => handleDeleteAlert(String(item.id))}
                       >
-                        <Ionicons name="trash" style={styles.deleteIcon} />
+                        <Ionicons name="trash" style={styles.deleteIcon} size={40}/>
                       </TouchableOpacity>
                     </View>
                   )}
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     color: Colors.primaryBackground,
   },
   subtext: {
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: "regular",
     color: Colors.primaryBackground,
   },
@@ -207,7 +207,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 80,
     height: "100%",
-    backgroundColor: "red",
   },
   deleteButton: {
     justifyContent: "center",
@@ -216,9 +215,9 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   deleteIcon: {
-    width: 24,
-    height: 24,
-    color: "white",
+    width: 40,
+    height: 40,
+    color: Colors.error,
   },
   character: {
     width: "50%",

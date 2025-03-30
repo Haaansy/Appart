@@ -66,8 +66,8 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
 
       const existingConversation = await checkExistingConversationWithTenants(
         String(apartment.id),
-        booking.tenants.map((tenant) => tenant.user),
-        ownerData
+        booking.tenants.map((tenant) => tenant.user.id as string),
+        ownerData.id as string
       );
 
       const alertData: Alert = {

@@ -29,6 +29,7 @@ import useCheckExistingBooking from "@/app/hooks/bookings/useCheckExistingBookin
 import Conversation from "@/app/types/Conversation";
 import UserData from "@/app/types/UserData";
 import { checkExistingConversationWithTenants } from "@/app/hooks/inbox/useCheckExistingConversationWithTenants";
+import { TouchableWithoutFeedback } from "react-native-gesture-handler";
 
 const { width, height } = Dimensions.get("window");
 
@@ -202,7 +203,7 @@ const ViewApartment = () => {
   return (
     <View style={{ marginBottom: 5 }}>
       {/* ✅ Scrollable Image Gallery with Centered Indicator */}
-        <View style={{ height: height * 0.4 }}>
+        <View style={{ height: height * 0.4, position: 'relative' }}>
           <FlatList
             data={apartment.images || []}
             horizontal
@@ -211,48 +212,51 @@ const ViewApartment = () => {
             pagingEnabled
             onMomentumScrollEnd={handleScroll}
             renderItem={({ item }) => (
-          <View style={{ width, height: height * 0.4 }}>
-            <TouchableOpacity onPress={() => handleImagePress(item)}>
-              <Image
-            source={{ uri: item }}
-            style={{
-              width,
-              height: height * 0.4,
-              resizeMode: "cover",
-            }}
-              />
-            </TouchableOpacity>
-            {/* 🔹 Pagination Dots Positioned at the Center-Bottom */}
-            <View
+              <View style={{ width, height: height * 0.4 }}>
+          <TouchableWithoutFeedback onPress={() => handleImagePress(item)}>
+            <Image
+              source={{ uri: item }}
               style={{
-            position: "absolute",
-            bottom: 50,
-            flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center",
-            paddingVertical: 5,
-            borderRadius: 10,
-            alignSelf: "center",
-            width: "30%",
-              }}
-            >
-              {apartment.images?.map((_: number, index: number) => (
-            <View
-              key={index}
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor:
-              index === currentIndex ? Colors.primary : "white",
-                marginHorizontal: 5,
+                width,
+                height: height * 0.4,
+                resizeMode: "cover",
               }}
             />
-              ))}
-            </View>
-          </View>
+          </TouchableWithoutFeedback>
+              </View>
             )}
           />
+          {/* 🔹 Pagination Dots Fixed Position */}
+          <View
+            style={{
+              position: "absolute",
+              bottom: 50,
+              left: 0,
+              right: 0,
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+              paddingVertical: 5,
+              borderRadius: 10,
+              alignSelf: "center",
+              width: "30%",
+              marginHorizontal: "35%",
+            }}
+          >
+            {apartment.images?.map((_: any, index: number) => (
+              <View
+          key={index}
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            backgroundColor:
+              index === currentIndex ? Colors.primary : "white",
+            marginHorizontal: 5,
+          }}
+              />
+            ))}
+          </View>
         </View>
       <View style={styles.container}>
         <ScrollView

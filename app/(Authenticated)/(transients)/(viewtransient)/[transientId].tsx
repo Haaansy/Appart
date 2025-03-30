@@ -29,18 +29,23 @@ import useCheckExistingBooking from "@/app/hooks/bookings/useCheckExistingBookin
 import Conversation from "@/app/types/Conversation";
 import UserData from "@/app/types/UserData";
 import { checkExistingConversationWithTenants } from "@/app/hooks/inbox/useCheckExistingConversationWithTenants";
+import { TouchableWithoutFeedback } from "react-native-gesture-handler";
 
 const { width, height } = Dimensions.get("window");
 
-const ViewApartment = () => {
+const ViewTransient = () => {
   const { transientId } = useLocalSearchParams();
-  const { transient, loading: transientLoading, error: transientError } = useTransient(String(transientId));
+  const {
+    transient,
+    loading: transientLoading,
+    error: transientError,
+  } = useTransient(String(transientId));
   const [currentUserData, setCurrentUserData] = useState<UserData>(
     {} as UserData
   );
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [ownerData, setOwnerData] = useState<UserData>({} as UserData);
-  const [ loading, setLoading ] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const formatCurrency = (
     price: number,
@@ -83,7 +88,7 @@ const ViewApartment = () => {
 
   useEffect(() => {
     setLoading(transientLoading);
-  }, [transientLoading])
+  }, [transientLoading]);
 
   const { hasExistingBooking, loading: hasExistingBookingLoading } =
     useCheckExistingBooking(String(transientId));
@@ -149,7 +154,9 @@ const ViewApartment = () => {
       );
 
       if (existingConversation) {
-        router.push(`/(Authenticated)/(tabs)/Inbox`);
+        router.push(
+          `/(Authenticated)/(inbox)/(viewconversation)/${existingConversation.id}`
+        );
         return;
       }
 
@@ -168,7 +175,9 @@ const ViewApartment = () => {
 
       const createdConversationId = await createConversation(conversationData);
       if (createdConversationId) {
-        router.push(`/(Authenticated)/(tabs)/Inbox`);
+        router.push(
+          `/(Authenticated)/(inbox)/(viewconversation)/${createdConversationId.id}`
+        );
       }
     } catch (error) {
       console.error("[ERROR] Failed to create or check conversation:", error);
@@ -190,63 +199,64 @@ const ViewApartment = () => {
   };
 
   return (
-    <View style={{ marginBottom: 200 }}>
+    <View style={{ marginBottom: 5 }}>
       {/* ✅ Scrollable Image Gallery with Centered Indicator */}
-      <FlatList
-        contentContainerStyle={{ height: height }}
-        data={transient.images || []}
-        horizontal
-        keyExtractor={(_, index: number) => index.toString()}
-        showsHorizontalScrollIndicator={false}
-        pagingEnabled
-        onMomentumScrollEnd={handleScroll}
-        renderItem={({ item }) => (
-          <View>
-            <TouchableOpacity onPress={() => handleImagePress(item)}>
-              <Image
-                source={{ uri: item }}
-                style={{
-                  width: width,
-                  height: height * 0.4,
-                  resizeMode: "cover",
-                }}
-              />
-            </TouchableOpacity>
-            {/* 🔹 Pagination Dots Positioned at the Center-Bottom */}
-            <View
-              style={{
-                position: "absolute",
-                bottom: 50,
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
-                paddingVertical: 5,
-                borderRadius: 10,
-                alignSelf: "center",
-                width: "30%",
-              }}
-            >
-              {transient.images?.map((_: number, index: number) => (
-                <View
-                  key={index}
+      <View style={{ height: height * 0.4, position: "relative" }}>
+        <FlatList
+          data={transient.images || []}
+          horizontal
+          keyExtractor={(_, index: number) => index.toString()}
+          showsHorizontalScrollIndicator={false}
+          pagingEnabled
+          onMomentumScrollEnd={handleScroll}
+          renderItem={({ item }) => (
+            <View style={{ width: width, height: height * 0.4 }}>
+              <TouchableWithoutFeedback onPress={() => handleImagePress(item)}>
+                <Image
+                  source={{ uri: item }}
                   style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor:
-                      index === currentIndex ? Colors.primary : "white",
-                    marginHorizontal: 5,
+                    width: width,
+                    height: height * 0.4,
+                    resizeMode: "cover",
                   }}
                 />
-              ))}
+              </TouchableWithoutFeedback>
             </View>
-          </View>
-        )}
-      />
+          )}
+        />
+        {/* 🔹 Pagination Dots Positioned at the Center-Bottom */}
+        <View
+          style={{
+            position: "absolute",
+            bottom: 50,
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+            paddingVertical: 5,
+            borderRadius: 10,
+            alignSelf: "center",
+            width: "30%",
+          }}
+        >
+          {transient.images?.map((_: number, index: number) => (
+            <View
+              key={index}
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor:
+                  index === currentIndex ? Colors.primary : "white",
+                marginHorizontal: 5,
+              }}
+            />
+          ))}
+        </View>
+      </View>
       <View style={styles.container}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          style={{ marginBottom: height * 0.4 }}
+          style={{ marginBottom: height * 0.2 }}
         >
           <View
             style={{
@@ -364,32 +374,47 @@ const ViewApartment = () => {
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                justifyContent: "flex-start",
+                justifyContent: "space-between",
               }}
             >
-              <Image
-                source={{
-                  uri:
-                    ownerData.photoUrl ||
-                    "https://fastly.picsum.photos/id/998/200/300.jpg?hmac=g3P0EcqrmgGwQk4lFB8zLuXtwjQa0rV_Z9MpUQNWiHg",
-                }}
-                style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: 25,
-                  marginRight: 10,
-                }}
-              />
-              <View style={{ flexDirection: "column", marginLeft: 10 }}>
-                <Text style={styles.contents}>
-                  {`${ownerData.firstName} ${ownerData.lastName}` ||
-                    "Owner Name"}
-                </Text>
-                <Text style={styles.contents}>
-                  {`@${ownerData.displayName}` ||
-                    "Owner Name"}
-                </Text>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Image
+                  source={{
+                    uri: ownerData?.photoUrl,
+                  }}
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: 25,
+                    marginRight: 10,
+                  }}
+                />
+                <View style={{ flexDirection: "column", marginLeft: 10 }}>
+                  <Text style={styles.contents}>
+                    {`${ownerData?.firstName} ${ownerData?.lastName}` ||
+                      "Owner Name"}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: Colors.primary }}>
+                    @{ownerData?.displayName || "Username"}
+                  </Text>
+                </View>
               </View>
+              <TouchableOpacity
+                style={{
+                  alignItems: "center",
+                  flexDirection: "row",
+                  marginLeft: 10,
+                }}
+              >
+                <Text style={{ fontSize: 12, color: Colors.primary }}>
+                  View Profile
+                </Text>
+                <Ionicons
+                  name="chevron-forward-outline"
+                  size={24}
+                  color={Colors.primaryText}
+                />
+              </TouchableOpacity>
             </View>
           </View>
           <View style={styles.line} />
@@ -478,21 +503,18 @@ const ViewApartment = () => {
           <View style={styles.line} />
           <View>
             <Text style={styles.title}>House Rules</Text>
-            <Text>
               {transient.houseRules?.map((rule: string, index: number) => (
                 <Text key={index} style={styles.contents}>
-                  {rule}
+                  - {rule}
                 </Text>
               ))}
               {transient.houseRules?.length == 0 && (
                 <Text style={styles.contents}>No Requirements Specified.</Text>
               )}
-            </Text>
           </View>
           <View style={styles.line} />
           <View>
             <Text style={styles.title}>Requirements</Text>
-            <Text>
               {transient.requirements?.map(
                 (requirements: string, index: number) => (
                   <Text key={index} style={styles.contents}>
@@ -503,7 +525,6 @@ const ViewApartment = () => {
               {transient.requirements?.length == 0 && (
                 <Text style={styles.contents}>No Requirements Specified.</Text>
               )}
-            </Text>
           </View>
           <View style={styles.line} />
           {currentUserData.role === "home owner" && (
@@ -536,9 +557,9 @@ const ViewApartment = () => {
           {currentUserData.role === "tenant" && (
             <View>
               <Text style={styles.title}>Actions</Text>
-              <View>
+              <View style={{ marginBottom: 10 }}>
                 <IconButton
-                  onPress={() => {}}
+                  onPress={handleInquireTransient}
                   icon={"chatbubbles"}
                   text={"Chat with Owner"}
                   iconColor={Colors.primary}
@@ -547,7 +568,7 @@ const ViewApartment = () => {
                 <IconButton
                   onPress={handleBookTransient}
                   icon={"book"}
-                  text={"Reserve a Visit"}
+                  text={"Book Transient"}
                   iconColor={Colors.primary}
                   style={{ marginBottom: 10 }}
                 />
@@ -567,7 +588,7 @@ const styles = StyleSheet.create({
     height: "75%",
     borderTopLeftRadius: 25, // ✅ Rounded top edges
     borderTopRightRadius: 25, // ✅ Rounded top edges
-    marginTop: -15, // ✅ Slight overlap with the image
+    marginTop: -25, // ✅ Slight overlap with the image
     padding: 20, // Optional padding for content inside
   },
   line: {
@@ -596,4 +617,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ViewApartment;
+export default ViewTransient;

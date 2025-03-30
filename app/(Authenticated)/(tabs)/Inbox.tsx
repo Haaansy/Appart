@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     color: Colors.primaryBackground,
   },
   subtext: {
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: "regular",
     color: Colors.primaryBackground,
   },
