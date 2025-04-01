@@ -4,7 +4,7 @@ import UserData from "./UserData";
 export default interface Alert {
     id?: string;
     message: string;
-    type: 'Booking' | 'Inquiry';
+    type: 'Booking' | 'Inquiry' | 'Review';
     bookingType?: "Apartment" | "Transient";
     bookingId?: string;
     conversationId?: string;
@@ -13,4 +13,5 @@ export default interface Alert {
     senderId: string;
     receiverId?: string;
     createdAt: Timestamp | FieldValue;
+    tenantId?: string;
 }

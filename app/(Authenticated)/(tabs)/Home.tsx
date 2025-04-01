@@ -7,13 +7,10 @@ import {
   Image,
   ActivityIndicator,
   FlatList,
-  Dimensions,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/assets/styles/colors";
 import IconButton from "@/app/components/IconButton";
 import CustomSwitch from "@/app/components/CustomSwitch";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import { getApartments } from "@/app/hooks/apartment/getApartments";
 import { RelativePathString, router } from "expo-router";
 import ApartmentCards from "@/app/components/PropertyCards/ApartmentCards";
@@ -21,16 +18,20 @@ import { getTransients } from "@/app/hooks/transient/getTransients";
 import TransientCard from "@/app/components/PropertyCards/TransientCard";
 import CustomAddDropdown from "@/app/components/HomeComponents/CustomAddDropdown";
 import UserData from "@/app/types/UserData";
+import Alert from "@/app/types/Alert";
 
 interface HomeProps {
   currentUserData: UserData;
+  alerts: Alert[];
 }
 
-const Home: React.FC<HomeProps> = ({ currentUserData }) => {
+const Home: React.FC<HomeProps> = ({ currentUserData, alerts }) => {
   const [isTransient, setIsTransient] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+
+  const pendingReviews = alerts.filter((alert) => alert.type === "Review");
 
   const handleSelect = (option: "transient" | "apartment") => {
     setDropdownVisible(false);
@@ -74,6 +75,20 @@ const Home: React.FC<HomeProps> = ({ currentUserData }) => {
     };
 
     fetchUserData();
+
+    if (pendingReviews.length > 0) {
+      if(currentUserData.role === "tenant") {
+        router.replace({
+          pathname: `/(Authenticated)/(review)/(property)/${pendingReviews[0].bookingId}` as RelativePathString,
+          params: { alertId: pendingReviews[0].id }
+        });
+      } else {
+        router.replace({
+          pathname: `/(Authenticated)/(review)/(tenant)/${pendingReviews[0].tenantId}` as RelativePathString,
+          params: { alertId: pendingReviews[0].id }
+        });
+      }
+    }
   }, []);
 
   const {
@@ -191,6 +206,7 @@ const Home: React.FC<HomeProps> = ({ currentUserData }) => {
                   title={item.title}
                   address={item.address}
                   price={item.price}
+                  reviews={item.reviews}
                   onPress={() =>
                     router.push(
                       `/(Authenticated)/(transients)/(viewtransient)/${item.id}` as unknown as RelativePathString
@@ -249,6 +265,7 @@ const Home: React.FC<HomeProps> = ({ currentUserData }) => {
                   title={item.title}
                   address={item.address}
                   price={item.price}
+                  reviews={item.reviews}
                   onPress={() =>
                     router.push(
                       `/(Authenticated)/(apartments)/(viewapartment)/${item.id}` as unknown as RelativePathString
@@ -341,7 +358,7 @@ const styles = StyleSheet.create({
     height: 55,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Colors.primary
+    backgroundColor: Colors.primary,
   },
   character: {
     width: "50%",

@@ -26,7 +26,7 @@ const getAlerts = (userId: string) => {
       const q = query(
         alertsRef,
         where('receiverId', '==', userId),
-        orderBy('createdAt', 'desc') // Order alerts by time created (latest first)
+        orderBy('createdAt', 'desc') // Then order by creation time
       );
 
       const unsubscribe = onSnapshot(q, (snapshot) => {

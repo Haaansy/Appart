@@ -1,6 +1,7 @@
 import { Timestamp } from "firebase/firestore";
 import UserData from "./UserData";
 import { BookingDate } from "./BookedDates";
+import Review from "./Review";
 
 export default interface Transient {
     ownerId?: string;
@@ -23,4 +24,5 @@ export default interface Transient {
     createdAt: number;
     id?: string;
     bookedDates: BookingDate[];
+    reviews?: Review[];
 }

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import Colors from "@/assets/styles/colors"; // Import your colors
 import { Ionicons } from "@expo/vector-icons"; // Import Ionicons from Expo
+import Review from "@/app/types/Review";
 
 const { width } = Dimensions.get("window");
 
@@ -18,7 +19,7 @@ interface ApartmentCardsProps {
   title: string;
   address: string;
   price: number;
-  rating?: number;
+  reviews: Review[];
   onPress: () => void;
 }
 
@@ -27,7 +28,7 @@ const ApartmentCards: React.FC<ApartmentCardsProps> = ({
   title,
   address,
   price,
-  rating,
+  reviews = [],
   onPress,
 }) => {
   const flatListRef = useRef<FlatList<string> | null>(null);
@@ -73,7 +74,14 @@ const ApartmentCards: React.FC<ApartmentCardsProps> = ({
                 color={Colors.primary}
                 style={{ marginRight: 5 }}
               />
-              <Text style={styles.address}>4.6(3)</Text>
+              <Text style={styles.address}>
+              { reviews && reviews.length > 0 ? (
+                  reviews.reduce((sum: any, review: any) => sum + review.rating, 0) / reviews.length
+                ).toFixed(1)
+                : (
+                  "No reviews"
+                ) }
+              </Text>
             </View>
           </View>
           <View

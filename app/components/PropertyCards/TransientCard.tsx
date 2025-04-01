@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import Colors from "@/assets/styles/colors"; // Import your colors
 import { Ionicons } from "@expo/vector-icons"; // Import Ionicons from Expo
+import Review from "@/app/types/Review";
 
 const { width } = Dimensions.get("window");
 
@@ -19,7 +20,7 @@ interface TransientCardProps {
   title: string;
   address: string;
   price: number;
-  rating?: number;
+  reviews: Review[];
   onPress?: () => void;
 }
 
@@ -28,7 +29,7 @@ const TransientCard: React.FC<TransientCardProps> = ({
   title,
   address,
   price,
-  rating,
+  reviews = [],
   onPress,
 }) => {
   const imageList = images.flat(); // Flatten in case of nested array
@@ -44,7 +45,7 @@ const TransientCard: React.FC<TransientCardProps> = ({
     <TouchableOpacity onPress={onPress}>
       <View style={styles.card}>
         <View style={styles.imageContainer}>
-          <Image source={{ uri: imageList[0]}} style={styles.image} />
+          <Image source={{ uri: imageList[0] }} style={styles.image} />
         </View>
 
         {/* Apartment Details */}
@@ -65,7 +66,16 @@ const TransientCard: React.FC<TransientCardProps> = ({
                 color={Colors.primary}
                 style={{ marginRight: 5 }}
               />
-              <Text style={styles.address}>4.6(3)</Text>
+              <Text style={styles.address}>
+                {reviews && reviews.length > 0
+                  ? (
+                      reviews.reduce(
+                        (sum: any, review: any) => sum + review.rating,
+                        0
+                      ) / reviews.length
+                    ).toFixed(1)
+                  : "No reviews yet"}
+              </Text>
             </View>
           </View>
           <View
@@ -84,7 +94,7 @@ const TransientCard: React.FC<TransientCardProps> = ({
               flexDirection: "row",
               justifyContent: "flex-end",
               alignItems: "flex-end",
-              marginTop: 15
+              marginTop: 15,
             }}
           >
             <Text style={styles.price}> {formattedPrice} </Text>

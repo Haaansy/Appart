@@ -40,35 +40,37 @@ const TransientScreen: React.FC<TransientProps> = ({ transient, booking }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       const currentUserData = await getStoredUserData();
-      if(currentUserData) {
+      if (currentUserData) {
         setCurrentUserData(currentUserData);
       } else {
         console.error("Error fetching user data.");
       }
-    }
+    };
 
     fetchUserData();
-  }, [])
+  }, []);
 
   useEffect(() => {
     const fetchOwnerData = async () => {
-      const ownerData = await fetchUserDataFromFirestore(transient.ownerId as string);
-      if(ownerData) {
+      const ownerData = await fetchUserDataFromFirestore(
+        transient.ownerId as string
+      );
+      if (ownerData) {
         setOwnerData(ownerData);
       } else {
         console.error("Error fetching owner data.");
       }
-    }
+    };
 
     fetchOwnerData();
-  }, [currentUserData])
+  }, [currentUserData]);
 
   const handleBookingApproval = async () => {
     try {
       const existingConversation = await checkExistingConversationWithTenants(
         String(transient.id),
         booking.tenants.map((tenant) => tenant.user.id as string),
-        ownerData?.id as string,
+        ownerData?.id as string
       );
 
       await updateBooking(String(booking.id), {
@@ -119,7 +121,7 @@ const TransientScreen: React.FC<TransientProps> = ({ transient, booking }) => {
           lastSender: currentUserData as UserData,
         });
 
-        if(createdConversation) {
+        if (createdConversation) {
           router.replace(
             `/(Authenticated)/(inbox)/(viewconversation)/${createdConversation.id}`
           );
@@ -127,7 +129,9 @@ const TransientScreen: React.FC<TransientProps> = ({ transient, booking }) => {
         }
       }
 
-      router.replace(`/(Authenticated)/(inbox)/(viewconversation)/${existingConversation?.id}`)
+      router.replace(
+        `/(Authenticated)/(inbox)/(viewconversation)/${existingConversation?.id}`
+      );
     } catch (error) {
       console.error("Error approving viewing:", error);
     }
@@ -135,7 +139,7 @@ const TransientScreen: React.FC<TransientProps> = ({ transient, booking }) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Image
             source={{ uri: booking.tenants[0].user.photoUrl }}

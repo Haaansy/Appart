@@ -195,14 +195,15 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
     router.replace(`/(Authenticated)/(tabs)/Bookings`);
   };
 
-  const handleDecline = async (
-    reason: string
-  ) => {
-    console.log(reason)   
+  const handleDecline = async (reason: string) => {
+    console.log(reason);
 
     await updateBooking(String(booking.id), {
       ...booking,
-      status: currentUserData.role === "home owner" ? "Booking Declined" : "Booking Cancelled",
+      status:
+        currentUserData.role === "home owner"
+          ? "Booking Declined"
+          : "Booking Cancelled",
       reason: reason,
       reasonType: currentUserData.role === "home owner" ? "Decline" : "Cancel",
     });
@@ -211,10 +212,10 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
       ...apartment,
       status: "Available",
       viewingDates: [],
-      bookedDates: []
+      bookedDates: [],
     });
 
-    let AlertData: Alert
+    let AlertData: Alert;
 
     if (currentUserData.role === "home owner") {
       AlertData = {
@@ -241,7 +242,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
       };
     }
 
-    if(currentUserData.role === "home owner") {
+    if (currentUserData.role === "home owner") {
       await sendAlerts(booking.tenants, AlertData);
     } else {
       await createAlert(AlertData);
@@ -300,7 +301,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Image
             source={{ uri: booking.tenants[0].user.photoUrl }}
@@ -336,11 +337,17 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
             {booking.status}
           </Text>
         )}
-        { booking.reason && (
+        {booking.reason && (
           <Text
             style={[
               styles.title,
-              { fontSize: 14, textAlign: "center", marginTop: 15, color: Colors.error, fontWeight: "regular"},
+              {
+                fontSize: 14,
+                textAlign: "center",
+                marginTop: 15,
+                color: Colors.error,
+                fontWeight: "regular",
+              },
             ]}
           >
             Reason: {booking.reason}
@@ -573,6 +580,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
         {booking.status !== "Viewing Confirmed" &&
           booking.status !== "Booking Declined" &&
           booking.status !== "Booking Cancelled" &&
+          booking.status !== "Booking Confirmed" &&
           currentUserData.role === "tenant" &&
           booking.tenants?.some(
             (tenant: Tenant) =>

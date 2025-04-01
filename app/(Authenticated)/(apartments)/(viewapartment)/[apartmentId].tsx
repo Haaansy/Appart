@@ -329,7 +329,12 @@ const ViewApartment = () => {
                   marginLeft: 5,
                 }}
               >
-                {apartment.rating || "4.2"}
+                { apartment.reviews && apartment.reviews.length > 0 ? (
+                  apartment.reviews.reduce((sum: any, review: any) => sum + review.rating, 0) / apartment.reviews.length
+                ).toFixed(1)
+                : (
+                  "No reviews"
+                ) }
               </Text>
               <Text
                 style={{
@@ -340,7 +345,11 @@ const ViewApartment = () => {
                   marginLeft: 2,
                 }}
               >
-                {`(${apartment.ratingCount})` || "(0)"}
+                { apartment.reviews && apartment.reviews.length > 0 ? (
+                  `(${apartment.reviews.length})`
+                ): (
+                  ""
+                ) }
               </Text>
               <TouchableOpacity>
                 <Ionicons
@@ -580,7 +589,7 @@ const ViewApartment = () => {
             <Text>
               {apartment.houseRules?.map((rule: string, index: number) => (
                 <Text key={index} style={styles.contents}>
-                  {rule}
+                  {rule} {"\n"}
                 </Text>
               ))}
               {apartment.houseRules?.length == 0 && (
@@ -595,7 +604,7 @@ const ViewApartment = () => {
               {apartment.requirements?.map(
                 (requirements: string, index: number) => (
                   <Text key={index} style={styles.contents}>
-                    {requirements}
+                    {requirements} {"\n"}
                   </Text>
                 )
               )}

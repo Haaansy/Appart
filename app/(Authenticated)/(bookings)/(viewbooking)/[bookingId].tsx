@@ -81,7 +81,7 @@ const index = () => {
                 flex: 1,
               }}
             >
-              <ScrollView keyboardShouldPersistTaps="handled">
+              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 {isApartment === "true" ? (
                   <View>
                     {loading ? (

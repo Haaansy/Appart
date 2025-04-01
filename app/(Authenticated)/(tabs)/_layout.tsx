@@ -146,6 +146,7 @@ const _layout = () => {
           {() => (
             <Home
               currentUserData={currentUserData as UserData}
+              alerts={alerts}
             />
           )}
         </Tab.Screen>

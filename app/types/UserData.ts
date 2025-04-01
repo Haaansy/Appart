@@ -1,5 +1,7 @@
 // src/types.ts
 
+import Review from "./Review";
+
 export interface BirthDate {
     month: string;
     day: string;
@@ -21,4 +23,5 @@ export default interface UserData {
     photoUrl: string;
     phoneNumber: string;
     isAdmin: boolean;
+    reviews: Review[];
 }

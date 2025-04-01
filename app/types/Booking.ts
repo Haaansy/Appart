@@ -15,10 +15,6 @@ export default interface Booking {
     createdAt?: Timestamp | FieldValue;
     conversationId?: string;
     declinedReason?: string;
-    review?: {
-        rating: number;
-        feedback: string;
-    }
     reason?: string;
     reasonType?: "Decline" | "Cancel";
 }

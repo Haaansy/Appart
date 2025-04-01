@@ -104,7 +104,11 @@ const Profile = () => {
               </>
             )}
             <View style={styles.infoItem}>
-              <Text style={{ fontSize: 20, fontWeight: "bold" }}>3.7</Text>
+              <Text style={{ fontSize: 20, fontWeight: "bold" }}>
+                { currentUserData?.reviews && currentUserData?.reviews.length > 0 ? (
+                  currentUserData?.reviews.reduce((acc: number, curr: any) => acc + curr.rating, 0) / currentUserData?.reviews.length
+                ).toFixed(1) : 0}
+              </Text>
               <Text>Rating</Text>
             </View>
           </View>

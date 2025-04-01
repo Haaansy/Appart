@@ -325,7 +325,12 @@ const ViewTransient = () => {
                   marginLeft: 5,
                 }}
               >
-                {transient.rating || "4.2"}
+                { transient.reviews && transient.reviews.length > 0 ? (
+                  transient.reviews.reduce((sum: any, review: any) => sum + review.rating, 0) / transient.reviews.length
+                ).toFixed(1)
+                : (
+                  "No reviews"
+                ) }
               </Text>
               <Text
                 style={{
@@ -336,7 +341,11 @@ const ViewTransient = () => {
                   marginLeft: 2,
                 }}
               >
-                {`(${transient.ratingCount})` || "(0)"}
+                { transient.reviews && transient.reviews.length > 0 ? (
+                  `(${transient.reviews.length})`
+                ): (
+                  ""
+                ) }
               </Text>
               <TouchableOpacity>
                 <Ionicons
@@ -505,7 +514,7 @@ const ViewTransient = () => {
             <Text style={styles.title}>House Rules</Text>
               {transient.houseRules?.map((rule: string, index: number) => (
                 <Text key={index} style={styles.contents}>
-                  - {rule}
+                  {rule} {"\n"}
                 </Text>
               ))}
               {transient.houseRules?.length == 0 && (
@@ -518,7 +527,7 @@ const ViewTransient = () => {
               {transient.requirements?.map(
                 (requirements: string, index: number) => (
                   <Text key={index} style={styles.contents}>
-                    {requirements}
+                    {requirements} {"\n"}
                   </Text>
                 )
               )}

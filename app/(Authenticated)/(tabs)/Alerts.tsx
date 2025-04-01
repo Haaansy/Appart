@@ -38,6 +38,8 @@ const Alerts: React.FC<AlertsProps> = ({
     error,
   } = useUpdateAlertRead();
 
+  const filteredAlerts = alerts.filter((alert) => alert.type !== "Review");
+
   // Handle alert press
   const handleAlertPress = async (alert: Alert) => {
     await markAlertAsRead(alert);
@@ -98,7 +100,7 @@ const Alerts: React.FC<AlertsProps> = ({
           <View style={styles.form}>
             <FlatList
               contentContainerStyle={{ flexGrow: 1 }}
-              data={alerts}
+              data={filteredAlerts}
               keyExtractor={(item) => item.id ?? Math.random().toString()}
               ListEmptyComponent={
                 <View
