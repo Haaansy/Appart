@@ -5,7 +5,7 @@ import Colors from "@/assets/styles/colors";
 import { formatDistanceToNow } from "date-fns";
 import { Timestamp } from "firebase/firestore";
 import UserData from "@/app/types/UserData";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
+import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 
 interface ConversationCardProps {
   conversation: Conversation;
@@ -18,7 +18,7 @@ const ConversationCard: React.FC<ConversationCardProps> = ({ conversation }) => 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userData = await getStoredUserData();
+        const userData = await getCurrentUserData();
         if (userData) {
           setCurrentUserData(userData);
         }

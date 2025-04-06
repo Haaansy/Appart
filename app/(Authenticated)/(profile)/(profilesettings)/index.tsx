@@ -9,10 +9,9 @@ import {
   ScrollView,
   Dimensions,
 } from "react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  getStoredUserData,
-  logoutUser,
+  logoutUser
 } from "@/app/Firebase/Services/AuthService";
 import CustomButton from "@/app/components/CustomButton";
 import { router } from "expo-router";
@@ -20,17 +19,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import UserData from "@/app/types/UserData";
 import Colors from "@/assets/styles/colors";
+import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 const index = () => {
   const { height } = Dimensions.get('window');
-  const [currentUserData, setCurrentUserData] = React.useState<UserData | null>(
+  const [currentUserData, setCurrentUserData] = useState<UserData | null>(
     null
   );
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userData = await getStoredUserData();
-        setCurrentUserData(userData);
+        const userData = await getCurrentUserData();
+        setCurrentUserData(userData as UserData);
       } catch (error) {
         console.error("Error while fetching user data:", error);
         Alert.alert("Error", "Failed to fetch user data");

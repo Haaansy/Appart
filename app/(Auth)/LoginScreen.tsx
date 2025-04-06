@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   ImageBackground,
   StyleSheet,
   View,
   Text,
   Image,
-  TouchableOpacity,
   Alert,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -14,12 +15,9 @@ import Colors from "@/assets/styles/colors";
 import CustomTextInput from "../components/CustomTextInput";
 import CustomButton from "../components/CustomButton";
 import IconButton from "../components/IconButton";
-import {
-  getCurrentUser,
-  storeUserDataLocally,
-  getStoredUserData,
-  loginUser,
-} from "@/app/Firebase/Services/AuthService";
+import { loginUser } from "@/app/Firebase/Services/AuthService";
+import storeCurrentUserDataLocally from "../hooks/users/storeCurrentUserDataLocally";
+import getCurrentUserData from "../hooks/users/getCurrentUserData";
 
 const LoginScreen = () => {
   const insets = useSafeAreaInsets(); // Get safe area insets
@@ -29,136 +27,144 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Please fill in both email and password.');
+      Alert.alert("Please fill in both email and password.");
       return;
     }
 
     setLoading(true); // Start loading
-    const user = await loginUser(email, password); // Call loginUser
-    setLoading(false); // End loading
+    try {
+      const user = await loginUser(email, password); // Call loginUser
 
-    if (user) {
-      await storeUserDataLocally(user); // Store user data in AsyncStorage
-      router.replace('/(Authenticated)/(tabs)/Home');
-    } else {
-      Alert.alert('Login Failed', 'Please check your credentials and try again.');
+      if (user) {
+        setLoading(false); // End loading
+        router.replace("/(Authenticated)/(tabs)/Home");
+      }
+      
+    } catch (error) {
+      setLoading(false); // End loading
+      Alert.alert("Login failed", "Please check your credentials and try again.");
     }
   };
 
-  if(loading) {
+  if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Text>Loading...</Text>
       </View>
     );
   }
 
   return (
-    <>
-      <ImageBackground
-        source={require("@/assets/images/Vectors/background.png")}
-        style={styles.backgroundVector}
-      ></ImageBackground>
-      <View
-        style={{
-          paddingTop: -insets.top,
-          paddingBottom: -insets.bottom,
-          paddingHorizontal: 25,
-        }}
-      >
-        <Image
-          source={require("@/assets/images/Icons/Dark-Icon.png")}
-          style={styles.icon}
-        />
-        <Text style={styles.text}>
-          Sign In with {`\n`}
-          your Account
-        </Text>
-        <View style={styles.form}>
-          <CustomTextInput
-            placeholder="Email"
-            label="Email"
-            onChangeText={(value) => setEmail(value)}
-            value={email}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={{ flex: 1 }}>
+        <ImageBackground
+          source={require("@/assets/images/Vectors/background.png")}
+          style={styles.backgroundVector}
+        ></ImageBackground>
+        <View
+          style={{
+            paddingTop: -insets.top,
+            paddingBottom: -insets.bottom,
+            paddingHorizontal: 25,
+            flex: 1,
+          }}
+        >
+          <Image
+            source={require("@/assets/images/Icons/Dark-Icon.png")}
+            style={styles.icon}
           />
-          <CustomTextInput
-            placeholder="Password"
-            label="Password"
-            secureTextEntry
-            onChangeText={(value) => setPassword(value)}
-            value={password}
-          />
-          <Text
-            style={{
-              color: Colors.primary,
-              textAlign: "right",
-              marginTop: 15,
-              marginBottom: 15,
-            }}
-          >
-            Forgot Password?
+          <Text style={styles.text}>
+            Sign In with {`\n`}
+            your Account
           </Text>
-          <CustomButton
-            title="Sign In"
-            onPress={handleLogin}
-            style={{ backgroundColor: Colors.primary }}
-          />
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "center",
-              alignItems: "center",
-              marginTop: 25,
-            }}
-          >
-            <View style={styles.line} />
-            <Text style={{ color: Colors.secondaryText, marginHorizontal: 10 }}>
-              OR
-            </Text>
-            <View style={styles.line} />
-          </View>
-          <View style={{ marginTop: 25 }}>
-            <IconButton
-              icon="mail-outline"
-              text="Sign up with Email"
-              onPress={() => {
-                router.navigate("/RegisterScreen" as never);
+          <View style={styles.form}>
+            <CustomTextInput
+              placeholder="Email"
+              label="Email"
+              onChangeText={(value) => setEmail(value)}
+              value={email}
+            />
+            <CustomTextInput
+              placeholder="Password"
+              label="Password"
+              secureTextEntry
+              onChangeText={(value) => setPassword(value)}
+              value={password}
+            />
+            <Text
+              style={{
+                color: Colors.primary,
+                textAlign: "right",
+                marginTop: 15,
+                marginBottom: 15,
               }}
-              iconSize={25}
-              iconColor={Colors.secondaryText}
-              backgroundColor={Colors.primaryBackground}
-              textColor={Colors.secondaryText}
-              borderColor={Colors.secondaryText}
-              borderWidth={1}
-              style={{ marginBottom: 15 }} // Adds spacing
+            >
+              Forgot Password?
+            </Text>
+            <CustomButton
+              title="Sign In"
+              onPress={handleLogin}
+              style={{ backgroundColor: Colors.primary }}
             />
-            <IconButton
-              icon="logo-facebook"
-              text="Login with Facebook"
-              onPress={() => {}}
-              iconSize={25}
-              iconColor={Colors.secondaryText}
-              backgroundColor={Colors.primaryBackground}
-              textColor={Colors.secondaryText}
-              borderColor={Colors.secondaryText}
-              borderWidth={1}
-              style={{ marginBottom: 15 }} // Adds spacing
-            />
-            <IconButton
-              icon="logo-google"
-              text="Login with Google"
-              onPress={() => {}}
-              iconSize={25}
-              iconColor={Colors.secondaryText}
-              backgroundColor={Colors.primaryBackground}
-              textColor={Colors.secondaryText}
-              borderColor={Colors.secondaryText}
-              borderWidth={1}
-            />
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+                marginTop: 25,
+              }}
+            >
+              <View style={styles.line} />
+              <Text
+                style={{ color: Colors.secondaryText, marginHorizontal: 10 }}
+              >
+                OR
+              </Text>
+              <View style={styles.line} />
+            </View>
+            <View style={{ marginTop: 25 }}>
+              <IconButton
+                icon="mail-outline"
+                text="Sign up with Email"
+                onPress={() => {
+                  router.navigate("/RegisterScreen" as never);
+                }}
+                iconSize={25}
+                iconColor={Colors.secondaryText}
+                backgroundColor={Colors.primaryBackground}
+                textColor={Colors.secondaryText}
+                borderColor={Colors.secondaryText}
+                borderWidth={1}
+                style={{ marginBottom: 15 }} // Adds spacing
+              />
+              <IconButton
+                icon="logo-facebook"
+                text="Login with Facebook"
+                onPress={() => {}}
+                iconSize={25}
+                iconColor={Colors.secondaryText}
+                backgroundColor={Colors.primaryBackground}
+                textColor={Colors.secondaryText}
+                borderColor={Colors.secondaryText}
+                borderWidth={1}
+                style={{ marginBottom: 15 }} // Adds spacing
+              />
+              <IconButton
+                icon="logo-google"
+                text="Login with Google"
+                onPress={() => {}}
+                iconSize={25}
+                iconColor={Colors.secondaryText}
+                backgroundColor={Colors.primaryBackground}
+                textColor={Colors.secondaryText}
+                borderColor={Colors.secondaryText}
+                borderWidth={1}
+              />
+            </View>
           </View>
         </View>
       </View>
-    </>
+    </TouchableWithoutFeedback>
   );
 };
 

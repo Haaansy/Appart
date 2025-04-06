@@ -16,7 +16,6 @@ import Colors from "@/assets/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
 import useConversation from "@/app/hooks/inbox/useConversation";
 import MessageInput from "@/app/components/InboxComponents/MessageInput";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import useFetchMessages from "@/app/hooks/inbox/useFetchMessages";
 import SenderBubble from "@/app/components/InboxComponents/SenderBubble";
 import useSendMessage from "@/app/hooks/inbox/useSendMessage";
@@ -24,6 +23,7 @@ import ReceiverBubble from "@/app/components/InboxComponents/ReceiverBubble";
 import UserData from "@/app/types/UserData";
 import ConversationPopup from "@/app/components/InboxComponents/ConversationPopup";
 import Conversation from "@/app/types/Conversation";
+import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 
 const index = () => {
   const [currentUserData, setCurrentUserData] = useState<UserData | null>(null);
@@ -59,7 +59,7 @@ const index = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userData = await getStoredUserData();
+        const userData = await getCurrentUserData();
         if (userData) {
           setCurrentUserData(userData);
         }

@@ -1,5 +1,4 @@
 import { FieldValue, Timestamp } from "firebase/firestore";
-import UserData from "./UserData";
 
 export default interface Alert {
     id?: string;

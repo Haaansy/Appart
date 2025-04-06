@@ -5,7 +5,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
-  Image,
   Text,
   ScrollView,
   TextInput,
@@ -23,9 +22,9 @@ import Colors from "@/assets/styles/colors";
 import PageTwo from "./pages/PageTwo";
 import PageThree from "./pages/PageThree";
 import { createTransient } from "@/app/Firebase/Services/DatabaseService";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import UserData from "@/app/types/UserData";
 import { Ionicons } from "@expo/vector-icons";
+import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 
 const pages = [PageOne, PageTwo, PageThree];
 
@@ -74,7 +73,7 @@ const Index = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const userData = await getStoredUserData();
+      const userData = await getCurrentUserData();
       setCurrentUser(userData);
       setFormData((prev) => ({ ...prev, owner: userData }));
     };
@@ -116,7 +115,9 @@ const Index = () => {
   };
 
   const handlePublish = async () => {
+    setIsLoading(true);
     if (!currentUser) {
+      setIsLoading(false);
       console.error("Current user is null. Cannot publish transient.");
       Alert.alert("Error", "User data is missing. Please try again.");
       return;
@@ -128,10 +129,11 @@ const Index = () => {
       const newTransientID = await createTransient(formData);
 
       if (newTransientID) {
+        setIsLoading(false);
         console.log("New transient created with ID:", newTransientID);
-
         router.push(`/(Authenticated)/(tabs)/Home`);
       } else {
+        setIsLoading(false);
         console.error("Failed to create an transient");
         Alert.alert(
           "Error",
@@ -139,6 +141,7 @@ const Index = () => {
         );
       }
     } catch (error) {
+      setIsLoading(false);
       console.error("Error during transient creation:", error);
       Alert.alert("Error", "Something went wrong. Please try again.");
     }

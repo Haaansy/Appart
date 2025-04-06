@@ -1,5 +1,6 @@
 import { View, Text, Image, StyleSheet } from "react-native";
 import React from "react";
+import Colors from "@/assets/styles/colors";
 
 interface PropertyCardProps {
   isApartment: boolean;
@@ -77,7 +78,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
 
 const styles = StyleSheet.create({
   image: {
-    backgroundColor: "red",
+    backgroundColor: Colors.primary,
     width: 120,
     height: 120,
     borderRadius: 15

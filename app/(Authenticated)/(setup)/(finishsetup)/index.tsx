@@ -33,7 +33,7 @@ export default function MultiStepForm() {
 
   const handleNext = async () => {
     try {
-      const currentUser = await AsyncStorage.getItem("currentUser");
+      const currentUser = await AsyncStorage.getItem("userData");
       if (!currentUser) {
         console.error("Error: No user found in AsyncStorage");
         return;
@@ -63,7 +63,7 @@ export default function MultiStepForm() {
         });
 
         await AsyncStorage.setItem(
-          "currentUser",
+          "userData",
           JSON.stringify({ ...user, ...updatedUser })
         );
       } else {

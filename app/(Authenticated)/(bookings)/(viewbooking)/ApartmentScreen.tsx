@@ -18,7 +18,6 @@ import { Timestamp } from "firebase/firestore";
 import Booking from "@/app/types/Booking";
 import IconButton from "@/app/components/IconButton";
 import UserData from "@/app/types/UserData";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import {
   createAlert,
   createConversation,
@@ -36,6 +35,7 @@ import useBatchDeclineBooking from "@/app/hooks/bookings/useBatchDeclineBooking"
 import ReasonPopup from "@/app/components/BookingComponents/ReasonPopup";
 import { set } from "date-fns";
 import clearApartment from "@/app/hooks/apartment/clearApartment";
+import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 
 interface ApartmentProps {
   apartment: Apartment;
@@ -196,8 +196,6 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
   };
 
   const handleDecline = async (reason: string) => {
-    console.log(reason);
-
     await updateBooking(String(booking.id), {
       ...booking,
       status:
@@ -254,7 +252,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userData = await getStoredUserData();
+        const userData = await getCurrentUserData() as UserData;
         setCurrentUserData(userData);
         setBookingData(booking);
         setLoading(false);

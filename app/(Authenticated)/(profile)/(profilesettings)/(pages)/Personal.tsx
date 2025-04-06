@@ -16,10 +16,6 @@ import Colors from "@/assets/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import UserData from "@/app/types/UserData";
-import {
-  getStoredUserData,
-  storeUserDataLocally,
-} from "@/app/Firebase/Services/AuthService";
 import { auth } from "@/app/Firebase/FirebaseConfig";
 import CustomButton from "@/app/components/CustomButton";
 import EditValuesPopup from "@/app/components/ProfileComponents/EditValuesPopup";
@@ -33,6 +29,7 @@ import {
 } from "@/app/Firebase/Services/StorageService";
 import { router } from "expo-router";
 import { User } from "firebase/auth";
+import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 
 const Personal = () => {
   const insets = useSafeAreaInsets();
@@ -51,7 +48,7 @@ const Personal = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userData = await getStoredUserData();
+        const userData = await getCurrentUserData();
         setCurrentUserData(userData);
       } catch (error) {
         console.error("Error while fetching user data:", error);
@@ -140,7 +137,6 @@ const Personal = () => {
 
       // Update user data
       await updateUserData(currentUserData?.id || "", updatedUserData);
-      await storeUserDataLocally(auth.currentUser as User);
       router.replace("/(Authenticated)/(tabs)/Profile");
     } catch (error) {
       console.error("Error while saving changes:", error);

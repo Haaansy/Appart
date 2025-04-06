@@ -10,12 +10,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/assets/styles/colors";
 import { StatusBar, Platform, View, Text } from "react-native"; // Import StatusBar, Platform, View, and Text
 import getAlerts from "@/app/hooks/alerts/getAlerts"; // Import getAlerts hook
-import {
-  getStoredUserData,
-} from "@/app/Firebase/Services/AuthService"; // Import getCurrentUser from AuthService
+import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 import UserData from "@/app/types/UserData";
 import { getAuth } from "firebase/auth";
 import useFetchConversations from "@/app/hooks/inbox/useFetchConversation";
+import refreshCurrentUserData from "@/app/hooks/users/refreshCurrentUserData";
 
 // Create the bottom tab navigator
 const Tab = createBottomTabNavigator();
@@ -60,19 +59,11 @@ const _layout = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      try {
-        // Make sure the user is authenticated first
-        const auth = getAuth();
-        if (!auth.currentUser) {
-          console.log("No authenticated user");
-          return;
-        }
-
-        const user = await getStoredUserData();
+      await refreshCurrentUserData();
+      const user = await getCurrentUserData();
+      if (user) {
         setCurrentUserData(user);
         setLoading(false);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
       }
     };
 
@@ -90,12 +81,18 @@ const _layout = () => {
     }
   }, [alerts]);
 
-  const { conversations, loading: conversationsLoading, error: conversationError } = useFetchConversations(String(currentUserData?.id));
+  const {
+    conversations,
+    loading: conversationsLoading,
+    error: conversationError,
+  } = useFetchConversations(String(currentUserData?.id));
 
   useEffect(() => {
     if (conversations.length > 0) {
-      const unreadConversations = conversations.filter((conversation) => 
-        conversation.members.some((member) => member.user.id === currentUserData?.id && member.count > 0)
+      const unreadConversations = conversations.filter((conversation) =>
+        conversation.members.some(
+          (member) => member.user.id === currentUserData?.id && member.count > 0
+        )
       );
 
       setUnreadMessagesCount(unreadConversations.length);
@@ -180,7 +177,7 @@ const _layout = () => {
             tabBarLabel: "Bookings",
           }}
         >
-          {() => <Bookings />}
+          {() => <Bookings currentUserData={currentUserData as UserData} />}
         </Tab.Screen>
         <Tab.Screen
           name="Inbox"
@@ -195,18 +192,29 @@ const _layout = () => {
             tabBarLabel: "Inbox",
           }}
         >
-          {() => <Inbox conversations={conversations} loading={Loading} currentUserData={currentUserData as UserData} />}
+          {() => (
+            <Inbox
+              conversations={conversations}
+              loading={Loading}
+              currentUserData={currentUserData as UserData}
+            />
+          )}
         </Tab.Screen>
         <Tab.Screen
           name="Profile"
-          component={Profile}
           options={{
             tabBarIcon: ({ color }) => (
               <Ionicons name="person-outline" size={24} color={color} />
             ),
             tabBarLabel: "Profile",
           }}
-        />
+        >
+          {() => (
+            <Profile
+              currentUserData={currentUserData as UserData}
+            />
+          )}
+        </Tab.Screen>
       </Tab.Navigator>
     </>
   );

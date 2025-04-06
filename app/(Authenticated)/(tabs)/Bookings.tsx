@@ -15,15 +15,15 @@ import Colors from "@/assets/styles/colors";
 import useFetchBookings from "@/app/hooks/bookings/useFetchBookings";
 import BookingCard from "@/app/components/BookingComponents/BookingCard";
 import { router } from "expo-router";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import UserData from "@/app/types/UserData";
 
 type MainTabType = "Apartment" | "Transient";
 
-const Bookings = () => {
-  const [currentUserData, setCurrentUserData] = useState<UserData>(
-    {} as UserData
-  );
+interface BookingsProps {
+  currentUserData: UserData;
+}
+
+const Bookings: React.FC<BookingsProps> = ({ currentUserData }) => {
   const SUB_TABS: Record<MainTabType, string[]> = {
     Apartment: [
       ...(currentUserData.role === "tenant" ? ["Pending Invitation"] : []), // Add only if tenant
@@ -54,20 +54,6 @@ const Bookings = () => {
     activeSubTab,
     activeMainTab
   );
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const user = await getStoredUserData();
-        setCurrentUserData(user);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
 
   return (
     <>

@@ -34,7 +34,7 @@ const index = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRefs = useRef<{ [key: string]: TextInput | null }>({});
   const { apartmentId } = useLocalSearchParams();
-  const [pageloading, setLoading] = useState(false);
+  const [pageloading, setPageLoading] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -61,7 +61,7 @@ const index = () => {
   }, [apartment]);
 
   // Prevent rendering until formData is available
-  if (loading || !formData) {
+  if (loading || !formData || pageloading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
@@ -90,13 +90,16 @@ const index = () => {
     }
   };
 
-  const handleSave = () => {
-    updateApartment(String(apartmentId), formData)
+  const handleSave = async () => {
+    setPageLoading(true);
+    await updateApartment(String(apartmentId), formData)
       .then(() => {
+        setPageLoading(false);
         console.log("Apartment updated successfully", formData);
         router.replace("/(Authenticated)/(tabs)/Home");
       })
       .catch((error) => {
+        setPageLoading(false);
         console.error("Error updating apartment:", error);
       });
   };

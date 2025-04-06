@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 
-export interface BookingDate {
+export default interface BookingDate {
     bookingId: string;
     bookedDates?: Timestamp[];
     viewingDate?: Timestamp

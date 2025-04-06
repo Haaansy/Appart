@@ -23,6 +23,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { updateTransient } from "@/app/Firebase/Services/DatabaseService";
 import { useTransient } from "@/app/hooks/transient/useTransient";
 import Transient from "@/app/types/Transient";
+import { set } from "date-fns";
 
 const pages = [PageOne, PageTwo, PageThree];
 
@@ -34,6 +35,7 @@ const index = () => {
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRefs = useRef<{ [key: string]: TextInput | null }>({});
+  const [pageloading, setPageLoading] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -60,7 +62,7 @@ const index = () => {
   }, [transient]);
 
   // Prevent rendering until formData is available
-  if (loading || !formData) {
+  if (loading || !formData || pageloading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
@@ -90,12 +92,15 @@ const index = () => {
   };
 
   const handleSave = () => {
+    setPageLoading(true);
     updateTransient(String(transientId), formData)
       .then(() => {
+        setPageLoading(false);
         console.log("Transient updated successfully");
         router.replace("/(Authenticated)/(tabs)/Home");
       })
       .catch((error) => {
+        setPageLoading(false);
         console.error("Error updating transient:", error);
       });
   };

@@ -63,16 +63,16 @@ export const uploadCover = async (uri: string): Promise<string | null> => {
   
     try {
       const uploadedImageUrls = await Promise.all(
-        images.map(async (imageUri, index) => {
+        images.map(async (imageUri) => {
           try {
-            const imageRef = ref(storage, `apartments/${apartmentId}/image_${index}`);
+            const imageRef = ref(storage, `apartments/${apartmentId}/image_${Math.random().toString(36).substring(2, 15)}`);
             const response = await fetch(imageUri);
             const blob = await response.blob();
   
             await uploadBytes(imageRef, blob);
             return await getDownloadURL(imageRef);
           } catch (error) {
-            console.error(`Error uploading image ${index}:`, error);
+            console.error(`Error uploading image ${Math.random().toString(36).substring(2, 15)}:`, error);
             return null;
           }
         })
@@ -93,16 +93,16 @@ export const uploadCover = async (uri: string): Promise<string | null> => {
   
     try {
       const uploadedImageUrls = await Promise.all(
-        images.map(async (imageUri, index) => {
+        images.map(async (imageUri) => {
           try {
-            const imageRef = ref(storage, `transients/${transientId}/image_${index}`);
+            const imageRef = ref(storage, `transients/${transientId}/image_${Math.random().toString(36).substring(2, 15)}`);
             const response = await fetch(imageUri);
             const blob = await response.blob();
   
             await uploadBytes(imageRef, blob);
             return await getDownloadURL(imageRef);
           } catch (error) {
-            console.error(`Error uploading image ${index}:`, error);
+            console.error(`Error uploading image ${Math.random().toString(36).substring(2, 15)}:`, error);
             return null;
           }
         })

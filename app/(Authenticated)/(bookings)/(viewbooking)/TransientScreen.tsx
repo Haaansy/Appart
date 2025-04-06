@@ -20,7 +20,7 @@ import { Timestamp } from "firebase/firestore";
 import UserData from "@/app/types/UserData";
 import Alert from "@/app/types/Alert";
 import { checkExistingConversationWithTenants } from "@/app/hooks/inbox/useCheckExistingConversationWithTenants";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
+import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 
 interface TransientProps {
   transient: Transient;
@@ -39,7 +39,7 @@ const TransientScreen: React.FC<TransientProps> = ({ transient, booking }) => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const currentUserData = await getStoredUserData();
+      const currentUserData = await getCurrentUserData();
       if (currentUserData) {
         setCurrentUserData(currentUserData);
       } else {

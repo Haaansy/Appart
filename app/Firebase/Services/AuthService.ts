@@ -5,19 +5,19 @@ import { auth } from '@/app/Firebase/FirebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchUserDataFromFirestore } from './DatabaseService';
 
-export const getCurrentUser = (): User | null => {
-  return auth.currentUser;
-};
-
-export const listenToAuthState = (callback: (user: User | null) => void) => {
-  return onAuthStateChanged(auth, (user) => {
-    callback(user);
-  });
+// ✅ Manually Handle Auth Persistence in React Native
+const storeUserSession = async (user: any) => {
+  try {
+    await AsyncStorage.setItem("user", JSON.stringify(user));
+  } catch (error) {
+    console.error("Error storing user session:", error);
+  }
 };
 
 export const loginUser = async (email: string, password: string): Promise<User | null> => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    storeUserSession(userCredential.user);
     return userCredential.user;
   } catch (error) {
     console.error('Error logging in user:', error);
@@ -28,6 +28,7 @@ export const loginUser = async (email: string, password: string): Promise<User |
 export const signupUser = async (email: string, password: string): Promise<User | null> => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    storeUserSession(userCredential.user);
     return userCredential.user;
   } catch (error) {
     console.error('Error signing up user:', error);
@@ -38,33 +39,10 @@ export const signupUser = async (email: string, password: string): Promise<User 
 export const logoutUser = async (): Promise<void> => {
   try {
     await signOut(auth);
-    await AsyncStorage.removeItem('currentUser'); // Remove user from AsyncStorage on logout
+    await AsyncStorage.removeItem('userData'); // Remove user from AsyncStorage on logout
+    await AsyncStorage.removeItem('user'); // Remove user from AsyncStorage on logout
   } catch (error) {
     console.error('Error logging out user:', error);
   }
 };
 
-export const storeUserDataLocally = async (user: User) => {
-  try {
-    const userData = await fetchUserDataFromFirestore(user.uid);
-
-    if (userData) {
-      const updatedUserData = { ...userData, id: user.uid }; // Ensure 'id' is stored correctly
-      await AsyncStorage.setItem("currentUser", JSON.stringify(updatedUserData));
-    } else {
-      console.error("Error: No user data found in Firestore");
-    }
-  } catch (error) {
-    console.error("Error storing user data locally:", error);
-  }
-};
-
-export const getStoredUserData = async () => {
-  try {
-    const userData = await AsyncStorage.getItem('currentUser');
-    return userData ? JSON.parse(userData) : null; // Return parsed user data or null
-  } catch (error) {
-    console.error('Error retrieving user data from local storage:', error);
-    return null;
-  }
-};

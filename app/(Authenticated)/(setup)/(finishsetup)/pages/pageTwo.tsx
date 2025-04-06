@@ -1,7 +1,16 @@
 import { uploadAvatar } from "@/app/Firebase/Services/StorageService";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { View, TouchableOpacity, Text, Image } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  Text,
+  Image,
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Platform,
+} from "react-native";
 import { styles } from "../styles/styles";
 import * as ImagePicker from "expo-image-picker";
 import Colors from "@/assets/styles/colors";
@@ -15,23 +24,41 @@ const PageTwo: React.FC<PageProps & { formData: any; updateFormData: any }> = ({
   formData,
   updateFormData,
 }) => {
-  const [avatar, setAvatar] = useState<string>(
-    formData.photoUrl
-  );
+  const [loading, setLoading] = useState<boolean>(false);
+  const [avatar, setAvatar] = useState<string>(formData.photoUrl);
 
   // Open Image Picker
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      aspect: [1, 1],
-      quality: 1,
-    });
 
-    if (!result.canceled) {
-      const imageUri = result.assets[0].uri;
-      const uploadedAvatar = (await uploadAvatar(imageUri)); // Upload to Firebase Storage
-      updateFormData("photoUrl", uploadedAvatar);
-      setAvatar(uploadedAvatar as string);
+  const pickImage = async () => {
+    setLoading(true);
+    onValidation(false);
+
+    try {
+      // Launch image picker if permission is granted
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        const imageUri = result.assets[0].uri;
+        const uploadedAvatar = await uploadAvatar(imageUri);
+        updateFormData("photoUrl", uploadedAvatar);
+        setAvatar(uploadedAvatar as string);
+        onValidation(true);
+      }
+
+      if(result.canceled) {
+        onValidation(true);
+      }
+
+    } catch (error) {
+      console.error("Error during image picking process:", error);
+      Alert.alert("Error", "Failed to access photos. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -43,16 +70,32 @@ const PageTwo: React.FC<PageProps & { formData: any; updateFormData: any }> = ({
         onPress={pickImage}
         style={{ position: "relative", marginVertical: 25 }}
       >
-        <Image
-          source={{ uri: avatar }}
-          style={{
-            width: 100,
-            height: 100,
-            borderRadius: 50,
-            borderWidth: 2,
-            borderColor: "gray",
-          }}
-        />
+        {loading === false && (
+          <Image
+            source={{ uri: avatar }}
+            style={{
+              width: 100,
+              height: 100,
+              borderRadius: 50,
+              borderWidth: 2,
+              borderColor: "gray",
+            }}
+          />
+        )}
+
+        {loading && (
+          <ActivityIndicator
+            color={Colors.primary}
+            style={{
+              width: 100,
+              height: 100,
+              borderRadius: 50,
+              borderWidth: 2,
+              borderColor: "gray",
+            }}
+          />
+        )}
+
         {/* Upload Icon in Center */}
         <View
           style={{

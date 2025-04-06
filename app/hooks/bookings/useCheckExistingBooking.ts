@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/app/Firebase/FirebaseConfig";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import Tenant from "@/app/types/Tenant";
 import UserData from "@/app/types/UserData";
+import getCurrentUserData from "../users/getCurrentUserData";
 
 const useCheckExistingBooking = (propertyId: string) => {
   const [hasExistingBooking, setHasExistingBooking] = useState(false);
@@ -12,7 +12,7 @@ const useCheckExistingBooking = (propertyId: string) => {
   useEffect(() => {
     const checkBooking = async () => {
 
-      const userData: UserData = await getStoredUserData();
+      const userData: UserData = await getCurrentUserData() as UserData;
       if (!userData || !propertyId) {
         setLoading(false);
         return;

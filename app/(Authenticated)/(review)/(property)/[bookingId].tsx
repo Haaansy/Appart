@@ -20,7 +20,7 @@ import useBooking from "@/app/hooks/bookings/useBooking";
 import { useTransient } from "@/app/hooks/transient/useTransient";
 import { deleteAlert, updateApartment, updateTransient } from "@/app/Firebase/Services/DatabaseService";
 import UserData from "@/app/types/UserData";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
+import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 
 const index = () => {
   const { bookingId, alertId } = useLocalSearchParams();
@@ -35,8 +35,8 @@ const index = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const userData = await getStoredUserData();
-      setCurrentUserData(userData);
+      const userData = await getCurrentUserData();
+      setCurrentUserData(userData as UserData);
     };
 
     fetchUserData();

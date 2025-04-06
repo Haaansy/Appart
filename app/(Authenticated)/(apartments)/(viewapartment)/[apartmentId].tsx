@@ -14,7 +14,6 @@ import {
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { RelativePathString, router, useLocalSearchParams } from "expo-router";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import Colors from "@/assets/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
 import CustomBadge from "@/app/components/CustomBadge";
@@ -30,6 +29,7 @@ import Conversation from "@/app/types/Conversation";
 import UserData from "@/app/types/UserData";
 import { checkExistingConversationWithTenants } from "@/app/hooks/inbox/useCheckExistingConversationWithTenants";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
+import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 
 const { width, height } = Dimensions.get("window");
 
@@ -48,7 +48,7 @@ const ViewApartment = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const userData = await getStoredUserData();
+      const userData = await getCurrentUserData();
       if (userData) {
         setCurrentUserData(userData);
       } else {

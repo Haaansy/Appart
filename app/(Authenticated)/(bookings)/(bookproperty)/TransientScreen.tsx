@@ -14,7 +14,6 @@ import IconButton from "@/app/components/IconButton";
 import Colors from "@/assets/styles/colors";
 import TenantCard from "@/app/components/BookingComponents/TenantCard";
 import UserData from "@/app/types/UserData";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import Tenant from "@/app/types/Tenant";
 import DurationCard from "@/app/components/BookingComponents/DurationCard";
 import DateCard from "@/app/components/BookingComponents/DateCard";
@@ -33,6 +32,7 @@ import { router } from "expo-router";
 import Alert from "@/app/types/Alert";
 import Transient from "@/app/types/Transient";
 import TransientDateSelect from "@/app/components/BookingComponents/TransientDateSelect";
+import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 
 interface ApartmentProps {
   transient: Transient;
@@ -56,7 +56,7 @@ const TransientScreen: React.FC<ApartmentProps> = ({ transient }) => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const userData = await getStoredUserData();
+        const userData = await getCurrentUserData();
         if (userData) {
           setCurrentUserData(userData);
 

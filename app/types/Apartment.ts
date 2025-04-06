@@ -1,6 +1,4 @@
-import { Timestamp } from "firebase/firestore";
-import UserData from "./UserData";
-import { BookingDate } from "./BookedDates";
+import BookingDate from "./BookedDates";
 import Review from "./Review";
 
 export default interface Apartment {

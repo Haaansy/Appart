@@ -1,108 +1,5 @@
-/**
- * Fetch all documents from a collection.
- * 
- * @param collectionName - The name of the collection to fetch data from.
- * @returns A promise that resolves to an array of documents from the collection.
- * @throws An error if there is an issue fetching the collection data.
- *
- * export const fetchCollectionData = async (collectionName: string) => { ... };
- * */
-
-
-/**
- * Fetch a single document from a collection by its ID.
- * 
- * @param collectionName - The name of the collection to fetch the document from.
- * @param documentId - The ID of the document to fetch.
- * @returns A promise that resolves to the document data if it exists, or null if it does not.
- * @throws An error if there is an issue fetching the document data.
- *
- * export const fetchDocumentData = async (collectionName: string, documentId: string) => { ... };
- * */
-
-
-/**
- * Fetch documents based on a query condition (e.g., filter by field value).
- * 
- * @param collectionName - The name of the collection to fetch data from.
- * @param field - The field to filter by.
- * @param value - The value to filter by.
- * @returns A promise that resolves to an array of documents that match the query condition.
- * @throws An error if there is an issue fetching the collection with query.
- *
- * export const fetchCollectionWithQuery = async (collectionName: string, field: string, value: string) => { ... };
- * */
-
-/**
- * Fetch user data from Firestore.
- * 
- * @param userId - The ID of the user to fetch data for.
- * @returns A promise that resolves to the user data if it exists, or null if it does not.
- * @throws An error if there is an issue fetching the user data from Firestore.
- *
- * export const fetchUserDataFromFirestore = async (userId: string): Promise<UserData | null> => { ... };
- * */
-
-
-/**
- * Update user data in Firestore.
- * 
- * @param userId - The ID of the user to update data for.
- * @param data - The partial user data to update.
- * @throws An error if there is an issue updating the user data.
- *
- * export const updateUserData = async (userId: string, data: Partial<UserData>) => { ... };
- * */
-
-
-/**
- * Set initial user data in Firestore (for new users).
- * 
- * @param userId - The ID of the user to set data for.
- * @param userData - The initial user data to set.
- * @returns A promise that resolves to true if the data was set successfully, or false if there was an error.
- * @throws An error if there is an issue saving the user data.
- *
- * export const setInitialUserData = async (userId: string, userData: any): Promise<boolean> => { ... };
- * */
-
-
-/**
- * Check if the current user has data in Firestore.
- * 
- * @param userId - The ID of the user to check data for.
- * @returns A promise that resolves to true if the user data exists, or false if it does not.
- * @throws An error if there is an issue checking the user data existence.
- *
- * export const checkIfUserDataExists = async (userId: string): Promise<boolean> => { ... };
- * */
-
-
-/**
- * Fetch User Reference from Firestore using user ID.
- * 
- * @param userId - The ID of the user to fetch the reference for.
- * @returns A promise that resolves to the user document reference if it exists, or null if it does not.
- * @throws An error if there is an issue fetching the user reference.
- *
- * export const fetchUserRef = async (userId: string) => { ... };
- * */
-
-
-/**
- * Create a new apartment document in Firestore.
- * 
- * @param apartmentData - The data of the apartment to create.
- * @returns A promise that resolves to the ID of the created apartment if successful, or null if there was an error.
- * @throws An error if there is an issue publishing the apartment.
- *
- * export const createApartment = async (apartmentData: Apartment): Promise<string | null> => { ... };
- * */
-
-
-import { collection, getDocs, getDoc, doc, query, where, getFirestore, updateDoc, setDoc, deleteDoc, serverTimestamp, addDoc } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, query, where, updateDoc, setDoc, deleteDoc, serverTimestamp, addDoc } from 'firebase/firestore';
 import { db, auth } from '../FirebaseConfig'; // Make sure to update the import path for your firebase config
-import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import UserData from '@/app/types/UserData'; // UserData type
 import Apartment from '@/app/types/Apartment';
 import { uploadApartmentImages, uploadTransientImages } from './StorageService';
@@ -111,8 +8,6 @@ import Booking from '@/app/types/Booking';
 import Alert from '@/app/types/Alert';
 import Conversation from '@/app/types/Conversation';
 import Message from '@/app/types/Message';
-import { v4 as uuidv4 } from "uuid";
-import { storeUserDataLocally } from './AuthService';
 
 // Fetch all documents from a collection
 export const fetchCollectionData = async (collectionName: string) => {
@@ -418,7 +313,7 @@ export const updateTransient = async (transientId: string, transientData: Partia
     let uploadedImageUrls: string[] = [];
 
     if (newImages.length > 0) {
-      uploadedImageUrls = await uploadApartmentImages(newImages, transientId);
+      uploadedImageUrls = await uploadTransientImages(newImages, transientId);
     }
 
     // Merge newly uploaded images with existing ones
@@ -541,23 +436,61 @@ export const createMessage = async (conversationId: string, messageData: Omit<Me
 };
 
 // Function to fetch the number of properties for a user
-export const fetchUserPropertiesCount = async (userId: string): Promise<number> => {
+export const fetchAllReviewsForOwner = async (userId: string) => {
   try {
-    const apartmentsQuery = query(collection(db, "apartments"), where("owner.id", "==", userId));
-    const transientsQuery = query(collection(db, "transients"), where("owner.id", "==", userId));
-
+    // Fetch apartments and transients owned by the user
     const [apartmentsSnapshot, transientsSnapshot] = await Promise.all([
-      getDocs(apartmentsQuery),
-      getDocs(transientsQuery),
+      getDocs(query(collection(db, "apartments"), where("ownerId", "==", userId))),
+      getDocs(query(collection(db, "transients"), where("ownerId", "==", userId))),
     ]);
 
-    const apartmentsCount = apartmentsSnapshot.size;
-    const transientsCount = transientsSnapshot.size;
+    // Extract reviews from apartments
+    const apartmentReviews = apartmentsSnapshot.docs
+      .flatMap(doc => {
+        const data = doc.data();
+        return data.reviews ? data.reviews.map((review: any) => ({
+          ...review,
+          propertyId: doc.id,
+          propertyType: 'apartment',
+          propertyName: data.title || 'Unnamed Apartment'
+        })) : [];
+      });
 
-    return apartmentsCount + transientsCount; // Return the total number of documents
+    // Extract reviews from transients
+    const transientReviews = transientsSnapshot.docs
+      .flatMap(doc => {
+        const data = doc.data();
+        return data.reviews ? data.reviews.map((review: any) => ({
+          ...review,
+          propertyId: doc.id,
+          propertyType: 'transient',
+          propertyName: data.title || 'Unnamed Transient'
+        })) : [];
+      });
+
+    // Combine all reviews
+    return [...apartmentReviews, ...transientReviews];
   } catch (error) {
-    console.error("Error fetching user properties count:", error);
-    return 0;
+    console.error("Error fetching reviews for owner:", error);
+    return [];
+  }
+};
+
+export const fetchPropertyCounts = async () => {
+  try {
+    const [apartmentsSnapshot, transientsSnapshot] = await Promise.all([
+      getDocs(query(collection(db, "apartments"), where("ownerId", "==", auth.currentUser?.uid))),
+      getDocs(query(collection(db, "transients"), where("ownerId", "==", auth.currentUser?.uid))),
+    ]);
+
+    return {
+      apartmentsCount: apartmentsSnapshot.size,
+      transientsCount: transientsSnapshot.size,
+      totalCount: apartmentsSnapshot.size + transientsSnapshot.size
+    };
+  } catch (error) {
+    console.error("Error fetching property counts:", error);
+    return { apartmentsCount: 0, transientsCount: 0, totalCount: 0 };
   }
 };
 

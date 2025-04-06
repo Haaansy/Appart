@@ -10,8 +10,6 @@ import {
   ScrollView,
 } from "react-native";
 import Colors from "@/assets/styles/colors";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
-import useFetchConversations from "@/app/hooks/inbox/useFetchConversation";
 import UserData from "@/app/types/UserData";
 import ConversationCard from "@/app/components/InboxComponents/ConversationCard";
 import useHandleConversationPress from "@/app/hooks/inbox/useHandleConversationPress";

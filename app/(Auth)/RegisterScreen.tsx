@@ -7,6 +7,8 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/assets/styles/colors";
@@ -15,8 +17,7 @@ import CustomTextInput from "../components/CustomTextInput";
 import CustomButton from "../components/CustomButton";
 import { router } from "expo-router";
 import {
-  signupUser,
-  storeUserDataLocally,
+  signupUser
 } from "../Firebase/Services/AuthService";
 import { setInitialUserData } from "../Firebase/Services/DatabaseService";
 import UserData from "../types/UserData";
@@ -145,14 +146,13 @@ const RegisterScreen = () => {
           photoUrl: "",
           phoneNumber: "",
           isAdmin: false,
+          reviews: [],
         };
 
         // ✅ Save user data to Firestore
         const isUserSaved = await setInitialUserData(user.uid, userData);
 
         if (isUserSaved) {
-          // ✅ Store user data locally
-          await storeUserDataLocally(user);
           router.replace("/(Authenticated)/(tabs)/Home");
         } else {
           Alert.alert("Error", "Failed to save user data.");
@@ -176,6 +176,7 @@ const RegisterScreen = () => {
         style={styles.backgroundVector}
       />
       <NotifierWrapper>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View
         style={{
           paddingTop: -insets.top,
@@ -252,6 +253,7 @@ const RegisterScreen = () => {
           </Text>
         </View>
       </View>
+      </TouchableWithoutFeedback>
       </NotifierWrapper>
     </>
   );

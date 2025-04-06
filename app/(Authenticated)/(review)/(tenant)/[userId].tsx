@@ -21,8 +21,8 @@ import {
   updateUserData,
 } from "@/app/Firebase/Services/DatabaseService";
 import UserData from "@/app/types/UserData";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import { Timestamp } from "firebase/firestore";
+import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 
 const index = () => {
   const { userId, alertId } = useLocalSearchParams();
@@ -40,8 +40,8 @@ const index = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const userData = await getStoredUserData();
-      setCurrentUserData(userData);
+      const userData = await getCurrentUserData();
+      setCurrentUserData(userData as UserData);
     };
 
     fetchUserData();

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { collection, query, where, getDocs, Query } from "firebase/firestore";
 import { db } from "@/app/Firebase/FirebaseConfig"; // Adjust import as needed
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService"; // Import getStoredUserData
 import UserData from "@/app/types/UserData";
+import getCurrentUserData from "../users/getCurrentUserData";
 
 const useFetchBookings = (status: string, type: "Apartment" | "Transient" | "home owner") => {
   const [bookings, setBookings] = useState<any[]>([]);
@@ -16,7 +16,7 @@ const useFetchBookings = (status: string, type: "Apartment" | "Transient" | "hom
 
       try {
         console.log("Fetching current user data...");
-        const currentUser: UserData = await getStoredUserData(); // Fetch current user data
+        const currentUser: UserData = await getCurrentUserData() as UserData; // Fetch current user data
         console.log("Current user data:", currentUser);
 
         const bookingsRef = collection(db, "bookings");

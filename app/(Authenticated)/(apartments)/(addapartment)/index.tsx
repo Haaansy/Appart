@@ -24,11 +24,10 @@ import PageTwo from "./pages/PageTwo";
 import PageThree from "./pages/PageThree";
 import PageFour from "./pages/PageFour";
 import { createApartment } from "@/app/Firebase/Services/DatabaseService";
-import { getApartments } from "@/app/hooks/apartment/getApartments";
-import { getStoredUserData } from "@/app/Firebase/Services/AuthService";
 import UserData from "@/app/types/UserData";
 import Apartment from "@/app/types/Apartment";
 import { Ionicons } from "@expo/vector-icons";
+import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 
 const pages = [PageOne, PageTwo, PageThree, PageFour];
 
@@ -66,6 +65,7 @@ const index = () => {
     id: undefined,
     bookedDates: [],
     viewingDates: [],
+    reviews: [],
   });
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -86,7 +86,7 @@ const index = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const userData = await getStoredUserData();
+      const userData = await getCurrentUserData();
       setCurrentUserData(userData);
       setFormData;
     };
@@ -130,9 +130,11 @@ const index = () => {
   };
 
   const handlePublish = async () => {
+    setIsLoading(true);
     if (!currentUserData) {
       console.error("Current user is null. Cannot publish apartment.");
       Alert.alert("Error", "User data is missing. Please try again.");
+      setIsLoading(false);
       return;
     }
 
@@ -142,10 +144,11 @@ const index = () => {
       const newApartmentID = await createApartment(formData);
 
       if (newApartmentID) {
+        setIsLoading(false);
         console.log("New apartment created with ID:", newApartmentID);
-
         router.push(`/(Authenticated)/(tabs)/Home`);
       } else {
+        setIsLoading(false);
         console.error("Failed to create an apartment");
         Alert.alert(
           "Error",
@@ -153,6 +156,7 @@ const index = () => {
         );
       }
     } catch (error) {
+      setIsLoading(false);
       console.error("Error during apartment creation:", error);
       Alert.alert("Error", "Something went wrong. Please try again.");
     }

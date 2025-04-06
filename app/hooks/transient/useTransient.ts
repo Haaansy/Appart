@@ -1,7 +1,6 @@
 import { doc, getDoc } from "firebase/firestore";
 import { useState, useEffect } from "react";
 import { db } from "../../Firebase/FirebaseConfig";
-import Transient from "@/app/types/Transient";
 
 export const useTransient = (transientId: string) => {
     const [transient, setTransient] = useState<any | null>(null);
