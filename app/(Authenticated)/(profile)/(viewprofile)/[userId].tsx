@@ -5,60 +5,94 @@ import {
   StyleSheet,
   ActivityIndicator,
   StatusBar,
+  Alert,
+  FlatList,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import CustomButton from "@/app/components/CustomButton";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/assets/styles/colors";
-import { fetchUserDataFromFirestore } from "@/app/Firebase/Services/DatabaseService";
+import {
+  fetchAllReviewsForOwner,
+  fetchPropertyCounts,
+  fetchUserDataFromFirestore,
+} from "@/app/Firebase/Services/DatabaseService";
+import Review from "@/app/types/Review";
+import UserData from "@/app/types/UserData";
+import { set } from "date-fns";
+import ReviewCard from "@/app/components/ProfileComponents/ReviewCard";
 
 const index = () => {
-  const { userId } = useLocalSearchParams() 
+  const { userId } = useLocalSearchParams();
   const insets = useSafeAreaInsets();
-  const [UserData, setUserData] = useState<any>(null);
-  const [isLoading, setLoading] = useState<boolean>(true);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [propertiesCount, setPropertiesCount] = useState<number>(0);
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userData = await fetchUserDataFromFirestore(String(userId));
-        setUserData(userData);
+        const fetchedUserData = await fetchUserDataFromFirestore(
+          String(userId)
+        );
+        setUserData(fetchedUserData);
       } catch (error) {
         console.error("Error fetching user data:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchUserData();
   }, []);
 
-  const statusBarHeight = StatusBar.currentHeight || 0;
+  useEffect(() => {
+    const fetchPropertiesCount = async () => {
+      if (!userData) {
+        setLoading(false);
+        return;
+      }
 
+      try {
+        const reviews = await fetchAllReviewsForOwner(userData.id as string);
+        const { totalCount } = await fetchPropertyCounts(userData.id as string);
+
+        if (userData.role === "home owner") {
+          setPropertiesCount(totalCount);
+          setReviews(reviews);
+
+          console.log("Reviews:", reviews);
+          console.log("Properties Count:", totalCount);
+        }
+      } catch (error) {
+        Alert.alert("Error", "Failed to fetch properties count" + error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPropertiesCount();
+  }, [userData]);
 
   return (
     <View style={[styles.container]}>
-      {isLoading ? (
+      {loading == true ? (
         <ActivityIndicator size="large" color={Colors.primary} />
       ) : (
         <>
           <Image
-            source={{ uri: UserData?.coverUrl }}
+            source={{ uri: userData?.coverUrl }}
             style={[styles.coverImage]}
           />
           <View style={styles.avatarContainer}>
-            <Image
-              source={{ uri: UserData?.photoUrl }}
-              style={styles.avatar}
-            />
+            <Image source={{ uri: userData?.photoUrl }} style={styles.avatar} />
           </View>
           <Text style={styles.name}>
-            {`${UserData?.firstName} ${UserData?.lastName}` ||
+            {`${userData?.firstName} ${userData?.lastName}` ||
               "First Name, Last Name"}
           </Text>
           <Text style={styles.username}>
-            {`@${UserData?.displayName}` || "User"}
+            {`@${userData?.displayName}` || "User"}
           </Text>
           <Text
             style={[
@@ -66,14 +100,110 @@ const index = () => {
               { color: Colors.secondaryText, fontSize: 14 },
             ]}
           >
-            {UserData?.role === "tenant" ? "Tenant" : "Home Owner"}
+            {userData?.role === "tenant" ? "Tenant" : "Home Owner"}
           </Text>
           <View style={styles.infoContainer}>
+            {userData?.role === "home owner" && (
+              <View style={styles.infoItem}>
+                <Text style={{ fontSize: 20, fontWeight: "bold" }}>
+                  {propertiesCount}
+                </Text>
+                <Text>Properties</Text>
+              </View>
+            )}
+
+            <View style={styles.divider} />
+
             <View style={styles.infoItem}>
-              <Text style={{ fontSize: 20, fontWeight: "bold" }}>3.7</Text>
+              <Text style={{ fontSize: 20, fontWeight: "bold" }}>
+                {userData?.role === "tenant" &&
+                userData?.reviews &&
+                userData?.reviews.length > 0
+                  ? (
+                      userData?.reviews.reduce(
+                        (acc: number, curr: any) => acc + curr.rating,
+                        0
+                      ) / userData?.reviews.length
+                    ).toFixed(1)
+                  : 0}
+
+                {userData?.role === "home owner" &&
+                  reviews &&
+                  reviews.length > 0 &&
+                  (
+                    reviews.reduce(
+                      (acc: number, curr: any) => acc + curr.rating,
+                      0
+                    ) / reviews.length
+                  ).toFixed(1)}
+              </Text>
               <Text>Rating</Text>
             </View>
           </View>
+
+          {userData?.role === "tenant" && (
+            <FlatList
+              data={userData?.reviews}
+              keyExtractor={(item) =>
+                item.userId + "_" + Math.random().toString(36).substring(7)
+              }
+              renderItem={({ item }) => <ReviewCard review={item} />}
+              contentContainerStyle={{
+                marginTop: 20,
+                paddingHorizontal: 25,
+              }}
+              showsVerticalScrollIndicator={false}
+              style={{ width: "100%" }}
+              ListEmptyComponent={
+                <Text
+                  style={{
+                    textAlign: "center",
+                    marginTop: 20,
+                    color: Colors.secondaryText,
+                  }}
+                >
+                  No reviews yet.
+                </Text>
+              }
+              ListFooterComponent={<View style={{ height: 20 }} />}
+              ItemSeparatorComponent={() => (
+                <View
+                  style={{
+                    height: 1,
+                    backgroundColor: Colors.border,
+                    marginVertical: 10,
+                  }}
+                />
+              )}
+            />
+          )}
+
+          {userData?.role === "home owner" && (
+            <FlatList
+              data={reviews}
+              keyExtractor={(item) =>
+                item.userId + "_" + Math.random().toString(36).substring(7)
+              }
+              renderItem={({ item }) => <ReviewCard review={item} />}
+              contentContainerStyle={{
+                marginTop: 20,
+                paddingHorizontal: 25,
+              }}
+              showsVerticalScrollIndicator={false}
+              style={{ width: "100%" }}
+              ListEmptyComponent={
+                <Text
+                  style={{
+                    textAlign: "center",
+                    marginTop: 20,
+                    color: Colors.secondaryText,
+                  }}
+                >
+                  No reviews yet.
+                </Text>
+              }
+            />
+          )}
         </>
       )}
     </View>

@@ -47,7 +47,9 @@ const Profile: React.FC<ProfileProps> = ({ currentUserData }) => {
         const reviews = await fetchAllReviewsForOwner(
           currentUserData.id as string
         );
-        const { totalCount } = await fetchPropertyCounts();
+        const { totalCount } = await fetchPropertyCounts(
+          currentUserData.id as string
+        );
 
         if (currentUserData.role === "home owner") {
           setPropertiesCount(totalCount);

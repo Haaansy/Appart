@@ -476,11 +476,11 @@ export const fetchAllReviewsForOwner = async (userId: string) => {
   }
 };
 
-export const fetchPropertyCounts = async () => {
+export const fetchPropertyCounts = async (userId: string) => {
   try {
     const [apartmentsSnapshot, transientsSnapshot] = await Promise.all([
-      getDocs(query(collection(db, "apartments"), where("ownerId", "==", auth.currentUser?.uid))),
-      getDocs(query(collection(db, "transients"), where("ownerId", "==", auth.currentUser?.uid))),
+      getDocs(query(collection(db, "apartments"), where("ownerId", "==", userId))),
+      getDocs(query(collection(db, "transients"), where("ownerId", "==", userId))),
     ]);
 
     return {

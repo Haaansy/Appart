@@ -418,6 +418,12 @@ const ViewApartment = () => {
                   flexDirection: "row",
                   marginLeft: 10,
                 }}
+
+                onPress={() => {
+                  router.push(
+                    `(Authenticated)/(profile)/(viewprofile)/${ownerData?.id}` as unknown as RelativePathString
+                  )
+                }}
               >
                 <Text style={{ fontSize: 12, color: Colors.primary }}>
                   View Profile

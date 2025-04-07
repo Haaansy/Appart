@@ -325,12 +325,14 @@ const ViewTransient = () => {
                   marginLeft: 5,
                 }}
               >
-                { transient.reviews && transient.reviews.length > 0 ? (
-                  transient.reviews.reduce((sum: any, review: any) => sum + review.rating, 0) / transient.reviews.length
-                ).toFixed(1)
-                : (
-                  "No reviews"
-                ) }
+                {transient.reviews && transient.reviews.length > 0
+                  ? (
+                      transient.reviews.reduce(
+                        (sum: any, review: any) => sum + review.rating,
+                        0
+                      ) / transient.reviews.length
+                    ).toFixed(1)
+                  : "No reviews"}
               </Text>
               <Text
                 style={{
@@ -341,11 +343,9 @@ const ViewTransient = () => {
                   marginLeft: 2,
                 }}
               >
-                { transient.reviews && transient.reviews.length > 0 ? (
-                  `(${transient.reviews.length})`
-                ): (
-                  ""
-                ) }
+                {transient.reviews && transient.reviews.length > 0
+                  ? `(${transient.reviews.length})`
+                  : ""}
               </Text>
               <TouchableOpacity>
                 <Ionicons
@@ -413,6 +413,11 @@ const ViewTransient = () => {
                   alignItems: "center",
                   flexDirection: "row",
                   marginLeft: 10,
+                }}
+                onPress={() => {
+                  router.push(
+                    `(Authenticated)/(profile)/(viewprofile)/${ownerData?.id}` as unknown as RelativePathString
+                  );
                 }}
               >
                 <Text style={{ fontSize: 12, color: Colors.primary }}>
@@ -512,28 +517,28 @@ const ViewTransient = () => {
           <View style={styles.line} />
           <View>
             <Text style={styles.title}>House Rules</Text>
-              {transient.houseRules?.map((rule: string, index: number) => (
-                <Text key={index} style={styles.contents}>
-                  {rule} {"\n"}
-                </Text>
-              ))}
-              {transient.houseRules?.length == 0 && (
-                <Text style={styles.contents}>No Requirements Specified.</Text>
-              )}
+            {transient.houseRules?.map((rule: string, index: number) => (
+              <Text key={index} style={styles.contents}>
+                {rule} {"\n"}
+              </Text>
+            ))}
+            {transient.houseRules?.length == 0 && (
+              <Text style={styles.contents}>No Requirements Specified.</Text>
+            )}
           </View>
           <View style={styles.line} />
           <View>
             <Text style={styles.title}>Requirements</Text>
-              {transient.requirements?.map(
-                (requirements: string, index: number) => (
-                  <Text key={index} style={styles.contents}>
-                    {requirements} {"\n"}
-                  </Text>
-                )
-              )}
-              {transient.requirements?.length == 0 && (
-                <Text style={styles.contents}>No Requirements Specified.</Text>
-              )}
+            {transient.requirements?.map(
+              (requirements: string, index: number) => (
+                <Text key={index} style={styles.contents}>
+                  {requirements} {"\n"}
+                </Text>
+              )
+            )}
+            {transient.requirements?.length == 0 && (
+              <Text style={styles.contents}>No Requirements Specified.</Text>
+            )}
           </View>
           <View style={styles.line} />
           {currentUserData.role === "home owner" && (
