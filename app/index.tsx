@@ -9,15 +9,16 @@ const Index = () => {
   const auth = getAuth();
   onAuthStateChanged(auth, async (user) => {
     if (user) {
+      setLoading(false);
       router.replace("/(Authenticated)/(tabs)/Home");
     } else {
+      setLoading(false);
       router.replace("/(Auth)/OnboardingScreen");
     }
-    setLoading(false);
   })
 
   if (loading) {
-    return <Text>Loading...</Text>;
+    return <Text>Loading Index.tsx - Root</Text>;
   }
 
   return null; // Render nothing because navigation happens in the `useEffect`

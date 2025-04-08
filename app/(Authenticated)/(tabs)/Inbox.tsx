@@ -62,7 +62,7 @@ const Inbox: React.FC<InboxProps> = ({
             data={conversations}
             keyExtractor={(item) => item.id as string}
             ListEmptyComponent={
-              <View style={{ alignItems: "center", justifyContent: "center", backgroundColor: Colors.primaryBackground, padding: 20, borderRadius: 15, elevation: 10 }}>
+              <View style={{ alignItems: "center", justifyContent: "center", padding: 20}}>
                 <Image
                   source={require("@/assets/images/AI-Character-V1/reading-phone.png")}
                   style={styles.character}

@@ -1,8 +1,33 @@
 import { useState, useEffect, useCallback } from "react";
 import { collection, query, where, getDocs, orderBy, limit, startAfter } from "firebase/firestore";
 import { db } from "@/app/Firebase/FirebaseConfig";
+import Transient from "@/app/types/Transient";
 
-export const getTransients = (role: string, userId: string) => {
+/**
+ * Calculates distance between two coordinates using the Haversine formula
+ */
+const calculateDistance = (
+    lat1: number, 
+    lon1: number, 
+    lat2: number, 
+    lon2: number
+): number => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    return R * c; // Distance in km
+};
+
+export const getTransients = (
+    role: string, 
+    userId: string,
+    currentLocation?: { latitude: number; longitude: number }
+) => {
     const [transients, setTransients] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -26,7 +51,8 @@ export const getTransients = (role: string, userId: string) => {
                     ? query(transientRef, where("ownerId", "==", userId)) // Ensure proper query
                     : transientRef;
 
-            transientQuery = query(transientQuery, orderBy("createdAt", "desc"), limit(LIMIT));
+            // Remove ordering if we plan to sort by distance
+            transientQuery = query(transientQuery, limit(LIMIT));
 
             if (!reset && lastDoc) {
                 transientQuery = query(transientQuery, startAfter(lastDoc));
@@ -40,12 +66,31 @@ export const getTransients = (role: string, userId: string) => {
                 setHasMore(false);
             }
 
-            const apartmentList = snapshot.docs.map((doc) => ({
+            let transientList = snapshot.docs.map((doc) => ({
                 id: doc.id,
-                ...doc.data(),
+                ...doc.data() as Transient,
             }));
 
-            setTransients((prev) => (reset ? apartmentList : [...prev, ...apartmentList]));
+            // If current location is provided, calculate distance and sort by proximity
+            if (currentLocation && currentLocation.latitude && currentLocation.longitude) {
+                transientList = transientList.map(transient => {
+                    const distance = transient.coordinates && transient.coordinates[0] && transient.coordinates[1]
+                        ? calculateDistance(
+                            currentLocation.latitude,
+                            currentLocation.longitude,
+                            transient.coordinates[0],
+                            transient.coordinates[1]
+                          )
+                        : Number.MAX_VALUE; // Place transients without location at the end
+                    
+                    return { ...transient, distance };
+                }).sort((a, b) => (a.distance || 0) - (b.distance || 0));
+            } else {
+                // If no location, order by created date
+                transientList.sort((a, b) => b.createdAt - a.createdAt);
+            }
+
+            setTransients((prev) => (reset ? transientList : [...prev, ...transientList]));
             setLastDoc(snapshot.docs[snapshot.docs.length - 1]);
 
         } catch (err: any) {
@@ -54,12 +99,12 @@ export const getTransients = (role: string, userId: string) => {
         } finally {
             setLoading(false);
         }
-    }, [role, userId, lastDoc, hasMore, loading]);
+    }, [role, userId, lastDoc, hasMore, loading, currentLocation]);
 
     // Fetch on mount
     useEffect(() => {
         fetchTransients(true);
-    }, [role, userId]);
+    }, [role, userId, currentLocation]);
 
     return { transients, loading, error, fetchMore: () => fetchTransients(), refresh: () => fetchTransients(true) };
 };

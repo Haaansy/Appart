@@ -19,6 +19,9 @@ import TransientCard from "@/app/components/PropertyCards/TransientCard";
 import CustomAddDropdown from "@/app/components/HomeComponents/CustomAddDropdown";
 import UserData from "@/app/types/UserData";
 import Alert from "@/app/types/Alert";
+import * as Location from "expo-location";
+import * as ImagePicker from "expo-image-picker";
+import { Ionicons } from "@expo/vector-icons";
 
 interface HomeProps {
   currentUserData: UserData;
@@ -30,6 +33,8 @@ const Home: React.FC<HomeProps> = ({ currentUserData, alerts }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<string | null>(null);
+  const [locationLoading, setLocationLoading] = useState<boolean>(false);
 
   const pendingReviews = alerts.filter((alert) => alert.type === "Review");
 
@@ -66,6 +71,44 @@ const Home: React.FC<HomeProps> = ({ currentUserData, alerts }) => {
         ) {
           router.replace("/(Authenticated)/(setup)/(finishsetup)");
         } else {
+          // Check permissions before proceeding
+          const locationPermission = await Location.getForegroundPermissionsAsync();
+          const cameraPermission = await ImagePicker.getMediaLibraryPermissionsAsync();
+
+          if (!locationPermission.granted || !cameraPermission.granted) {
+            console.log("Permissions not granted");
+            router.replace(
+              "/(Authenticated)/(setup)/(permissions)" as unknown as RelativePathString
+            );
+            return;
+          }
+
+          // Get current location
+          try {
+            setLocationLoading(true);
+            const location = await Location.getCurrentPositionAsync({});
+            const { latitude, longitude } = location.coords;
+
+            // Reverse geocoding to get address from coordinates
+            const addressResponse = await Location.reverseGeocodeAsync({
+              latitude,
+              longitude,
+            });
+
+            if (addressResponse && addressResponse.length > 0) {
+              const address = addressResponse[0];
+              const locationString = `${address.city || ""}, ${
+                address.region || ""
+              }`;
+              setCurrentLocation(locationString);
+            }
+          } catch (locationError) {
+            console.error("Error getting location:", locationError);
+            setCurrentLocation("Location unavailable");
+          } finally {
+            setLocationLoading(false);
+          }
+
           setLoading(false);
         }
       } catch (error) {
@@ -77,15 +120,15 @@ const Home: React.FC<HomeProps> = ({ currentUserData, alerts }) => {
     fetchUserData();
 
     if (pendingReviews.length > 0) {
-      if(currentUserData.role === "tenant") {
+      if (currentUserData.role === "tenant") {
         router.replace({
           pathname: `/(Authenticated)/(review)/(property)/${pendingReviews[0].bookingId}` as RelativePathString,
-          params: { alertId: pendingReviews[0].id }
+          params: { alertId: pendingReviews[0].id },
         });
       } else {
         router.replace({
           pathname: `/(Authenticated)/(review)/(tenant)/${pendingReviews[0].tenantId}` as RelativePathString,
-          params: { alertId: pendingReviews[0].id }
+          params: { alertId: pendingReviews[0].id },
         });
       }
     }
@@ -152,8 +195,26 @@ const Home: React.FC<HomeProps> = ({ currentUserData, alerts }) => {
             <Text style={styles.greetings}>
               Hey, {currentUserData["displayName"]}!
             </Text>
-            <Text style={styles.subtext}>Looking for somewhere to stay?</Text>
+            <View style={styles.locationContainer}>
+              <Text style={styles.subtext}>Looking for somewhere to stay?</Text>
+              {locationLoading ? (
+                <ActivityIndicator
+                  size="small"
+                  color={Colors.primaryBackground}
+                  style={styles.locationLoader}
+                />
+              ) : (
+                currentLocation && (
+                  <Text style={styles.locationText}>
+                    <Ionicons name="location"/>
+                    {" "}
+                    {currentLocation}
+                  </Text>
+                )
+              )}
+            </View>
           </View>
+
           <IconButton
             icon={currentUserData.role === "tenant" ? "search" : "add"}
             onPress={
@@ -365,6 +426,23 @@ const styles = StyleSheet.create({
     height: "50%",
     resizeMode: "contain",
     marginBottom: 10,
+  },
+  locationContainer: {
+    flexDirection: "column",
+  },
+  locationText: {
+    fontSize: 12,
+    color: Colors.primaryBackground,
+    marginTop: 2,
+    fontWeight: "500",
+  },
+  locationIcon: {
+    width: 10,
+    height: 10,
+    resizeMode: "contain",
+  },
+  locationLoader: {
+    marginTop: 2,
   },
 });
 

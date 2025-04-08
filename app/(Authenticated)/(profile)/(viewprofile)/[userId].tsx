@@ -4,12 +4,10 @@ import {
   Image,
   StyleSheet,
   ActivityIndicator,
-  StatusBar,
   Alert,
   FlatList,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import CustomButton from "@/app/components/CustomButton";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/assets/styles/colors";
@@ -20,8 +18,10 @@ import {
 } from "@/app/Firebase/Services/DatabaseService";
 import Review from "@/app/types/Review";
 import UserData from "@/app/types/UserData";
-import { set } from "date-fns";
 import ReviewCard from "@/app/components/ProfileComponents/ReviewCard";
+import { TouchableWithoutFeedback } from "react-native-gesture-handler";
+import { Ionicons } from "@expo/vector-icons";
+import { set } from "date-fns";
 
 const index = () => {
   const { userId } = useLocalSearchParams();

@@ -60,7 +60,7 @@ const index = () => {
         }}
       >
         {/* Back Button */}
-        <TouchableOpacity onPress={() => router.replace("/(Authenticated)/(tabs)/Profile")}>
+        <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={35} color="black" />
         </TouchableOpacity>
 

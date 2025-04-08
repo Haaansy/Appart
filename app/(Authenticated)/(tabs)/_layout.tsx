@@ -102,7 +102,7 @@ const _layout = () => {
   if (Loading || alertLoading || conversationsLoading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Loading...</Text>
+        <Text>Loading Application</Text>
       </View>
     );
   }

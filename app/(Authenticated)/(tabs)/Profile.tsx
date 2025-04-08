@@ -91,7 +91,7 @@ const Profile: React.FC<ProfileProps> = ({ currentUserData }) => {
                 },
               ]}
               onPress={() =>
-                router.replace("/(Authenticated)/(profile)/(profilesettings)")
+                router.navigate("/(Authenticated)/(profile)/(profilesettings)")
               }
             >
               <Ionicons name="cog" size={35} color={Colors.primaryBackground} />

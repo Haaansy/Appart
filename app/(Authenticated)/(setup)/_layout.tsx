@@ -8,6 +8,7 @@ const SetupLayout = () => {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(initialsetup)"/>
       <Stack.Screen name="(finishsetup)"/>
+      <Stack.Screen name="(permissions)"/>
     </Stack>
   );
 };
