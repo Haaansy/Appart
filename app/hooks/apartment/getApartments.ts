@@ -38,6 +38,7 @@ const calculateDistance = (
  *   - `error`: A string containing an error message, if any.
  *   - `fetchMore`: A function to fetch more apartments.
  *   - `refresh`: A function to refresh the list of apartments.
+ *   - `noApartmentsNearby`: A boolean indicating if there are no apartments within the specified radius.
  */
 export const getApartments = (
     role: string, 
@@ -49,6 +50,7 @@ export const getApartments = (
     const [error, setError] = useState<string | null>(null);
     const [lastDoc, setLastDoc] = useState<any>(null);
     const [hasMore, setHasMore] = useState(true);
+    const [noApartmentsNearby, setNoApartmentsNearby] = useState(false);
 
     const LIMIT = 5; // Fetch 5 items per page
 
@@ -86,18 +88,37 @@ export const getApartments = (
 
             // If current location is provided, calculate distance and sort by proximity
             if (currentLocation && currentLocation.latitude && currentLocation.longitude) {
-                apartmentList = apartmentList.map(apartment => {
-                    const distance = apartment.coordinates && apartment.coordinates[0] && apartment.coordinates[1]
+                const filteredList = apartmentList.map(apartment => {
+                    // Check if coordinates array exists and has at least 2 elements
+                    const hasValidCoordinates = apartment.coordinates && 
+                                               Array.isArray(apartment.coordinates) && 
+                                               apartment.coordinates.length >= 2;
+                    
+                    const distance = hasValidCoordinates
                         ? calculateDistance(
                             currentLocation.latitude,
                             currentLocation.longitude,
-                            apartment.coordinates[0],
-                            apartment.coordinates[1]
+                            apartment.coordinates[1], // Coordinates are stored as [longitude, latitude]
+                            apartment.coordinates[0]  // So we need to swap the order for calculation
                           )
                         : Number.MAX_VALUE; // Place apartments without location at the end
                     
                     return { ...apartment, distance };
-                }).sort((a, b) => (a.distance || 0) - (b.distance || 0));
+                })
+                .filter(apartment => {
+                    // Only show apartments with valid distances within 20km
+                    return typeof apartment.distance === 'number' && 
+                           apartment.distance !== Number.MAX_VALUE && 
+                           apartment.distance <= 20;
+                })
+                .sort((a, b) => {
+                    // Safe sorting with nullish coalescing
+                    return (a.distance ?? Number.MAX_VALUE) - (b.distance ?? Number.MAX_VALUE);
+                });
+                
+                // Set flag if no apartments are nearby
+                setNoApartmentsNearby(filteredList.length === 0);
+                apartmentList = filteredList;
             }
 
             setApartments((prev) => (reset ? apartmentList : [...prev, ...apartmentList]));
@@ -120,6 +141,7 @@ export const getApartments = (
         loading, 
         error, 
         fetchMore: () => fetchApartments(), 
-        refresh: () => fetchApartments(true) 
+        refresh: () => fetchApartments(true),
+        noApartmentsNearby
     };
 };

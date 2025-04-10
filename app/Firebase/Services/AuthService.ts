@@ -20,8 +20,7 @@ export const loginUser = async (email: string, password: string): Promise<User |
     storeUserSession(userCredential.user);
     return userCredential.user;
   } catch (error) {
-    console.error('Error logging in user:', error);
-    return null;
+    throw error;
   }
 };
 

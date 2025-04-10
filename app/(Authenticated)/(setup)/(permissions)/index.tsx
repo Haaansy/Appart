@@ -5,6 +5,7 @@ import PhotosPage from './pages/PhotosPage'
 import CustomButton from '@/app/components/CustomButton'
 import * as Location from 'expo-location'
 import * as ImagePicker from 'expo-image-picker'
+import { router } from 'expo-router'
 
 const pages = [ LocationPage, PhotosPage ]
 
@@ -17,8 +18,15 @@ const Index = () => {
   };
 
   const requestPhotoPermission = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    return status === 'granted';
+    try {
+      console.log('Requesting photo permissions...');
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log('Photo permission status:', status);
+      return status === 'granted';
+    } catch (error) {
+      console.error('Error requesting photo permission:', error);
+      return false;
+    }
   };
   
   const handleNextPage = async () => {
@@ -28,19 +36,24 @@ const Index = () => {
     if (currentPageIndex === 0) {
       // Location permission page
       permissionGranted = await requestLocationPermission();
+      console.log('Location permission granted:', permissionGranted);
     } else if (currentPageIndex === 1) {
       // Photo permission page
       permissionGranted = await requestPhotoPermission();
+      console.log('Photo permission granted:', permissionGranted);
     }
     
-    // If permission is granted or this is not a permission page, go to next page
+    // If permission is granted or this is the last page, proceed
     if (permissionGranted || currentPageIndex >= pages.length - 1) {
       if (currentPageIndex < pages.length - 1) {
         setCurrentPageIndex(currentPageIndex + 1);
+      } else {
+        router.push('/(Authenticated)/(tabs)/Home');
       }
     } else {
-      // Permission was denied - could add error handling here
-      console.log('Permission denied');
+      // Permission was denied - show alert or feedback
+      console.log('Permission denied for page', currentPageIndex);
+      alert('This permission is required to use all app features. Please grant access in your device settings.');
     }
   };
   

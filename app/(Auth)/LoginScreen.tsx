@@ -39,7 +39,7 @@ const LoginScreen = () => {
         setLoading(false); // End loading
         router.replace("/(Authenticated)/(tabs)/Home");
       }
-      
+
     } catch (error) {
       setLoading(false); // End loading
       Alert.alert("Login failed", "Please check your credentials and try again.");
@@ -49,7 +49,7 @@ const LoginScreen = () => {
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Loading...</Text>
+        <Text>Logging In.</Text>
       </View>
     );
   }

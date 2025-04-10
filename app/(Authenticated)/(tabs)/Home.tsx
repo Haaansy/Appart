@@ -7,6 +7,7 @@ import {
   Image,
   ActivityIndicator,
   FlatList,
+  TouchableOpacity,
 } from "react-native";
 import Colors from "@/assets/styles/colors";
 import IconButton from "@/app/components/IconButton";
@@ -34,6 +35,7 @@ const Home: React.FC<HomeProps> = ({ currentUserData, alerts }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<string | null>(null);
+  const [locationJson, setLocationJson] = useState<any>(null);
   const [locationLoading, setLocationLoading] = useState<boolean>(false);
 
   const pendingReviews = alerts.filter((alert) => alert.type === "Review");
@@ -48,6 +50,43 @@ const Home: React.FC<HomeProps> = ({ currentUserData, alerts }) => {
       router.push(
         "/(Authenticated)/(transients)/(addtransient)" as unknown as RelativePathString
       );
+    }
+  };
+
+  const fetchLocation = async () => {
+    try {
+      setLocationLoading(true);
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      const { latitude, longitude } = location.coords;
+
+      // Reverse geocoding to get address from coordinates
+      const addressResponse = await Location.reverseGeocodeAsync({
+        latitude,
+        longitude,
+      });
+
+      if (addressResponse && addressResponse.length > 0) {
+        const address = addressResponse[0];
+        const locationString = `${address.city || ""}, ${
+          address.region || ""
+        }`;
+        setLocationJson({ latitude, longitude });
+        setCurrentLocation(locationString);
+
+        // Refresh data when location updates
+        if (isTransient) {
+          refreshTransients();
+        } else {
+          refreshApartments();
+        }
+      }
+    } catch (locationError) {
+      console.error("Error getting location:", locationError);
+      setCurrentLocation("Location unavailable");
+    } finally {
+      setLocationLoading(false);
     }
   };
 
@@ -84,31 +123,7 @@ const Home: React.FC<HomeProps> = ({ currentUserData, alerts }) => {
           }
 
           // Get current location
-          try {
-            setLocationLoading(true);
-            const location = await Location.getCurrentPositionAsync({});
-            const { latitude, longitude } = location.coords;
-
-            // Reverse geocoding to get address from coordinates
-            const addressResponse = await Location.reverseGeocodeAsync({
-              latitude,
-              longitude,
-            });
-
-            if (addressResponse && addressResponse.length > 0) {
-              const address = addressResponse[0];
-              const locationString = `${address.city || ""}, ${
-                address.region || ""
-              }`;
-              setCurrentLocation(locationString);
-            }
-          } catch (locationError) {
-            console.error("Error getting location:", locationError);
-            setCurrentLocation("Location unavailable");
-          } finally {
-            setLocationLoading(false);
-          }
-
+          await fetchLocation();
           setLoading(false);
         }
       } catch (error) {
@@ -134,13 +149,23 @@ const Home: React.FC<HomeProps> = ({ currentUserData, alerts }) => {
     }
   }, []);
 
+  useEffect(() => {
+    if (!loading && locationJson) {
+      if (isTransient) {
+        refreshTransients();
+      } else {
+        refreshApartments();
+      }
+    }
+  }, [isTransient, locationJson]);
+
   const {
     apartments,
     loading: apartmentsLoading,
     error: apartmentsError,
     fetchMore: fetchMoreApartments,
     refresh: refreshApartments,
-  } = getApartments(currentUserData?.role, String(currentUserData?.id));
+  } = getApartments(currentUserData?.role, String(currentUserData?.id), locationJson);
 
   const {
     transients,
@@ -148,7 +173,7 @@ const Home: React.FC<HomeProps> = ({ currentUserData, alerts }) => {
     error: transientsError,
     fetchMore: fetchMoreTransients,
     refresh: refreshTransients,
-  } = getTransients(currentUserData?.role, String(currentUserData?.id));
+  } = getTransients(currentUserData?.role, String(currentUserData?.id), locationJson);
 
   const handleRefresh = async () => {
     if (isRefreshing) return;
@@ -197,21 +222,28 @@ const Home: React.FC<HomeProps> = ({ currentUserData, alerts }) => {
             </Text>
             <View style={styles.locationContainer}>
               <Text style={styles.subtext}>Looking for somewhere to stay?</Text>
-              {locationLoading ? (
-                <ActivityIndicator
-                  size="small"
-                  color={Colors.primaryBackground}
-                  style={styles.locationLoader}
-                />
-              ) : (
-                currentLocation && (
-                  <Text style={styles.locationText}>
-                    <Ionicons name="location"/>
-                    {" "}
-                    {currentLocation}
-                  </Text>
-                )
-              )}
+              <TouchableOpacity 
+                style={styles.locationTextContainer} 
+                onPress={fetchLocation}
+                disabled={locationLoading}
+              >
+                {locationLoading ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={Colors.primaryBackground}
+                    style={styles.locationLoader}
+                  />
+                ) : (
+                  currentLocation && (
+                    <Text style={styles.locationText}>
+                      <Ionicons name="location" size={12} />
+                      {" "}
+                      {currentLocation} 
+                      <Ionicons name="refresh" size={10} style={styles.refreshIcon} />
+                    </Text>
+                  )
+                )}
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -430,11 +462,18 @@ const styles = StyleSheet.create({
   locationContainer: {
     flexDirection: "column",
   },
+  locationTextContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   locationText: {
     fontSize: 12,
     color: Colors.primaryBackground,
     marginTop: 2,
     fontWeight: "500",
+  },
+  refreshIcon: {
+    marginLeft: 5,
   },
   locationIcon: {
     width: 10,
