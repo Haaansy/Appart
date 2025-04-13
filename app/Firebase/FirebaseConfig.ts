@@ -1,7 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initializeApp } from "firebase/app";
 import {
-  getAuth,
   getReactNativePersistence,
   initializeAuth
 } from "firebase/auth";
@@ -30,7 +29,7 @@ const auth = initializeAuth(app, {
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// // 🔥 Connect to Emulator in Development
+// 🔥 Connect to Emulator in Development
 // const localhost = "192.168.1.4" // Change this to your local IP
 
 // if (__DEV__) {
@@ -38,7 +37,6 @@ const storage = getStorage(app);
 //   connectFirestoreEmulator(db, localhost, 8080);
 //   connectAuthEmulator(auth, `http://${localhost}:9099`);
 //   connectStorageEmulator(storage, localhost, 9199);
-//   connectFunctionsEmulator(functions, localhost, 5001);
 // }
 
 // 🔹 Export Firebase Services

@@ -23,6 +23,7 @@ import Alert from "@/app/types/Alert";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
+import Review from "@/app/types/Review";
 
 interface HomeProps {
   currentUserData: UserData;
@@ -192,7 +193,9 @@ const Home: React.FC<HomeProps> = ({ currentUserData, alerts }) => {
   };
 
   const handleSearch = () => {
-    // Handle tenant search
+    router.push(
+      "/(Authenticated)/(casabot)" as unknown as RelativePathString
+    );
   };
 
   if (loading) {
@@ -295,11 +298,11 @@ const Home: React.FC<HomeProps> = ({ currentUserData, alerts }) => {
               keyExtractor={(item, index) => `${item.id}_${index}`}
               renderItem={({ item }) => (
                 <TransientCard
-                  images={[item.images]}
+                  images={item.images}
                   title={item.title}
                   address={item.address}
                   price={item.price}
-                  reviews={item.reviews}
+                  reviews={item.reviews as Review[]}
                   onPress={() =>
                     router.push(
                       `/(Authenticated)/(transients)/(viewtransient)/${item.id}` as unknown as RelativePathString
@@ -461,10 +464,12 @@ const styles = StyleSheet.create({
   },
   locationContainer: {
     flexDirection: "column",
+    width: "100%",
   },
   locationTextContainer: {
     flexDirection: "row",
     alignItems: "center",
+    width: "100%",
   },
   locationText: {
     fontSize: 12,
@@ -473,7 +478,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   refreshIcon: {
-    marginLeft: 5,
+    marginLeft: 25,
   },
   locationIcon: {
     width: 10,

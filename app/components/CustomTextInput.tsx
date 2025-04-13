@@ -30,6 +30,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(!secureTextEntry);
   const animatedLabel = useRef(new Animated.Value(props.value ? 1 : 0)).current;
+  const inputRef = useRef<TextInput>(null);
 
   const handleFocus = () => {
     setIsFocused(true);
@@ -51,6 +52,10 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
     }
   };
 
+  const focusInput = () => {
+    inputRef.current?.focus();
+  };
+
   const getStatusLabel = () => {
     if (status === "required") return " (Required)";
     if (status === "optional") return " (Optional)";
@@ -58,7 +63,11 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity 
+      activeOpacity={1} 
+      onPress={focusInput} 
+      style={styles.container}
+    >
       <Animated.Text
         style={[
           styles.label,
@@ -81,6 +90,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
       <View style={styles.inputContainer}>
         {textStart && <Text style={styles.textStart}>{textStart}</Text>}
         <TextInput
+          ref={inputRef}
           style={[
             styles.input,
             isFocused && styles.inputFocused,
@@ -107,7 +117,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
