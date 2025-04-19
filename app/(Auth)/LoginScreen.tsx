@@ -16,8 +16,6 @@ import CustomTextInput from "../components/CustomTextInput";
 import CustomButton from "../components/CustomButton";
 import IconButton from "../components/IconButton";
 import { loginUser } from "@/app/Firebase/Services/AuthService";
-import storeCurrentUserDataLocally from "../hooks/users/storeCurrentUserDataLocally";
-import getCurrentUserData from "../hooks/users/getCurrentUserData";
 
 const LoginScreen = () => {
   const insets = useSafeAreaInsets(); // Get safe area insets
@@ -136,29 +134,6 @@ const LoginScreen = () => {
                 borderColor={Colors.secondaryText}
                 borderWidth={1}
                 style={{ marginBottom: 15 }} // Adds spacing
-              />
-              <IconButton
-                icon="logo-facebook"
-                text="Login with Facebook"
-                onPress={() => {}}
-                iconSize={25}
-                iconColor={Colors.secondaryText}
-                backgroundColor={Colors.primaryBackground}
-                textColor={Colors.secondaryText}
-                borderColor={Colors.secondaryText}
-                borderWidth={1}
-                style={{ marginBottom: 15 }} // Adds spacing
-              />
-              <IconButton
-                icon="logo-google"
-                text="Login with Google"
-                onPress={() => {}}
-                iconSize={25}
-                iconColor={Colors.secondaryText}
-                backgroundColor={Colors.primaryBackground}
-                textColor={Colors.secondaryText}
-                borderColor={Colors.secondaryText}
-                borderWidth={1}
               />
             </View>
           </View>

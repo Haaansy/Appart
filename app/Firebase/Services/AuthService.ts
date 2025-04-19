@@ -1,6 +1,6 @@
 // src/services/AuthServices.ts
 
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, User } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, User, signInWithCredential, GoogleAuthProvider, FacebookAuthProvider } from 'firebase/auth';
 import { auth } from '@/app/Firebase/FirebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchUserDataFromFirestore } from './DatabaseService';
