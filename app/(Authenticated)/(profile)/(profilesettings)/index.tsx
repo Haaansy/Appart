@@ -20,11 +20,16 @@ import { Ionicons } from "@expo/vector-icons";
 import UserData from "@/app/types/UserData";
 import Colors from "@/assets/styles/colors";
 import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
+import TermsAndCondition from "@/app/components/ProfileComponents/TermsAndCondition";
+import PrivacyPolicy from "@/app/components/ProfileComponents/PrivacyPolicy";
+
 const index = () => {
   const { height } = Dimensions.get('window');
   const [currentUserData, setCurrentUserData] = useState<UserData | null>(
     null
   );
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -59,6 +64,17 @@ const index = () => {
           paddingHorizontal: 25,
         }}
       >
+        {/* Terms and Privacy Modals */}
+        <TermsAndCondition 
+          isVisible={showTermsModal}
+          onClose={() => setShowTermsModal(false)}
+        />
+        
+        <PrivacyPolicy
+          isVisible={showPrivacyModal}
+          onClose={() => setShowPrivacyModal(false)}
+        />
+
         {/* Back Button */}
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={35} color="black" />
@@ -126,98 +142,6 @@ const index = () => {
             <Ionicons name="chevron-forward" size={30} color="black" />
           </TouchableOpacity>
           <View style={styles.line} />
-          <TouchableOpacity
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              width: "100%",
-              justifyContent: "space-between",
-            }}
-            onPress={() => {}}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons
-                name="shield-half-outline"
-                size={30}
-                color={Colors.primary}
-              />
-              <View style={{ marginLeft: 20 }}>
-                <Text style={styles.text}>Login & Security</Text>
-              </View>
-            </View>
-            <Ionicons name="chevron-forward" size={30} color="black" />
-          </TouchableOpacity>
-          <View style={styles.line} />
-          <TouchableOpacity
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              width: "100%",
-              justifyContent: "space-between",
-            }}
-            onPress={() => {}}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons
-                name="notifications-outline"
-                size={30}
-                color={Colors.primary}
-              />
-              <View style={{ marginLeft: 20 }}>
-                <Text style={styles.text}>Notifications</Text>
-              </View>
-            </View>
-            <Ionicons name="chevron-forward" size={30} color="black" />
-          </TouchableOpacity>
-          <View style={styles.line} />
-
-          {/* Support Section */}
-          <Text style={styles.title}> Support </Text>
-          <TouchableOpacity
-            style={{
-              marginTop: 20,
-              flexDirection: "row",
-              alignItems: "center",
-              width: "100%",
-              justifyContent: "space-between",
-            }}
-            onPress={() => {}}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons
-                name="help-circle-outline"
-                size={30}
-                color={Colors.primary}
-              />
-              <View style={{ marginLeft: 20 }}>
-                <Text style={styles.text}>Help Center</Text>
-              </View>
-            </View>
-            <Ionicons name="chevron-forward" size={30} color="black" />
-          </TouchableOpacity>
-          <View style={styles.line} />
-          <TouchableOpacity
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              width: "100%",
-              justifyContent: "space-between",
-            }}
-            onPress={() => {}}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons
-                name="chatbox-ellipses-outline"
-                size={30}
-                color={Colors.primary}
-              />
-              <View style={{ marginLeft: 20 }}>
-                <Text style={styles.text}>Feedback</Text>
-              </View>
-            </View>
-            <Ionicons name="chevron-forward" size={30} color="black" />
-          </TouchableOpacity>
-          <View style={styles.line} />
 
           {/* Legal Section */}
           <Text style={styles.title}> Legal </Text>
@@ -229,7 +153,7 @@ const index = () => {
               width: "100%",
               justifyContent: "space-between",
             }}
-            onPress={() => {}}
+            onPress={() => setShowTermsModal(true)}
           >
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Ionicons
@@ -251,7 +175,7 @@ const index = () => {
               width: "100%",
               justifyContent: "space-between",
             }}
-            onPress={() => {}}
+            onPress={() => setShowPrivacyModal(true)}
           >
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Ionicons
