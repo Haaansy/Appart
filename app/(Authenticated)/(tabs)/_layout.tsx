@@ -15,6 +15,7 @@ import UserData from "@/app/types/UserData";
 import { getAuth } from "firebase/auth";
 import useFetchConversations from "@/app/hooks/inbox/useFetchConversation";
 import refreshCurrentUserData from "@/app/hooks/users/refreshCurrentUserData";
+import Analytics from "./Analytics";
 
 // Create the bottom tab navigator
 const Tab = createBottomTabNavigator();
@@ -200,6 +201,23 @@ const _layout = () => {
             />
           )}
         </Tab.Screen>
+        { currentUserData?.role === "home owner" && (
+          <Tab.Screen
+            name="Analytics"
+            options={{
+              tabBarIcon: ({ color }) => (
+                <Ionicons name="analytics-outline" size={24} color={color} />
+              ),
+              tabBarLabel: "Analytics",
+            }}
+          >
+            {() => (
+              <Analytics
+                currentUserData={currentUserData as UserData}
+              />
+            )}
+          </Tab.Screen>
+        )}
         <Tab.Screen
           name="Profile"
           options={{

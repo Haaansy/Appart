@@ -151,7 +151,7 @@ const index = () => {
                 />
               )}
               <Text style={styles.reviewText}>
-                How was your experience with {tenantData?.firstName} $
+                How was your experience with {tenantData?.firstName} 
                 {tenantData?.lastName}?
               </Text>
 

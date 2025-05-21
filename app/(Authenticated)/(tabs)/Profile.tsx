@@ -140,7 +140,8 @@ const Profile: React.FC<ProfileProps> = ({ currentUserData }) => {
                           0
                         ) / currentUserData?.reviews.length
                       ).toFixed(1)
-                    : 0}
+                      : 0
+                    }
 
                   {currentUserData.role === "home owner" &&
                     reviews &&

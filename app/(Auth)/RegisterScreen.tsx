@@ -123,6 +123,22 @@ const RegisterScreen = () => {
         return;
       }
 
+      if (password.trim().length < 6) {
+        Notifier.showNotification({
+          title: "❌ Password must be at least 6 characters",
+          description: "Require a stronger password.",
+          duration: 3000,
+          showAnimationDuration: 800,
+          showEasing: Easing.bounce,
+          hideOnPress: false,
+          containerStyle: {
+            marginTop: 50
+          },
+        });
+        setIsLoading(false);
+        return;
+      }
+
       console.log("Attempting to sign up with email:", email.trim());
       const user = await signupUser(email.trim(), password);
 

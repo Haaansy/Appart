@@ -3,9 +3,9 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
     backgroundVector: {
-      height: "90%",
+      height: "100%",
       width: "100%",
-      resizeMode: "stretch",
+      resizeMode: "cover",
       position: "absolute",
       top: -350,
       backgroundColor: Colors.secondaryBackground,
@@ -14,7 +14,6 @@ export const styles = StyleSheet.create({
       width: 60,
       height: 60,
       resizeMode: "cover",
-      marginTop: 60,
     },
     form: {
       marginTop: 15,

@@ -87,13 +87,18 @@ const PageOne: React.FC<PageProps> = ({
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [16, 9],
+      allowsMultipleSelection: true,
+      allowsEditing: false,
       quality: 1,
+      selectionLimit: 20 - imageList.length,
+      // aspect removed to prevent cropping
     });
 
     if (!result.canceled) {
-      const newImageList = [...imageList, result.assets[0].uri];
+      const selectedUris = result.assets.map((asset) => asset.uri);
+      const remainingSlots = 20 - imageList.length;
+      const imagesToAdd = selectedUris.slice(0, remainingSlots);
+      const newImageList = [...imageList, ...imagesToAdd];
       setImageList(newImageList);
       await AsyncStorage.setItem(
         "uploadedImages",
@@ -231,7 +236,7 @@ const PageOne: React.FC<PageProps> = ({
           ref={(ref) => (inputRefs.current["description"] = ref)}
           onFocus={() => onInputFocus("description")}
           returnKeyType="next"
-          maxCharacters={300}
+          maxCharacters={1000}
         />
       </View>
       <View style={{ marginTop: 25, marginBottom: 15 }}>
@@ -451,7 +456,7 @@ const PageOne: React.FC<PageProps> = ({
             </Text>
           </View>
           <CustomCounter
-            onChange={(value) => updateFormData("maxTenants", value)}
+            onChange={(value) => updateFormData("maxGuests", value)}
             initialValue={1}
             min={1}
           />

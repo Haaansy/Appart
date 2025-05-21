@@ -264,8 +264,8 @@ export const createTransient = async (transientData: Transient): Promise<string 
     // ✅ Upload images and get URLs
     const uploadedImageUrls = await uploadTransientImages(transientData.images, transientRef.id);
 
-    // ✅ Save apartment data with uploaded images
-    const apartmentDataWithOwner = {
+    // ✅ Save transient data with uploaded images
+    const transientDataWithOwner = {
       ...transientData,
       images: uploadedImageUrls, // Replace local paths with URLs
       ownerId: userData.id,
@@ -273,7 +273,7 @@ export const createTransient = async (transientData: Transient): Promise<string 
       id: transientRef.id,
     };
 
-    await setDoc(transientRef, apartmentDataWithOwner);
+    await setDoc(transientRef, transientDataWithOwner);
     console.log("Transient published successfully with ID:", transientRef.id);
 
     return transientRef.id;

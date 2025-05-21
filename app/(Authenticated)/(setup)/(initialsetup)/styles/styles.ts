@@ -14,7 +14,6 @@ export const styles = StyleSheet.create({
       width: 60,
       height: 60,
       resizeMode: "cover",
-      marginTop: 60,
     },
     form: {
       marginTop: 15,

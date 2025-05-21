@@ -88,7 +88,7 @@ const OnboardingScreen = () => {
                 onPress={() => {
                   router.replace("/(Auth)/LoginScreen");
                 }}
-                style={[styles.button, { backgroundColor: Colors.primary }]}
+                style={[styles.button, { backgroundColor: Colors.primary, alignSelf: "center", bottom: insets.bottom + 20, width: "90%" }]}
               />
             )}
           </LinearGradient>
@@ -131,8 +131,8 @@ const styles = StyleSheet.create({
     backgroundColor: "blue",
     padding: 15,
     borderRadius: 10,
-    marginTop: 120,
-    marginHorizontal: 25,
+    position: "absolute",
+    bottom: 50,
   },
   buttonText: {
     color: "#fff",

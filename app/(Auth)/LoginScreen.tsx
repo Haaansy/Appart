@@ -8,6 +8,7 @@ import {
   Alert,
   TouchableWithoutFeedback,
   Keyboard,
+  Easing,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -16,6 +17,7 @@ import CustomTextInput from "../components/CustomTextInput";
 import CustomButton from "../components/CustomButton";
 import IconButton from "../components/IconButton";
 import { loginUser } from "@/app/Firebase/Services/AuthService";
+import { Notifier } from "react-native-notifier";
 
 const LoginScreen = () => {
   const insets = useSafeAreaInsets(); // Get safe area insets
@@ -24,23 +26,36 @@ const LoginScreen = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Please fill in both email and password.");
-      return;
-    }
-
     setLoading(true); // Start loading
     try {
+      if (!email.trim() || !password.trim()) {
+        Notifier.showNotification({
+          title: "❌ Missing Email or Password",
+          description: "Please fill in all fields.",
+          duration: 3000,
+          showAnimationDuration: 800,
+          showEasing: Easing.bounce,
+          hideOnPress: false,
+          containerStyle: {
+            marginTop: 50,
+          },
+        });
+        setLoading(false); // End loading
+        return;
+      }
+
       const user = await loginUser(email, password); // Call loginUser
 
       if (user) {
         setLoading(false); // End loading
         router.replace("/(Authenticated)/(tabs)/Home");
       }
-
     } catch (error) {
       setLoading(false); // End loading
-      Alert.alert("Login failed", "Please check your credentials and try again.");
+      Alert.alert(
+        "Login failed",
+        "Please check your credentials and try again."
+      );
     }
   };
 

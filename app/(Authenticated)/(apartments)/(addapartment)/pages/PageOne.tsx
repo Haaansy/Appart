@@ -94,13 +94,19 @@ const PageOne: React.FC<PageProps> = ({
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [16, 9],
+      allowsMultipleSelection: true,
+      allowsEditing: false,
       quality: 1,
+      selectionLimit: 20 - imageList.length, // limit to remaining slots
     });
 
     if (!result.canceled) {
-      const newImageList = [...imageList, result.assets[0].uri];
+      // result.assets is an array of selected images
+      const selectedUris = result.assets.map((asset) => asset.uri);
+      // Only add up to 20 images in total
+      const remainingSlots = 20 - imageList.length;
+      const imagesToAdd = selectedUris.slice(0, remainingSlots);
+      const newImageList = [...imageList, ...imagesToAdd];
       setImageList(newImageList);
       await AsyncStorage.setItem(
         "uploadedImages",
@@ -238,7 +244,7 @@ const PageOne: React.FC<PageProps> = ({
           ref={(ref) => (inputRefs.current["description"] = ref)}
           onFocus={() => onInputFocus("description")}
           returnKeyType="next"
-          maxCharacters={300}
+          maxCharacters={1000}
         />
       </View>
       <View style={{ marginTop: 25, marginBottom: 15 }}>
@@ -498,7 +504,7 @@ const PageOne: React.FC<PageProps> = ({
           }}
         >
           Indicate the floor number and the total area of the apartment in
-          square meters.
+          square foot.
         </Text>
         <View
           style={{
@@ -524,7 +530,7 @@ const PageOne: React.FC<PageProps> = ({
         <CustomTextInput
           label={"Floor Area"}
           keyboardType={"numeric"}
-          textEnd="sqm."
+          textEnd="sq ft."
           value={formatNumberWithCommas(area)}
           onChangeText={(value) =>
             updateFormData("area", Number(value.replace(/[^0-9]/g, "")))

@@ -119,23 +119,23 @@ const index = () => {
                 {userData?.role === "tenant" &&
                 userData?.reviews &&
                 userData?.reviews.length > 0
-                  ? (
+                  && (
                       userData?.reviews.reduce(
                         (acc: number, curr: any) => acc + curr.rating,
                         0
                       ) / userData?.reviews.length
                     ).toFixed(1)
-                  : 0}
+                  }
 
                 {userData?.role === "home owner" &&
                   reviews &&
-                  reviews.length > 0 &&
+                  reviews.length > 0 ?
                   (
                     reviews.reduce(
                       (acc: number, curr: any) => acc + curr.rating,
                       0
                     ) / reviews.length
-                  ).toFixed(1)}
+                  ).toFixed(1) : 0}
               </Text>
               <Text>Rating</Text>
             </View>

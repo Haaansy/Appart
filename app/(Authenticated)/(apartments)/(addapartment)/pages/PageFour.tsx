@@ -27,7 +27,7 @@ const PageFour: React.FC<PageProps> = ({
   onValidation
 }) => {
   const [leaseList, setLeaseList] = useState<number[]>(formData.leaseTerms || []);
-  const [leaseOptions, setLeaseOptions] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12]);
+  const [leaseOptions, setLeaseOptions] = useState<number[]>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
 
   useEffect(() => {
     const isValid = leaseList.length > 0;
@@ -37,23 +37,25 @@ const PageFour: React.FC<PageProps> = ({
   // Format lease term correctly (singular/plural)
   const formatLeaseTerm = (num: number) => `${num} month${num > 1 ? "s" : ""}`;
 
-  // Handle selecting a lease term
-  const handleSelectLeaseTerm = (term: string) => {
-    const termNumber = parseInt(term, 10);
-    if (!leaseList.includes(termNumber)) {
-      const updatedLeaseList = [...leaseList, termNumber];
-      setLeaseList(updatedLeaseList);
-      updateFormData("leaseTerms", updatedLeaseList);
-      setLeaseOptions(leaseOptions.filter((item) => item !== termNumber));
-    }
+  // Handle selecting multiple lease terms
+  const handleMultiSelectLeaseTerms = (selected: string[]) => {
+    // selected is array of formatted strings, e.g. ["1 month", "3 months"]
+    const selectedNumbers = selected.map((s) => parseInt(s.split(" ")[0], 10));
+    setLeaseList(selectedNumbers);
+    updateFormData("leaseTerms", selectedNumbers);
+    setLeaseOptions(
+      [1,2,3,4,5,6,7,8,9,10,11,12].filter((item) => !selectedNumbers.includes(item))
+    );
   };
 
-  // Handle removing a lease term
+  // Handle removing a lease term (still allow badge removal)
   const handleRemoveLeaseTerm = (term: number) => {
     const updatedLeaseList = leaseList.filter((item) => item !== term);
     setLeaseList(updatedLeaseList);
     updateFormData("leaseTerms", updatedLeaseList);
-    setLeaseOptions([...leaseOptions, term].sort((a, b) => a - b)); // Keep sorted
+    setLeaseOptions(
+      [1,2,3,4,5,6,7,8,9,10,11,12].filter((item) => !updatedLeaseList.includes(item))
+    );
   };
 
   return (
@@ -74,8 +76,10 @@ const PageFour: React.FC<PageProps> = ({
         </Text>
         <CustomDropdown
           label="Lease Terms"
-          options={leaseOptions.map(formatLeaseTerm)} // Display correctly formatted "{number} month(s)"
-          onSelect={(value) => handleSelectLeaseTerm(value.split(" ")[0])} // Extract number before passing
+          options={[1,2,3,4,5,6,7,8,9,10,11,12].map(formatLeaseTerm)}
+          multiSelect
+          selected={leaseList.map(formatLeaseTerm)}
+          onMultiSelect={handleMultiSelectLeaseTerms}
         />
         <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 10 }}>
           {leaseList.map((term, index) => (

@@ -176,7 +176,11 @@ const index = () => {
   const CurrentPage = pages[step];
 
   if (isLoading || !currentUserData) {
-    return <ActivityIndicator size="large" color={Colors.primary} />;
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
   }
 
   return (

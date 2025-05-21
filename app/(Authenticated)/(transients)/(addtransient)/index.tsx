@@ -75,7 +75,6 @@ const Index = () => {
     const fetchUserData = async () => {
       const userData = await getCurrentUserData();
       setCurrentUser(userData);
-      setFormData((prev) => ({ ...prev, owner: userData }));
     };
 
     fetchUserData();
@@ -161,7 +160,11 @@ const Index = () => {
   const CurrentPage = pages[step];
 
   if (isLoading || !currentUser) {
-    return <ActivityIndicator size="large" color={Colors.primary} />;
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
   }
 
   return (

@@ -2,13 +2,23 @@ import { updateUserData } from "@/app/Firebase/Services/DatabaseService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, router } from "expo-router";
 import React, { useState } from "react";
-import { Animated, BackHandler, ImageBackground, View, Image, Text } from "react-native";
+import {
+  Animated,
+  BackHandler,
+  ImageBackground,
+  View,
+  Image,
+  Text,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { styles } from "./styles/styles";
 import CustomButton from "@/app/components/CustomButton";
 import PageOne from "./pages/pageOne";
 import PageTwo from "./pages/pageTwo";
 import PageThree from "./pages/pageThree";
+import { ScrollView } from "react-native-gesture-handler";
 
 // Pages array with components
 const pages = [PageOne, PageTwo, PageThree];
@@ -39,7 +49,7 @@ export default function MultiStepForm() {
         "hardwareBackPress",
         onBackPress
       );
-  
+
       return () => subscription.remove();
     }, [])
   );
@@ -47,7 +57,7 @@ export default function MultiStepForm() {
   // Function to update form data
   const updateFormData = (key: string, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
-    console.log(formData)
+    console.log(formData);
   };
 
   const handleNext = async () => {
@@ -139,11 +149,18 @@ export default function MultiStepForm() {
 
           {/* Animated Page Content */}
           <Animated.View style={{ opacity: fadeAnim, marginTop: 20 }}>
-            <CurrentPage
-              formData={formData}
-              updateFormData={updateFormData}
-              onValidation={(valid) => setIsValid(valid)}
-            />
+            <KeyboardAvoidingView
+              behavior="padding"
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+            >
+              <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+                <CurrentPage
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  onValidation={(valid) => setIsValid(valid)}
+                />
+              </ScrollView>
+            </KeyboardAvoidingView>
           </Animated.View>
 
           {/* Proceed Button */}

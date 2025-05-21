@@ -17,10 +17,6 @@ const Index = () => {
     }
   })
 
-  if (loading) {
-    return <Text>Loading Index.tsx - Root</Text>;
-  }
-
   return null; // Render nothing because navigation happens in the `useEffect`
 };
 

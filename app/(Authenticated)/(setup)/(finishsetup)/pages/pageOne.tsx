@@ -1,6 +1,6 @@
 import CustomTextInput from "@/app/components/CustomTextInput";
 import { useEffect } from "react";
-import { View, Text } from "react-native";
+import { View, Text, KeyboardAvoidingView } from "react-native";
 import { styles } from "../styles/styles";
 import React from "react";
 
@@ -11,7 +11,7 @@ interface PageProps {
 const PageOne: React.FC<PageProps & { formData: any; updateFormData: any }> = ({
   formData,
   updateFormData,
-  onValidation
+  onValidation,
 }) => {
   const displayName = formData.displayName || "";
   const [charCount, setCharCount] = React.useState(displayName.length);
@@ -29,7 +29,7 @@ const PageOne: React.FC<PageProps & { formData: any; updateFormData: any }> = ({
   useEffect(() => {
     const isValid = displayName.length > 0;
     onValidation(isValid);
-  },[displayName, onValidation]);
+  }, [displayName, onValidation]);
 
   return (
     <View>

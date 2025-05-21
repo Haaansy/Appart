@@ -3,7 +3,17 @@ import { updateUserData } from "@/app/Firebase/Services/DatabaseService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Animated, ImageBackground, View, Image, Text, ActivityIndicator } from "react-native";
+import {
+  Animated,
+  ImageBackground,
+  View,
+  Image,
+  Text,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { styles } from "./styles/styles";
 import PageOne from "./pages/pageOne";
@@ -79,7 +89,7 @@ export default function MultiStepForm() {
 
   const CurrentPage = pages[step]; // Get current page component
 
-  if(loading) {
+  if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" color={Colors.primary} />
@@ -93,51 +103,59 @@ export default function MultiStepForm() {
         source={require("@/assets/images/Vectors/background.png")}
         style={styles.backgroundVector}
       ></ImageBackground>
-      <View
-        style={{
-          paddingTop: -insets.top,
-          paddingBottom: -insets.bottom,
-          paddingHorizontal: 25,
-        }}
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "padding"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={0}
       >
-        <Image
-          source={require("@/assets/images/Icons/Dark-Icon.png")}
-          style={styles.icon}
-        />
-        <Text style={styles.text}>Finish Setting Up you Account.</Text>
-        <View style={styles.form}>
-          {/* Dots at the Top */}
-          <View style={styles.dotsContainer}>
-            {pages.map((_, index) => (
-              <View
-                key={index}
-                style={[styles.dot, step === index && styles.activeDot]}
-              />
-            ))}
-          </View>
-
-          {/* Animated Page Content */}
-          <Animated.View style={{ opacity: fadeAnim, marginTop: 20 }}>
-            <CurrentPage
-              formData={formData}
-              updateFormData={updateFormData}
-              onValidation={(valid) => setIsValid(valid)}
-            />
-          </Animated.View>
-
-          {/* Proceed Button */}
-          <CustomButton
-            title={step === pages.length - 1 ? "Done" : "Proceed"}
-            onPress={handleNext}
-            disabled={!isValid} // Now controlled by displayName validation in PageOne
-            style={[
-              !isValid
-                ? styles.disabledButton
-                : { backgroundColor: Colors.primary },
-            ]}
+        <View
+          style={{
+            flex: 1,
+            paddingTop: -insets.top,
+            paddingBottom: -insets.bottom,
+            paddingHorizontal: 25,
+          }}
+        >
+          <Image
+            source={require("@/assets/images/Icons/Dark-Icon.png")}
+            style={styles.icon}
           />
+          <Text style={styles.text}>Finish Setting Up you Account.</Text>
+          <View style={styles.form}>
+            {/* Dots at the Top */}
+            <View style={styles.dotsContainer}>
+              {pages.map((_, index) => (
+                <View
+                  key={index}
+                  style={[styles.dot, step === index && styles.activeDot]}
+                />
+              ))}
+            </View>
+
+            {/* Animated Page Content */}
+            <Animated.View style={{ opacity: fadeAnim, marginTop: 20 }}>
+              <CurrentPage
+                formData={formData}
+                updateFormData={updateFormData}
+                onValidation={(valid) => setIsValid(valid)}
+              />
+            </Animated.View>
+
+            {/* Proceed Button */}
+            <CustomButton
+              title={step === pages.length - 1 ? "Done" : "Proceed"}
+              onPress={handleNext}
+              disabled={!isValid} // Now controlled by displayName validation in PageOne
+              style={[
+                !isValid
+                  ? styles.disabledButton
+                  : { backgroundColor: Colors.primary },
+              ]}
+            />
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </>
   );
 }

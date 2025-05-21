@@ -14,8 +14,12 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 interface CustomDropdownProps {
   label: string;
   options: string[];
-  onSelect: (value: string) => void;
+  onSelect?: (value: string) => void;
   selectedValue?: string;
+  // Multi-select support
+  multiSelect?: boolean;
+  selected?: string[];
+  onMultiSelect?: (values: string[]) => void;
 }
 
 const CustomDropdown: React.FC<CustomDropdownProps> = ({
@@ -23,10 +27,18 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   options,
   onSelect,
   selectedValue,
+  multiSelect = false,
+  selected = [],
+  onMultiSelect,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const animatedLabel = useRef(new Animated.Value(selectedValue ? 1 : 0)).current;
+  const [multiSelected, setMultiSelected] = useState<string[]>(selected || []);
+  const animatedLabel = useRef(
+    new Animated.Value(
+      selectedValue || (selected && selected.length > 0) ? 1 : 0
+    )
+  ).current;
 
   const handleFocus = () => {
     setIsFocused(true);
@@ -38,7 +50,11 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   };
 
   const handleBlur = () => {
-    if (!selectedValue) {
+    if (
+      !selectedValue &&
+      (!multiSelect ||
+        (multiSelect && (!selected || selected.length === 0)))
+    ) {
       setIsFocused(false);
       Animated.timing(animatedLabel, {
         toValue: 0,
@@ -49,10 +65,28 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   };
 
   const handleSelect = (value: string) => {
-    onSelect(value);
-    setIsDropdownOpen(false);
-    handleFocus();
+    if (multiSelect) {
+      let updated: string[];
+      if (multiSelected.includes(value)) {
+        updated = multiSelected.filter((v) => v !== value);
+      } else {
+        updated = [...multiSelected, value];
+      }
+      setMultiSelected(updated);
+      onMultiSelect && onMultiSelect(updated);
+    } else {
+      onSelect && onSelect(value);
+      setIsDropdownOpen(false);
+      handleFocus();
+    }
   };
+
+  // Keep multiSelected in sync with parent
+  React.useEffect(() => {
+    if (multiSelect && selected) {
+      setMultiSelected(selected);
+    }
+  }, [selected, multiSelect]);
 
   return (
     <View style={styles.container}>
@@ -79,10 +113,25 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
         style={[styles.inputContainer, isFocused && styles.inputFocused]}
         onPress={() => setIsDropdownOpen(true)}
       >
-        <Text style={[styles.input, selectedValue ? {} : styles.placeholder]}>
-          {selectedValue || label}
+        <Text
+          style={[
+            styles.input,
+            (selectedValue || (multiSelect && multiSelected.length > 0))
+              ? {}
+              : styles.placeholder,
+          ]}
+        >
+          {multiSelect
+            ? multiSelected.length > 0
+              ? multiSelected.join(", ")
+              : label
+            : selectedValue || label}
         </Text>
-        <Icon name={isDropdownOpen ? "chevron-up" : "chevron-down"} size={24} color={Colors.secondaryText} />
+        <Icon
+          name={isDropdownOpen ? "chevron-up" : "chevron-down"}
+          size={24}
+          color={Colors.secondaryText}
+        />
       </TouchableOpacity>
 
       {/* Dropdown Modal */}
@@ -97,11 +146,38 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
               data={options}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
-                <TouchableOpacity style={styles.option} onPress={() => handleSelect(item)}>
-                  <Text style={styles.optionText}>{item}</Text>
+                <TouchableOpacity
+                  style={[
+                    styles.option,
+                    multiSelect &&
+                      multiSelected.includes(item) && {
+                        backgroundColor: Colors.primary + "22",
+                      },
+                  ]}
+                  onPress={() => handleSelect(item)}
+                >
+                  <Text style={styles.optionText}>
+                    {item}
+                    {multiSelect && multiSelected.includes(item) ? " ✓" : ""}
+                  </Text>
                 </TouchableOpacity>
               )}
             />
+            {multiSelect && (
+              <TouchableOpacity
+                style={{
+                  marginTop: 10,
+                  alignSelf: "flex-end",
+                  backgroundColor: Colors.primary,
+                  borderRadius: 8,
+                  paddingVertical: 8,
+                  paddingHorizontal: 18,
+                }}
+                onPress={() => setIsDropdownOpen(false)}
+              >
+                <Text style={{ color: "#fff", fontWeight: "bold" }}>Done</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </TouchableOpacity>
       </Modal>

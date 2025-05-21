@@ -31,7 +31,7 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 
 // 🔥 Connect to Emulator in Development
-// const localhost = "192.168.1.4" // Change this to your local IP
+// const localhost = "172.20.10.2";
 
 // if (__DEV__) {
 //   console.log("🔥 Connecting to Firebase Emulators...");
