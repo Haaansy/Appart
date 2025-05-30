@@ -168,11 +168,6 @@ const Profile: React.FC<ProfileProps> = ({ currentUserData }) => {
                 }
                 style={[styles.manageButton, { flex: 1 }]}
               />
-              <CustomButton
-                title="Share Profile"
-                onPress={() => {}}
-                style={[styles.shareButton, { flex: 1 }]}
-              />
             </View>
             {currentUserData.role === "tenant" && (
               <FlatList

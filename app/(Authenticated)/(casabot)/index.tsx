@@ -369,7 +369,15 @@ const CasaBot: React.FC = () => {
                 <ActivityIndicator size="large" color={Colors.primary} />
                 <Text style={styles.loadingText}>Loading messages...</Text>
               </View>
-            ) : null
+            ) : (
+              renderMessage({
+                item: {
+                  text: "Hello! How can I assist you today?",
+                  isUser: false,
+                  createdAt: Timestamp.now(),
+                },
+              })
+            )
           }
         />
 
@@ -382,13 +390,14 @@ const CasaBot: React.FC = () => {
 
         <View style={styles.inputContainer}>
           <TextInput
-            style={[
-              styles.input,
-              isTyping && styles.inputDisabled
-            ]}
+            style={[styles.input, isTyping && styles.inputDisabled]}
             value={message}
             onChangeText={setMessage}
-            placeholder={isTyping ? "Please wait..." : "Ask me about apartments or transients..."}
+            placeholder={
+              isTyping
+                ? "Please wait..."
+                : "Ask me about apartments or transients..."
+            }
             placeholderTextColor={Colors.secondaryText}
             multiline
             editable={!isTyping}
@@ -585,15 +594,17 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingVertical: 10,
-    marginBottom: 10,
+    width: "95%",
+    position: "absolute",
+    bottom: 25,
+    alignSelf: "center",
+    marginLeft: 0,
+    marginRight: 0,
   },
   input: {
-    flex: 1,
     backgroundColor: Colors.border,
     borderRadius: 20,
+    flex: 1,
     paddingHorizontal: 15,
     paddingVertical: 10,
     maxHeight: 100,

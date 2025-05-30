@@ -1,20 +1,15 @@
 import {
   View,
   Text,
-  FlatList,
   ImageBackground,
-  TouchableOpacity,
   StyleSheet,
   Image,
   ScrollView, // <-- add this import
   RefreshControl,
 } from "react-native";
 import React, { useCallback, useState } from "react";
-import AlertBox from "@/app/components/Alerts/AlertBox";
-import { Ionicons } from "@expo/vector-icons";
 import {
   GestureHandlerRootView,
-  Swipeable,
 } from "react-native-gesture-handler";
 import UserData from "@/app/types/UserData";
 import Colors from "@/assets/styles/colors";
@@ -25,32 +20,18 @@ interface AnalyticsProps {
   currentUserData: UserData;
 }
 
-const mockAnalytics = {
-  forecastedIncome: 3200,
-  occupancyRate: 87,
-  totalBookings: 14,
-  avgApartmentPrice: 180,
-  avgTransientPrice: 95,
-  propertiesPosted: 5,
-  guestsThisMonth: 32,
-  incomeTrends: [2200, 2500, 2700, 3000, 3200, 3100, 3300], // Last 7 months
-  months: ["Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May"],
-};
-
 const formatNumber = (num: number) => {
   if (typeof num !== "number") return num;
   return num.toLocaleString();
 };
 
 const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
-  const { metrics, loading, error } = useCurrentUserMetrics();
+  const { metrics, loading, error, refresh } = useCurrentUserMetrics();
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    // Simulate a reload by waiting for a short time
-    // In a real app, you might refetch data here or trigger a reload in your hook
-    // For now, just wait 1s
+    refresh();
     setTimeout(() => setRefreshing(false), 1000);
   }, []);
 
@@ -65,19 +46,15 @@ const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
         propertiesPosted: metrics.property_posted,
         guestsThisMonth: metrics.total_guest,
       }
-    : mockAnalytics;
-
-  const getTrendIcon = (curr: number, prev: number) => {
-    if (curr > prev)
-      return (
-        <MaterialCommunityIcons name="arrow-up-bold" size={16} color="green" />
-      );
-    if (curr < prev)
-      return (
-        <MaterialCommunityIcons name="arrow-down-bold" size={16} color="red" />
-      );
-    return <MaterialCommunityIcons name="minus" size={16} color="gray" />;
-  };
+    : {
+        forecastedIncome: 0,
+        occupancyRate: 0,
+        totalBookings: 0,
+        avgApartmentPrice: 0,
+        avgTransientPrice: 0,
+        propertiesPosted: 0,
+        guestsThisMonth: 0,
+      };
 
   const peso = "₱";
   const now = new Date();
@@ -148,7 +125,8 @@ const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
                 {formatNumber(analytics.forecastedIncome)}
               </Text>
               <Text style={styles.analyticsDetail}>
-                Expected income for the upcoming month based on current bookings.
+                Expected income for the upcoming month based on current
+                bookings.
               </Text>
             </View>
             <View style={styles.analyticsCard}>
@@ -178,7 +156,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
                 {formatNumber(analytics.totalBookings)}
               </Text>
               <Text style={styles.analyticsDetail}>
-                Total confirmed bookings for this period.
+                Total confirmed bookings.
               </Text>
             </View>
             <View style={styles.analyticsCard}>
@@ -188,12 +166,12 @@ const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
                 color={Colors.primary}
                 style={styles.analyticsIcon}
               />
-              <Text style={styles.analyticsLabel}>Guests This Month</Text>
+              <Text style={styles.analyticsLabel}>Guests</Text>
               <Text style={styles.analyticsValue}>
                 {formatNumber(analytics.guestsThisMonth)}
               </Text>
               <Text style={styles.analyticsDetail}>
-                Number of guests who stayed this month.
+                Number of guests who booked your properties.
               </Text>
             </View>
             <View style={styles.analyticsCard}>
@@ -225,7 +203,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
                 {formatNumber(analytics.avgApartmentPrice)}
               </Text>
               <Text style={styles.analyticsDetail}>
-                Average price per night for apartment-type listings.
+                Average price per month for apartment-type listings.
               </Text>
             </View>
             <View style={styles.analyticsCard}>

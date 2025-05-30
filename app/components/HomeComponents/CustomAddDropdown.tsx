@@ -14,19 +14,44 @@ const CustomAddDropdown: React.FC<CustomAddDropdownProps> = ({
   onSelect,
 }) => {
   return (
-    <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
-      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
+    <Modal
+      transparent
+      animationType="fade"
+      visible={visible}
+      onRequestClose={onClose}
+    >
+      <TouchableOpacity
+        style={styles.overlay}
+        activeOpacity={1}
+        onPress={onClose}
+      >
         <View style={styles.dropdown}>
-          {/* Add Transient */}
-          <TouchableOpacity style={styles.option} onPress={() => onSelect("transient")}>
-            <Ionicons name="bed-outline" size={20} color="black" style={styles.icon} />
-            <Text style={styles.text}>Add Transient</Text>
+          {/* Add Apartment */}
+          <TouchableOpacity
+            style={styles.option}
+            onPress={() => onSelect("apartment")}
+          >
+            <Ionicons
+              name="business-outline"
+              size={20}
+              color="black"
+              style={styles.icon}
+            />
+            <Text style={styles.text}>Add Apartment</Text>
           </TouchableOpacity>
 
-          {/* Add Apartment */}
-          <TouchableOpacity style={styles.option} onPress={() => onSelect("apartment")}>
-            <Ionicons name="business-outline" size={20} color="black" style={styles.icon} />
-            <Text style={styles.text}>Add Apartment</Text>
+          {/* Add Transient */}
+          <TouchableOpacity
+            style={styles.option}
+            onPress={() => onSelect("transient")}
+          >
+            <Ionicons
+              name="bed-outline"
+              size={20}
+              color="black"
+              style={styles.icon}
+            />
+            <Text style={styles.text}>Add Transient</Text>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
