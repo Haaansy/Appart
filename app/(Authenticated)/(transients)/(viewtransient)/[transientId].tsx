@@ -20,6 +20,7 @@ import CustomBadge from "@/app/components/CustomBadge";
 import IconButton from "@/app/components/IconButton";
 import { useTransient } from "@/app/hooks/transient/useTransient";
 import {
+  createAlert,
   createConversation,
   deleteTransient,
   fetchUserDataFromFirestore,
@@ -30,6 +31,8 @@ import UserData from "@/app/types/UserData";
 import { checkExistingConversationWithTenants } from "@/app/hooks/inbox/useCheckExistingConversationWithTenants";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
 import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
+import AlertType from "@/app/types/Alert";
+import { serverTimestamp } from "firebase/firestore";
 
 const { width, height } = Dimensions.get("window");
 

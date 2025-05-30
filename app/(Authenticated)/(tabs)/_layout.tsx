@@ -12,10 +12,12 @@ import { StatusBar, Platform, View, Text } from "react-native"; // Import Status
 import getAlerts from "@/app/hooks/alerts/getAlerts"; // Import getAlerts hook
 import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 import UserData from "@/app/types/UserData";
-import { getAuth } from "firebase/auth";
+import { getAuth, User } from "firebase/auth";
 import useFetchConversations from "@/app/hooks/inbox/useFetchConversation";
 import refreshCurrentUserData from "@/app/hooks/users/refreshCurrentUserData";
 import Analytics from "./Analytics";
+import InAppNotificationListener from "@/app/services/AppNotification";
+import { NotifierRoot } from "react-native-notifier";
 
 // Create the bottom tab navigator
 const Tab = createBottomTabNavigator();
@@ -110,26 +112,30 @@ const _layout = () => {
 
   return (
     <>
+      <NotifierRoot />
       {Platform.OS === "android" && <StatusBar hidden={true} />}
+      <InAppNotificationListener
+        currentUserData={currentUserData as UserData}
+      />
       <Tab.Navigator
         screenOptions={{
           tabBarStyle: {
             backgroundColor: "white",
             position: "absolute",
-            bottom: 0, // Fix the bottom positioning to 0
+            bottom: 0,
             left: 0,
             right: 0,
-            elevation: 10, // Optional: add a slight shadow for floating effect
-            height: 60, // Adjust height to reduce excess space
-            paddingBottom: insets.bottom, // Adjust for bottom inset
-            marginHorizontal: 10, // Add margin to the sides
-            borderRadius: 15, // Optional: add rounded corners
-            marginBottom: 35, // Optional: add margin to the bottom
+            elevation: 10,
+            height: 60,
+            paddingBottom: insets.bottom,
+            marginHorizontal: 10,
+            borderRadius: 15,
+            marginBottom: 35,
           },
-          tabBarActiveTintColor: Colors.primary, // Active icon color
-          tabBarInactiveTintColor: Colors.secondaryText, // Inactive icon color
-          tabBarLabelStyle: { fontSize: 12 }, // Style for the label under the icon
-          headerShown: false, // Hide the header
+          tabBarActiveTintColor: Colors.primary,
+          tabBarInactiveTintColor: Colors.secondaryText,
+          tabBarLabelStyle: { fontSize: 12 },
+          headerShown: false,
         }}
       >
         <Tab.Screen
@@ -201,7 +207,7 @@ const _layout = () => {
             />
           )}
         </Tab.Screen>
-        { currentUserData?.role === "home owner" && (
+        {currentUserData?.role === "home owner" && (
           <Tab.Screen
             name="Analytics"
             options={{
@@ -212,9 +218,7 @@ const _layout = () => {
             }}
           >
             {() => (
-              <Analytics
-                currentUserData={currentUserData as UserData}
-              />
+              <Analytics currentUserData={currentUserData as UserData} />
             )}
           </Tab.Screen>
         )}
@@ -227,11 +231,7 @@ const _layout = () => {
             tabBarLabel: "Profile",
           }}
         >
-          {() => (
-            <Profile
-              currentUserData={currentUserData as UserData}
-            />
-          )}
+          {() => <Profile currentUserData={currentUserData as UserData} />}
         </Tab.Screen>
       </Tab.Navigator>
     </>

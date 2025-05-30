@@ -10,7 +10,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
+  Alert as RNAlert
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { RelativePathString, router, useLocalSearchParams } from "expo-router";
@@ -19,6 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import CustomBadge from "@/app/components/CustomBadge";
 import IconButton from "@/app/components/IconButton";
 import {
+  createAlert,
   createConversation,
   deleteApartment,
   fetchUserDataFromFirestore,
@@ -30,6 +31,8 @@ import UserData from "@/app/types/UserData";
 import { checkExistingConversationWithTenants } from "@/app/hooks/inbox/useCheckExistingConversationWithTenants";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
 import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
+import AlertType from "@/app/types/Alert";
+import { serverTimestamp } from "firebase/firestore";
 
 const { width, height } = Dimensions.get("window");
 
@@ -98,7 +101,7 @@ const ViewApartment = () => {
   };
 
   const handleDeleteApartment = async (apartmentId: string) => {
-    Alert.alert(
+    RNAlert.alert(
       "Confirm Deletion",
       "Are you sure you want to delete this apartment?",
       [
@@ -124,7 +127,7 @@ const ViewApartment = () => {
 
   const handleBookApartment = () => {
     if (hasExistingBooking) {
-      Alert.alert(
+      RNAlert.alert(
         "Booking Error",
         "You already have an existing booking for this apartment."
       );
