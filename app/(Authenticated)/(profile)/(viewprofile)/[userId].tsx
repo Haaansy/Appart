@@ -8,7 +8,7 @@ import {
   FlatList,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/assets/styles/colors";
 import {
@@ -19,9 +19,6 @@ import {
 import Review from "@/app/types/Review";
 import UserData from "@/app/types/UserData";
 import ReviewCard from "@/app/components/ProfileComponents/ReviewCard";
-import { TouchableWithoutFeedback } from "react-native-gesture-handler";
-import { Ionicons } from "@expo/vector-icons";
-import { set } from "date-fns";
 
 const index = () => {
   const { userId } = useLocalSearchParams();
