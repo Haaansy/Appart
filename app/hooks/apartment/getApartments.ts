@@ -66,10 +66,10 @@ export const getApartments = (
             let apartmentsQuery =
                 role === "home owner"
                     ? query(apartmentsRef, where("ownerId", "==", userId))
-                    : apartmentsRef;
+                    : query(apartmentsRef, where("status", "==", "Available"));
 
             // Remove ordering by createdAt since we'll order by distance later
-            apartmentsQuery = query(apartmentsQuery, where("status", "==", "Available"), limit(LIMIT));
+            apartmentsQuery = query(apartmentsQuery, limit(LIMIT));
             if (!reset && lastDoc) {
                 apartmentsQuery = query(apartmentsQuery, startAfter(lastDoc));
             }
