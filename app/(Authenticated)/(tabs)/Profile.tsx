@@ -131,27 +131,22 @@ const Profile: React.FC<ProfileProps> = ({ currentUserData }) => {
               )}
               <View style={styles.infoItem}>
                 <Text style={{ fontSize: 20, fontWeight: "bold" }}>
-                  {currentUserData.role === "tenant" &&
-                  currentUserData?.reviews &&
-                  currentUserData?.reviews.length > 0
+                  {currentUserData.role === "tenant" && currentUserData?.reviews && currentUserData?.reviews.length > 0 
                     ? (
                         currentUserData?.reviews.reduce(
                           (acc: number, curr: any) => acc + curr.rating,
                           0
                         ) / currentUserData?.reviews.length
-                      ).toFixed(1)
-                      : 0
-                    }
-
-                  {currentUserData.role === "home owner" &&
-                    reviews &&
-                    reviews.length > 0 &&
-                    (
-                      reviews.reduce(
-                        (acc: number, curr: any) => acc + curr.rating,
-                        0
-                      ) / reviews.length
-                    ).toFixed(1)}
+                      ).toFixed(1) 
+                    : currentUserData.role === "home owner" && reviews && reviews.length > 0
+                      ? (
+                          reviews.reduce(
+                            (acc: number, curr: any) => acc + curr.rating,
+                            0
+                          ) / reviews.length
+                        ).toFixed(1)
+                      : "0.0"
+                  }
                 </Text>
                 <Text>Rating</Text>
               </View>
