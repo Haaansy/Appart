@@ -14,7 +14,7 @@ const InAppNotificationListener = ({ currentUserData }: Props) => {
   const { alerts } = getAlerts(currentUserData.id as string);
   const lastAlertId = useRef<string | null>(null);
 
-  const filteredAlerts = alerts.filter((alert) => !alert.isRead);
+  const filteredAlerts = alerts.filter((alert) => !alert.isRead && alert.senderId !== "System Alert");
 
   useEffect(() => {
     if (filteredAlerts.length > 0) {
