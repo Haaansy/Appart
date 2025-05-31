@@ -4,7 +4,6 @@ import {
   StyleSheet,
   ScrollView,
   Image,
-  ActivityIndicator,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import Apartment from "@/app/types/Apartment";
@@ -33,8 +32,6 @@ import EvictionPopup from "@/app/components/BookingComponents/EvictionPopup";
 import { checkExistingConversationWithTenants } from "@/app/hooks/inbox/useCheckExistingConversationWithTenants";
 import useBatchDeclineBooking from "@/app/hooks/bookings/useBatchDeclineBooking";
 import ReasonPopup from "@/app/components/BookingComponents/ReasonPopup";
-import { set } from "date-fns";
-import clearApartment from "@/app/hooks/apartment/clearApartment";
 import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 
 interface ApartmentProps {
@@ -146,6 +143,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
 
   const handleBookingApproval = async () => {
     try {
+      setLoading(true);
       await updateBooking(String(booking.id), {
         ...booking,
         status: "Booking Confirmed",
@@ -175,9 +173,10 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
       };
 
       await sendAlerts(booking.tenants, alertData);
-
+      setLoading(true);
       router.replace(`/(Authenticated)/(tabs)/Bookings`);
     } catch (error) {
+      setLoading(true);
       console.error("Error approving viewing:", error);
     }
   };

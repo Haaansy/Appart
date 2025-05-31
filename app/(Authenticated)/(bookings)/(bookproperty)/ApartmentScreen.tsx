@@ -108,6 +108,24 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
       return;
     }
 
+    // Check if the selected date is within 14 days from today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset hours to compare dates only
+    
+    const maximumDate = new Date(today);
+    maximumDate.setDate(today.getDate() + 14); // Add 14 days to today
+    
+    const selectedDateObj = new Date(date);
+    selectedDateObj.setHours(0, 0, 0, 0); // Reset hours to compare dates only
+
+    if (selectedDateObj > maximumDate) {
+      ReactAlert.alert(
+      "Invalid Date", 
+      "Start date must be within 14 days from today."
+      );
+      return;
+    }
+
     // Check for conflict with existing apartment bookings
     const startDate = new Date(date);
     const leaseDuration = bookingData.leaseDuration || 0;
@@ -175,6 +193,8 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
     ReactAlert.alert("Invalid Date", "Viewing date must be before or on the start date.");
     return;
   }
+
+
 
   // Update state if valid
   setBookingData((prevData) => ({
