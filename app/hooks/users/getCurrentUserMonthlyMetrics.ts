@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAuth } from 'firebase/auth';
-import { doc, getDoc, collection } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query } from 'firebase/firestore';
 import { db } from '@/app/Firebase/FirebaseConfig';
 
 interface UserMetrics {
@@ -16,12 +16,12 @@ interface UserMetrics {
   transients: number;
 }
 
-export const useCurrentUserMetrics = () => {
-  const [metrics, setMetrics] = useState<UserMetrics | null>(null);
+export const useCurrentUserMonthlyMetrics = () => {
+  const [monthlyMetrics, setMonthlyMetrics] = useState<UserMetrics[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUserMetrics = async () => {
+  const fetchMonthlyMetrics = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -44,42 +44,39 @@ export const useCurrentUserMetrics = () => {
       ];
       const currentMonth = monthNames[manilaTime.getUTCMonth()];
       const currentYear = manilaTime.getUTCFullYear();
-      const currentDay = manilaTime.getUTCDate();
 
-      // Format collection and document names
+      // Format collection name
       const monthYearCollection = `${currentMonth}_${currentYear}`;
-      const monthDayYearDoc = `${currentMonth}_${currentDay}_${currentYear}`;
 
-      // Reference to the nested metrics document
-      const metricsDocRef = doc(
-        collection(
-          doc(collection(db, 'User_Metrics'), userId),
-          monthYearCollection
-        ),
-        monthDayYearDoc
+      // Reference to the month collection
+      const monthCollectionRef = collection(
+        doc(collection(db, 'User_Metrics'), userId),
+        monthYearCollection
       );
 
-      const metricsSnap = await getDoc(metricsDocRef);
+      // Get all documents in the month collection
+      const querySnapshot = await getDocs(query(monthCollectionRef));
+      
+      const metrics: UserMetrics[] = [];
+      querySnapshot.forEach((doc) => {
+        metrics.push(doc.data() as UserMetrics);
+      });
 
-      if (metricsSnap.exists()) {
-        setMetrics(metricsSnap.data() as UserMetrics);
-      } else {
-        setMetrics(null);
-      }
+      setMonthlyMetrics(metrics);
     } catch (err) {
-      setError(`Failed to fetch user metrics: ${err instanceof Error ? err.message : String(err)}`);
+      setError(`Failed to fetch monthly metrics: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUserMetrics();
+    fetchMonthlyMetrics();
   }, []);
 
   const refresh = () => {
-    fetchUserMetrics();
+    fetchMonthlyMetrics();
   };
 
-  return { metrics, loading, error, refresh };
+  return { monthlyMetrics, loading, error, refresh };
 };

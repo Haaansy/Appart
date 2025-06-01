@@ -4,17 +4,19 @@ import {
   ImageBackground,
   StyleSheet,
   Image,
-  ScrollView, // <-- add this import
-  RefreshControl,
+  ScrollView,
+  TouchableOpacity,
+  FlatList,
 } from "react-native";
 import React, { useCallback, useState } from "react";
-import {
-  GestureHandlerRootView,
-} from "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import UserData from "@/app/types/UserData";
 import Colors from "@/assets/styles/colors";
-import { MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useCurrentUserMetrics } from "@/app/hooks/users/getCurrentUserMetrics";
+import AnalyticsGraph from "@/app/components/Analytics/AnalyticsGraph";
+import OccupancyChart from "@/app/components/Analytics/OccupancyChart";
+import AnalyticsCard from "@/app/components/Analytics/AnalyticsCard";
 
 interface AnalyticsProps {
   currentUserData: UserData;
@@ -26,25 +28,19 @@ const formatNumber = (num: number) => {
 };
 
 const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
-  const { metrics, loading, error, refresh } = useCurrentUserMetrics();
-  const [refreshing, setRefreshing] = useState(false);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    refresh();
-    setTimeout(() => setRefreshing(false), 1000);
-  }, []);
+  const { metrics, loading, error } = useCurrentUserMetrics();
 
   // Use metrics if available, otherwise fallback to mockAnalytics
   const analytics = metrics
     ? {
-        forecastedIncome: metrics.forecasted_income,
-        occupancyRate: metrics.occupancy_rate,
-        totalBookings: metrics.bookings,
-        avgApartmentPrice: metrics.avg_apartment_price,
-        avgTransientPrice: metrics.avg_transient_price,
-        propertiesPosted: metrics.property_posted,
-        guestsThisMonth: metrics.total_guest,
+        forecastedIncome: metrics.forecasted_income || 0,
+        occupancyRate: metrics.occupancy_rate || 0,
+        totalBookings: metrics.bookings || 0,
+        avgApartmentPrice: metrics.apartments || 0,
+        avgTransientPrice: metrics.transients || 0,
+        propertiesPosted: metrics.properties || 0,
+        guestsThisMonth: metrics.guest || 0,
+        createdAt: metrics.createdAt,
       }
     : {
         forecastedIncome: 0,
@@ -54,6 +50,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
         avgTransientPrice: 0,
         propertiesPosted: 0,
         guestsThisMonth: 0,
+        createdAt: 0,
       };
 
   const peso = "₱";
@@ -96,132 +93,109 @@ const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
             <Text style={styles.subtext}>Here are your daily reports.</Text>
           </View>
         </View>
-        <ScrollView
-          style={{ flex: 1, marginTop: 20 }}
-          contentContainerStyle={{ paddingBottom: 40 }}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        >
-          {/* Month at the top */}
+
+        {/* Month at the top */}
+        <View style={styles.monthContainer}>
           <View style={styles.monthHeader}>
             <Text style={styles.monthHeaderText}>
               {monthName} {year}
             </Text>
-          </View>
-          {/* Analytics Cards */}
-          <View style={styles.analyticsGrid}>
-            <View style={styles.analyticsCard}>
-              <MaterialCommunityIcons
-                name="cash-multiple"
-                size={28}
-                color={Colors.primary}
-                style={styles.analyticsIcon}
-              />
-              <Text style={styles.analyticsLabel}>Forecasted Income</Text>
-              <Text style={styles.analyticsValue}>
-                {peso}
-                {formatNumber(analytics.forecastedIncome)}
-              </Text>
-              <Text style={styles.analyticsDetail}>
-                Expected income for the upcoming month based on current
-                bookings.
-              </Text>
-            </View>
-            <View style={styles.analyticsCard}>
-              <FontAwesome5
-                name="bed"
+            <TouchableOpacity onPress={() => {}}>
+              <Ionicons
+                name="chevron-down"
                 size={24}
-                color={Colors.primary}
-                style={styles.analyticsIcon}
+                color={Colors.primaryBackground}
               />
-              <Text style={styles.analyticsLabel}>Occupancy Rate</Text>
-              <Text style={styles.analyticsValue}>
-                {formatNumber(analytics.occupancyRate)}%
-              </Text>
-              <Text style={styles.analyticsDetail}>
-                Percentage of booked properties out of all available properties.
-              </Text>
-            </View>
-            <View style={styles.analyticsCard}>
-              <MaterialCommunityIcons
-                name="calendar-check"
-                size={28}
-                color={Colors.primary}
-                style={styles.analyticsIcon}
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.subtext}>
+            {`Updated on ${
+              typeof analytics.createdAt === "object" &&
+              analytics.createdAt?.seconds
+                ? new Date(
+                    analytics.createdAt.seconds * 1000
+                  ).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "numeric",
+                  })
+                : "No date available"
+            }`}
+          </Text>
+        </View>
+        <View style={{ marginTop: 5 }}>
+          <Text
+            style={{
+              color: Colors.primaryBackground,
+              fontSize: 18,
+              fontWeight: "bold",
+              marginBottom: 5,
+            }}
+          >
+            Forecasted Income
+          </Text>
+          <Text
+            style={{
+              alignSelf: "center",
+              fontSize: 36,
+              fontWeight: "bold",
+              color: Colors.primaryBackground,
+            }}
+          >
+            {peso} {formatNumber(analytics.forecastedIncome)}
+          </Text>
+        </View>
+        <ScrollView
+          style={{ flex: 1, marginTop: 20 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={{ gap: 12 }}>
+            <AnalyticsGraph />
+            <OccupancyChart occupancyRate={metrics?.occupancy_rate as number} />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8, padding: 8}}
+            >
+              <AnalyticsCard
+                title={"Tenants"}
+                subtitle={"total number of tenant this month for apartments."}
+                value={metrics?.tenants as number}
               />
-              <Text style={styles.analyticsLabel}>Bookings</Text>
-              <Text style={styles.analyticsValue}>
-                {formatNumber(analytics.totalBookings)}
-              </Text>
-              <Text style={styles.analyticsDetail}>
-                Total confirmed bookings.
-              </Text>
-            </View>
-            <View style={styles.analyticsCard}>
-              <MaterialCommunityIcons
-                name="account-group"
-                size={28}
-                color={Colors.primary}
-                style={styles.analyticsIcon}
+              <AnalyticsCard
+                title={"Guests"}
+                subtitle={"total number of guest this month for transients."}
+                value={metrics?.guest as number}
               />
-              <Text style={styles.analyticsLabel}>Guests</Text>
-              <Text style={styles.analyticsValue}>
-                {formatNumber(analytics.guestsThisMonth)}
-              </Text>
-              <Text style={styles.analyticsDetail}>
-                Number of guests who booked your properties.
-              </Text>
-            </View>
-            <View style={styles.analyticsCard}>
-              <MaterialCommunityIcons
-                name="home-city"
-                size={28}
-                color={Colors.primary}
-                style={styles.analyticsIcon}
+              <AnalyticsCard
+                title={"Bookings"}
+                subtitle={"total number of successful bookings this month."}
+                value={metrics?.bookings as number}
               />
-              <Text style={styles.analyticsLabel}>Properties Posted</Text>
-              <Text style={styles.analyticsValue}>
-                {formatNumber(analytics.propertiesPosted)}
-              </Text>
-              <Text style={styles.analyticsDetail}>
-                Total properties you have listed on the platform.
-              </Text>
-            </View>
-            {/* More details */}
-            <View style={styles.analyticsCard}>
-              <MaterialCommunityIcons
-                name="star"
-                size={28}
-                color={Colors.primary}
-                style={styles.analyticsIcon}
+            </ScrollView>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8, padding: 8}}
+            >
+              <AnalyticsCard
+                title={"Properties"}
+                subtitle={"total number of properties posted in this platform."}
+                value={metrics?.properties as number}
               />
-              <Text style={styles.analyticsLabel}>Average Apartment Price</Text>
-              <Text style={styles.analyticsValue}>
-                {peso}
-                {formatNumber(analytics.avgApartmentPrice)}
-              </Text>
-              <Text style={styles.analyticsDetail}>
-                Average price per month for apartment-type listings.
-              </Text>
-            </View>
-            <View style={styles.analyticsCard}>
-              <MaterialCommunityIcons
-                name="star-outline"
-                size={28}
-                color={Colors.primary}
-                style={styles.analyticsIcon}
+              <AnalyticsCard
+                title={"Apartments"}
+                subtitle={"total number of apartment posted in this platform."}
+                value={metrics?.apartments as number}
               />
-              <Text style={styles.analyticsLabel}>Average Transient Price</Text>
-              <Text style={styles.analyticsValue}>
-                {peso}
-                {formatNumber(analytics.avgTransientPrice)}
-              </Text>
-              <Text style={styles.analyticsDetail}>
-                Average price per night for transient-type listings.
-              </Text>
-            </View>
+              <AnalyticsCard
+                title={"Transients"}
+                subtitle={"total number of transient posted in this platform."}
+                value={metrics?.transients as number}
+              />
+            </ScrollView>
           </View>
         </ScrollView>
       </View>
@@ -267,36 +241,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginTop: 65,
     alignItems: "center",
-  },
-  form: {
-    flex: 1,
-    backgroundColor: Colors.primaryBackground,
-    borderRadius: 15,
-    padding: 20,
-    elevation: 10,
-  },
-  deleteButtonContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    width: 80,
-    height: "100%",
-  },
-  deleteButton: {
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-    height: "100%",
-  },
-  deleteIcon: {
-    width: 40,
-    height: 40,
-    color: Colors.error,
-  },
-  character: {
-    width: "50%",
-    height: "50%",
-    resizeMode: "cover",
-    marginBottom: 10,
   },
   analyticsGrid: {
     // Use column layout, each card 100% width, with spacing
@@ -421,11 +365,18 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     color: "#888",
   },
-  monthHeader: {
-    marginTop: 40,
-    marginBottom: 40,
+  monthContainer: {
+    marginTop: 10,
+    marginBottom: 10,
     alignItems: "center",
     justifyContent: "center",
+  },
+  monthHeader: {
+    marginTop: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 5,
   },
   monthHeaderText: {
     fontSize: 22,
