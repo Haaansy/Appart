@@ -183,7 +183,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
             </TouchableOpacity>
           </View>
           <Text style={styles.subtext}>
-            {`Updated on ${
+            {`Updated as of ${
               latestMetric.createdAt?.seconds
                 ? new Date(
                     latestMetric.createdAt.seconds * 1000
