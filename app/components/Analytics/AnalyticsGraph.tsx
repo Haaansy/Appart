@@ -2,7 +2,25 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import React from "react";
 import Colors from "@/assets/styles/colors";
 import { LineChart } from "react-native-gifted-charts";
-import { useCurrentUserMonthlyMetrics } from "@/app/hooks/users/getCurrentUserMonthlyMetrics";
+import { Timestamp } from "firebase/firestore";
+
+interface Metric {
+  apartments: number;
+  bookings: number;
+  createdAt: Timestamp;
+  forecasted_income: number;
+  guest: number;
+  id: string;
+  occupancy_rate: number;
+  properties: number;
+  tenants: number;
+  transients: number;
+  userId: string;
+}
+
+interface AnalyticsGraphProps {
+  metrics: Metric[] | Metric;
+}
 
 const customDataPoint = () => {
   return (
@@ -19,26 +37,11 @@ const customDataPoint = () => {
   );
 };
 
-const AnalyticsGraph = () => {
-  const { monthlyMetrics, loading, error } = useCurrentUserMonthlyMetrics();
+const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({ metrics }) => {
+  // Convert metrics to array if it's not already an array
+  const metricsArray = Array.isArray(metrics) ? metrics : [metrics];
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text>Error: {error}</Text>
-      </View>
-    );
-  }
-
-  if (!monthlyMetrics || monthlyMetrics.length === 0) {
+  if (!metricsArray || metricsArray.length === 0) {
     return (
       <View style={styles.container}>
         <Text>No data available</Text>
@@ -46,13 +49,21 @@ const AnalyticsGraph = () => {
     );
   }
 
-  // Prepare data for the chart
-  const chartData = monthlyMetrics.map((metric) => ({
-    value: metric.forecasted_income || 0,
-    label: metric.createdAt?.toDate 
-      ? `${metric.createdAt.toDate().getMonth() + 1}/${metric.createdAt.toDate().getDate()}`
-      : `${new Date(metric.createdAt).getMonth() + 1}/${new Date(metric.createdAt).getDate()}`,
-  }));
+  // Prepare data for the chart and sort chronologically
+  const chartData = metricsArray
+    .map((metric) => {
+      const date = metric.createdAt?.toDate
+        ? metric.createdAt.toDate()
+        : new Date(metric.createdAt.seconds * 1000);
+      
+      return {
+        value: metric.forecasted_income || 0,
+        label: `${date.getMonth() + 1}/${date.getDate()}`,
+        date: date, // Store the full date for sorting
+      };
+    })
+    .sort((a, b) => a.date.getTime() - b.date.getTime()) // Sort by date in ascending order
+    .map(({ value, label }) => ({ value, label })); // Remove the date property used for sorting
 
   // Ensure chartData is not empty
   if (chartData.length === 0) {
