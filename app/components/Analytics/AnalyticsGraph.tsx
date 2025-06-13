@@ -20,6 +20,8 @@ interface Metric {
 
 interface AnalyticsGraphProps {
   metrics: Metric[] | Metric;
+  rangeStart?: Date | null;
+  rangeEnd?: Date | null;
 }
 
 const customDataPoint = () => {
@@ -37,7 +39,7 @@ const customDataPoint = () => {
   );
 };
 
-const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({ metrics }) => {
+const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({ metrics, rangeStart, rangeEnd }) => {
   // Convert metrics to array if it's not already an array
   const metricsArray = Array.isArray(metrics) ? metrics : [metrics];
 
@@ -81,6 +83,15 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({ metrics }) => {
           <Text style={styles.menuText}>Monthly</Text>
         </TouchableOpacity>
       </View>
+      {(rangeStart || rangeEnd) ? (
+        <Text style={{ textAlign: "center", color: Colors.primary, marginBottom: 8 }}>
+          {rangeStart && rangeEnd
+            ? `Showing: ${rangeStart.toLocaleDateString()} - ${rangeEnd.toLocaleDateString()}`
+            : rangeStart
+            ? `Showing: ${rangeStart.toLocaleDateString()}`
+            : null}
+        </Text>
+      ) : null}
       <LineChart
         data={chartData}
         color={Colors.primary}

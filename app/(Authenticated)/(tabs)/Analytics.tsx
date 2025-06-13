@@ -20,7 +20,7 @@ import useCurrentAvailableMetrics from "@/app/hooks/users/getCurrentAvailableMet
 import AnalyticsGraph from "@/app/components/Analytics/AnalyticsGraph";
 import OccupancyChart from "@/app/components/Analytics/OccupancyChart";
 import AnalyticsCard from "@/app/components/Analytics/AnalyticsCard";
-import { Timestamp } from "firebase/firestore";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 interface AnalyticsProps {
   currentUserData: UserData;
@@ -54,10 +54,21 @@ const getCurrentMonthYear = () => {
 const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
   const [{ month: selectedMonth, year: selectedYear }, setSelectedMonthYear] =
     useState(getCurrentMonthYear());
-  
-  const { metrics, latestMetric,loading, error, fetchMetricsForMonthYear } = useCurrentUserMetrics(
-    MONTHS[selectedMonth].toString(), 
-    selectedYear.toString()
+
+  // Replace dayRange with singleDay state
+  const [singleDay, setSingleDay] = useState<Date | null>(null);
+  const [showDayPicker, setShowDayPicker] = useState(false);
+
+  // Date range picker state
+  const [rangeModalVisible, setRangeModalVisible] = useState(false);
+  const [rangeStart, setRangeStart] = useState<Date | null>(null);
+  const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
+
+  const { metrics, latestMetric, loading, error, fetchMetricsForMonthYear } = useCurrentUserMetrics(
+    MONTHS[selectedMonth].toString(),
+    selectedYear.toString(),
+    rangeStart,
+    rangeEnd
   );
   
   const { monthYearArr, loading: idsLoading } = useCurrentAvailableMetrics();
@@ -116,6 +127,53 @@ const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
     fetchMetricsForMonthYear(monthValue, selectedYear.toString());
   };
   
+  // Calculate first and last day of the current month
+  const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1);
+  const lastDayOfMonth = new Date(selectedYear, selectedMonth + 1, 0);
+
+  // Remove old dayRange handlers, use single day picker
+  const handleSingleDayChange = (event: any, selectedDate?: Date) => {
+    setShowDayPicker(false);
+    if (event.type === "dismissed" || !selectedDate) return;
+    setSingleDay(selectedDate);
+  };
+
+  // Get all available days for the selected month from metrics
+  const availableDays: Date[] = React.useMemo(() => {
+    if (!metrics || !Array.isArray(metrics)) return [];
+    return metrics
+      .map((m: any) => {
+        if (m.createdAt?.toDate) return m.createdAt.toDate();
+        if (m.createdAt?.seconds) return new Date(m.createdAt.seconds * 1000);
+        return null;
+      })
+      .filter(Boolean)
+      .sort((a: Date, b: Date) => a.getTime() - b.getTime());
+  }, [metrics]);
+
+  // Handle day selection in modal
+  const handleDayPress = (date: Date) => {
+    if (!rangeStart || (rangeStart && rangeEnd)) {
+      setRangeStart(date);
+      setRangeEnd(null);
+    } else if (rangeStart && !rangeEnd) {
+      if (date < rangeStart) {
+        setRangeStart(date);
+        setRangeEnd(rangeStart);
+      } else {
+        setRangeEnd(date);
+      }
+      setRangeModalVisible(false);
+    }
+  };
+
+  // Helper to check if a date is in the selected range
+  const isInRange = (date: Date) => {
+    if (!rangeStart) return false;
+    if (!rangeEnd) return date.getTime() === rangeStart.getTime();
+    return date >= rangeStart && date <= rangeEnd;
+  };
+
   // If no data is available, show a message
   if (!loading && !error && monthYearArr.length === 0) {
     return (
@@ -198,6 +256,141 @@ const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
             }`}
           </Text>
         </View>
+        {/* Creative Date Range Picker UI */}
+        <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginVertical: 8 }}>
+          <TouchableOpacity
+            style={{
+              backgroundColor: Colors.primary,
+              borderRadius: 8,
+              paddingVertical: 8,
+              paddingHorizontal: 16,
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+            onPress={() => setRangeModalVisible(true)}
+            disabled={availableDays.length === 0}
+          >
+            <Ionicons name="calendar" size={18} color="#fff" style={{ marginRight: 6 }} />
+            <Text style={{ color: "#fff", fontWeight: "bold" }}>
+              {rangeStart && rangeEnd
+                ? `${rangeStart.toLocaleDateString()} - ${rangeEnd.toLocaleDateString()}`
+                : rangeStart
+                ? `${rangeStart.toLocaleDateString()}`
+                : "Select Date Range"}
+            </Text>
+          </TouchableOpacity>
+          {(rangeStart || rangeEnd) && (
+            <TouchableOpacity
+              style={{
+                marginLeft: 10,
+                backgroundColor: Colors.primaryBackground,
+                borderRadius: 50,
+                padding: 4,
+                borderWidth: 1,
+                borderColor: Colors.primary,
+              }}
+              onPress={() => {
+                setRangeStart(null);
+                setRangeEnd(null);
+              }}
+            >
+              <Ionicons name="close" size={18} color={Colors.primary} />
+            </TouchableOpacity>
+          )}
+        </View>
+        {/* Date Range Modal */}
+        <Modal
+          visible={rangeModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setRangeModalVisible(false)}
+        >
+          <Pressable
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.3)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onPress={() => setRangeModalVisible(false)}
+          >
+            <View
+              style={{
+                backgroundColor: "#fff",
+                borderRadius: 16,
+                padding: 24,
+                minWidth: Math.min(36 * availableDays.length + 48, 340),
+                maxWidth: 340,
+                elevation: 10,
+                alignItems: "center",
+                // Remove fixed height, let content wrap
+              }}
+            >
+              <Text style={{ fontWeight: "bold", fontSize: 18, marginBottom: 12 }}>
+                Select Date Range
+              </Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingVertical: 8,
+                  paddingHorizontal: 4,
+                  maxWidth: 320,
+                  rowGap: 8,
+                }}
+              >
+                {availableDays.length > 0 ? (
+                  // Fix: Use unique key and filter out duplicate days
+                  Array.from(
+                    new Map(
+                      availableDays.map(date => [date.toDateString(), date])
+                    ).values()
+                  ).map((date) => (
+                    <TouchableOpacity
+                      key={date.toISOString()}
+                      style={{
+                        width: 36,
+                        height: 36,
+                        backgroundColor: isInRange(date) ? Colors.primary : Colors.primaryBackground,
+                        borderRadius: 8,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        borderWidth: isInRange(date) ? 2 : 1,
+                        borderColor: isInRange(date) ? Colors.primary : Colors.secondaryText,
+                        marginHorizontal: 3,
+                        marginVertical: 3,
+                      }}
+                      onPress={() => handleDayPress(date)}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={{
+                          color: isInRange(date) ? "#fff" : Colors.primary,
+                          fontWeight: isInRange(date) ? "bold" : "normal",
+                          fontSize: 15,
+                        }}
+                      >
+                        {date.getDate()}
+                      </Text>
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <Text style={{ color: Colors.secondaryText, padding: 10 }}>
+                    No data days for this month
+                  </Text>
+                )}
+              </View>
+              <TouchableOpacity
+                style={{ marginTop: 10, alignItems: "center" }}
+                onPress={() => setRangeModalVisible(false)}
+              >
+                <Text style={{ color: Colors.primary, fontWeight: "bold" }}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Modal>
         <View style={{ marginTop: 5 }}>
           <Text
             style={{
@@ -212,7 +405,8 @@ const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
           <Text
             style={{
               alignSelf: "center",
-              fontSize: 36,
+              textAlign: "center",
+              fontSize: 55,
               fontWeight: "bold",
               color: Colors.primaryBackground,
             }}
@@ -220,12 +414,13 @@ const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
             {peso} {formatNumber(latestMetric.forecasted_income)}
           </Text>
         </View>
+        
         <ScrollView
           style={{ flex: 1, marginTop: 20 }}
           showsVerticalScrollIndicator={false}
         >
           <View style={{ gap: 12 }}>
-            <AnalyticsGraph metrics={metrics} />
+            <AnalyticsGraph metrics={metrics}/>
             <OccupancyChart occupancyRate={latestMetric?.occupancy_rate as number} />
             <ScrollView
               horizontal
