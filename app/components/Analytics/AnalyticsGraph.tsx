@@ -4,7 +4,7 @@ import Colors from "@/assets/styles/colors";
 import { LineChart } from "react-native-gifted-charts";
 import { Timestamp } from "firebase/firestore";
 
-interface Metric {
+export interface Metric {
   apartments: number;
   bookings: number;
   createdAt: Timestamp;
@@ -19,7 +19,7 @@ interface Metric {
 }
 
 interface AnalyticsGraphProps {
-  metrics: Metric[] | Metric;
+  metrics: Metric[];
   rangeStart?: Date | null;
   rangeEnd?: Date | null;
 }

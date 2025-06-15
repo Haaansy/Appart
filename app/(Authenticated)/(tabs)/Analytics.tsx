@@ -4,200 +4,123 @@ import {
   ImageBackground,
   StyleSheet,
   Image,
-  ScrollView,
   TouchableOpacity,
-  FlatList,
-  Modal,
-  Pressable,
+  Button,
 } from "react-native";
-import React, { useCallback, useState } from "react";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import React, { useState, useEffect } from "react";
+import {
+  GestureHandlerRootView,
+  ScrollView,
+} from "react-native-gesture-handler";
 import UserData from "@/app/types/UserData";
 import Colors from "@/assets/styles/colors";
-import { Ionicons } from "@expo/vector-icons";
+import IconButton from "@/app/components/IconButton";
+import { Calendar } from "react-native-calendars";
+import CustomSwitch from "@/app/components/CustomSwitch";
 import { useCurrentUserMetrics } from "@/app/hooks/users/getCurrentUserMetrics";
-import useCurrentAvailableMetrics from "@/app/hooks/users/getCurrentAvailableMetrics";
-import AnalyticsGraph from "@/app/components/Analytics/AnalyticsGraph";
-import OccupancyChart from "@/app/components/Analytics/OccupancyChart";
+import AnalyticsGraph, {
+  Metric,
+} from "@/app/components/Analytics/AnalyticsGraph";
+import { Ionicons } from "@expo/vector-icons";
 import AnalyticsCard from "@/app/components/Analytics/AnalyticsCard";
-import DateTimePicker from "@react-native-community/datetimepicker";
 
 interface AnalyticsProps {
   currentUserData: UserData;
 }
 
-const formatNumber = (num: number) => {
-  if (typeof num !== "number") return num;
-  return num.toLocaleString();
-};
-
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-const getCurrentMonthYear = () => {
-  const now = new Date();
-  return { month: now.getMonth(), year: now.getFullYear() };
-};
-
 const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
-  const [{ month: selectedMonth, year: selectedYear }, setSelectedMonthYear] =
-    useState(getCurrentMonthYear());
+  const [calendarModalVisible, setCalendarModalVisible] = useState(false);
+  const [mode, setMode] = useState<"single" | "range">("single");
+  const [range, setRange] = useState<{
+    startDate: string | null;
+    endDate: string | null;
+  }>({ startDate: null, endDate: null });
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const now = new Date();
 
-  // Replace dayRange with singleDay state
-  const [singleDay, setSingleDay] = useState<Date | null>(null);
-  const [showDayPicker, setShowDayPicker] = useState(false);
+  const { metrics, loading, error, latestMetric, fetch, fetchRange } =
+    useCurrentUserMetrics();
 
-  // Date range picker state
-  const [rangeModalVisible, setRangeModalVisible] = useState(false);
-  const [rangeStart, setRangeStart] = useState<Date | null>(null);
-  const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
-
-  const { metrics, latestMetric, loading, error, fetchMetricsForMonthYear } = useCurrentUserMetrics(
-    MONTHS[selectedMonth].toString(),
-    selectedYear.toString(),
-    rangeStart,
-    rangeEnd
-  );
-  
-  const { monthYearArr, loading: idsLoading } = useCurrentAvailableMetrics();
-
-  const peso = "₱";
-
-  // Modal state for year/month selection
-  const [yearModalVisible, setYearModalVisible] = useState(false);
-  const [monthModalVisible, setMonthModalVisible] = useState(false);
-
-  // Extract available years and months from monthYearArr
-  const availableYears = Array.from(
-    new Set(monthYearArr.map((item) => parseInt(item.year)))
-  ).sort((a, b) => b - a); // Sort years in descending order
-  
-  // Get available months for the selected year
-  const availableMonths = monthYearArr
-    .filter((item) => parseInt(item.year) === selectedYear)
-    .map((item) => {
-      // Handle month correctly whether it's a string name or a numeric index
-      const monthIdx = isNaN(parseInt(item.month)) 
-        ? MONTHS.indexOf(item.month) // Convert month name to index
-        : parseInt(item.month);      // Use month index directly
-    
-      return {
-        name: MONTHS[monthIdx] || item.month, // Fallback to the original string if not found
-        idx: monthIdx
-      };
-    })
-    .sort((a, b) => a.idx - b.idx); // Sort months in ascending order
-  
-  // Handle month/year selection
-  const handleYearSelection = (year: number) => {
-    setSelectedMonthYear((prev) => ({ ...prev, year }));
-    setYearModalVisible(false);
-    
-    // Only show month modal if there are available months for this year
-    const monthsForYear = monthYearArr.filter(item => parseInt(item.year) === year);
-    if (monthsForYear.length > 0) {
-      setTimeout(() => setMonthModalVisible(true), 200);
-    }
-  };
-  
-  const handleMonthSelection = (monthIdx: number) => {
-    setSelectedMonthYear((prev) => ({ ...prev, month: monthIdx }));
-    setMonthModalVisible(false);
-    
-    // Find the original month value from monthYearArr for consistency
-    const monthEntry = monthYearArr.find(
-      item => parseInt(item.year) === selectedYear && 
-      (MONTHS.indexOf(item.month) === monthIdx || parseInt(item.month) === monthIdx)
-    );
-    
-    // Use the original month format when fetching metrics
-    const monthValue = monthEntry ? monthEntry.month : monthIdx.toString();
-    fetchMetricsForMonthYear(monthValue, selectedYear.toString());
-  };
-  
-  // Calculate first and last day of the current month
-  const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1);
-  const lastDayOfMonth = new Date(selectedYear, selectedMonth + 1, 0);
-
-  // Remove old dayRange handlers, use single day picker
-  const handleSingleDayChange = (event: any, selectedDate?: Date) => {
-    setShowDayPicker(false);
-    if (event.type === "dismissed" || !selectedDate) return;
-    setSingleDay(selectedDate);
-  };
-
-  // Get all available days for the selected month from metrics
-  const availableDays: Date[] = React.useMemo(() => {
-    if (!metrics || !Array.isArray(metrics)) return [];
-    return metrics
-      .map((m: any) => {
-        if (m.createdAt?.toDate) return m.createdAt.toDate();
-        if (m.createdAt?.seconds) return new Date(m.createdAt.seconds * 1000);
-        return null;
-      })
-      .filter(Boolean)
-      .sort((a: Date, b: Date) => a.getTime() - b.getTime());
-  }, [metrics]);
-
-  // Handle day selection in modal
-  const handleDayPress = (date: Date) => {
-    if (!rangeStart || (rangeStart && rangeEnd)) {
-      setRangeStart(date);
-      setRangeEnd(null);
-    } else if (rangeStart && !rangeEnd) {
-      if (date < rangeStart) {
-        setRangeStart(date);
-        setRangeEnd(rangeStart);
-      } else {
-        setRangeEnd(date);
+  // Helper to mark selected range
+  const getMarkedDates = () => {
+    let marked: any = {};
+    if (mode === "single" && selectedDate) {
+      marked[selectedDate] = { selected: true, selectedColor: Colors.primary };
+    } else if (mode === "range" && range.startDate) {
+      const { startDate, endDate } = range;
+      const start = new Date(startDate!);
+      const end = endDate ? new Date(endDate) : start;
+      let d = new Date(start);
+      while (d <= end) {
+        const dateString = d.toISOString().split("T")[0];
+        marked[dateString] = {
+          selected: true,
+          color: Colors.primary,
+          startingDay: dateString === startDate,
+          endingDay: dateString === endDate,
+        };
+        d.setDate(d.getDate() + 1);
       }
-      setRangeModalVisible(false);
+    }
+    return marked;
+  };
+
+  const handleDayPress = (day: any) => {
+    if (mode === "single") {
+      setSelectedDate(day.dateString);
+      setRange({ startDate: null, endDate: null });
+    } else {
+      if (!range.startDate || (range.startDate && range.endDate)) {
+        setRange({ startDate: day.dateString, endDate: null });
+        setSelectedDate(null);
+      } else if (range.startDate && !range.endDate) {
+        if (day.dateString < range.startDate) {
+          setRange({ startDate: day.dateString, endDate: range.startDate });
+        } else {
+          setRange({ startDate: range.startDate, endDate: day.dateString });
+        }
+        setSelectedDate(null);
+      }
     }
   };
 
-  // Helper to check if a date is in the selected range
-  const isInRange = (date: Date) => {
-    if (!rangeStart) return false;
-    if (!rangeEnd) return date.getTime() === rangeStart.getTime();
-    return date >= rangeStart && date <= rangeEnd;
+  // Fetch metrics for selected date or range
+  const fetchMetric = async () => {
+    if (mode === "single" && selectedDate) {
+      const date = new Date(selectedDate);
+      const month = date.toLocaleString("default", { month: "long" });
+      const year = date.getFullYear();
+      const day = date.getDate();
+      fetch(month, year, day);
+    } else if (mode === "range" && range.startDate && range.endDate) {
+      fetchRange(new Date(range.startDate), new Date(range.endDate));
+    } else {
+      const now = new Date();
+      const month = now.toLocaleString("default", { month: "long" });
+      const year = now.getFullYear();
+
+      setSelectedDate(now.toISOString().split("T")[0]);
+      fetch(month, year);
+    }
   };
 
-  // If no data is available, show a message
-  if (!loading && !error && monthYearArr.length === 0) {
+  useEffect(() => {
+    const now = new Date();
+    const month = now.toLocaleString("default", { month: "long" });
+    const year = now.getFullYear();
+
+    fetch(month, year);
+  }, []);
+
+  if (loading) {
     return (
       <View style={styles.loaderContainer}>
-        <Text>No analytics data available</Text>
+        <Text>Loading...</Text>
       </View>
     );
   }
 
-  if (loading || idsLoading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <Text>Loading analytics...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.loaderContainer}>
-        <Text style={{ color: "red" }}>{error}</Text>
-      </View>
-    );
-  }
+  console.log("Metrics:", latestMetric);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -218,417 +141,219 @@ const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
             <Text style={styles.subtext}>Here are your daily reports.</Text>
           </View>
         </View>
-
-        {/* Month at the top */}
-        <View style={styles.monthContainer}>
-          <View style={styles.monthHeader}>
-            <Text style={styles.monthHeaderText}>
-              {MONTHS[selectedMonth]} {selectedYear}
-            </Text>
-            <TouchableOpacity 
-              onPress={() => {
-                if (availableYears.length > 0) {
-                  setYearModalVisible(true);
-                }
-              }}
-              disabled={availableYears.length === 0}
-            >
-              <Ionicons
-                name="chevron-down"
-                size={24}
-                color={availableYears.length > 0 ? Colors.primaryBackground : Colors.secondaryText}
-              />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.subtext}>
-            {`Updated as of ${
-              latestMetric.createdAt?.seconds
-                ? new Date(
-                    latestMetric.createdAt.seconds * 1000
-                  ).toLocaleDateString("en-US", {
-                    year: "numeric",
+        <View style={styles.monthHeader}>
+          <Text style={styles.monthHeaderText}>
+            {mode === "single"
+              ? selectedDate
+                ? new Date(selectedDate).toLocaleDateString(undefined, {
                     month: "long",
                     day: "numeric",
-                    hour: "numeric",
-                    minute: "numeric",
+                    year: "numeric",
                   })
-                : "No date available"
-            }`}
+                : latestMetric?.createdAt
+                  ? new Date(
+                      latestMetric.createdAt.seconds * 1000
+                    ).toLocaleDateString(undefined, {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+                  : now.toLocaleDateString(undefined, {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+              : range.startDate && range.endDate
+                ? `${new Date(range.startDate).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })} - ${new Date(range.endDate).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}`
+                : latestMetric?.createdAt
+                  ? new Date(
+                      latestMetric.createdAt.seconds * 1000
+                    ).toLocaleDateString(undefined, {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+                  : now.toLocaleDateString(undefined, {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
           </Text>
-        </View>
-        {/* Creative Date Range Picker UI */}
-        <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginVertical: 8 }}>
-          <TouchableOpacity
-            style={{
-              backgroundColor: Colors.primary,
-              borderRadius: 8,
-              paddingVertical: 8,
-              paddingHorizontal: 16,
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-            onPress={() => setRangeModalVisible(true)}
-            disabled={availableDays.length === 0}
-          >
-            <Ionicons name="calendar" size={18} color="#fff" style={{ marginRight: 6 }} />
-            <Text style={{ color: "#fff", fontWeight: "bold" }}>
-              {rangeStart && rangeEnd
-                ? `${rangeStart.toLocaleDateString()} - ${rangeEnd.toLocaleDateString()}`
-                : rangeStart
-                ? `${rangeStart.toLocaleDateString()}`
-                : "Select Date Range"}
+          <View style={styles.updatedContainer}>
+            <Text style={styles.updatedText}>
+              {" "}
+              Updated as of {""}
+              {new Date().toLocaleString(undefined, {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
             </Text>
-          </TouchableOpacity>
-          {(rangeStart || rangeEnd) && (
-            <TouchableOpacity
-              style={{
-                marginLeft: 10,
-                backgroundColor: Colors.primaryBackground,
-                borderRadius: 50,
-                padding: 4,
-                borderWidth: 1,
-                borderColor: Colors.primary,
-              }}
-              onPress={() => {
-                setRangeStart(null);
-                setRangeEnd(null);
-              }}
-            >
-              <Ionicons name="close" size={18} color={Colors.primary} />
-            </TouchableOpacity>
-          )}
+          </View>
         </View>
-        {/* Date Range Modal */}
-        <Modal
-          visible={rangeModalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setRangeModalVisible(false)}
-        >
-          <Pressable
-            style={{
-              flex: 1,
-              backgroundColor: "rgba(0,0,0,0.3)",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-            onPress={() => setRangeModalVisible(false)}
-          >
-            <View
-              style={{
-                backgroundColor: "#fff",
-                borderRadius: 16,
-                padding: 24,
-                minWidth: Math.min(36 * availableDays.length + 48, 340),
-                maxWidth: 340,
-                elevation: 10,
-                alignItems: "center",
-                // Remove fixed height, let content wrap
-              }}
-            >
-              <Text style={{ fontWeight: "bold", fontSize: 18, marginBottom: 12 }}>
-                Select Date Range
-              </Text>
-              <View
-                style={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  paddingVertical: 8,
-                  paddingHorizontal: 4,
-                  maxWidth: 320,
-                  rowGap: 8,
-                }}
-              >
-                {availableDays.length > 0 ? (
-                  // Fix: Use unique key and filter out duplicate days
-                  Array.from(
-                    new Map(
-                      availableDays.map(date => [date.toDateString(), date])
-                    ).values()
-                  ).map((date) => (
-                    <TouchableOpacity
-                      key={date.toISOString()}
-                      style={{
-                        width: 36,
-                        height: 36,
-                        backgroundColor: isInRange(date) ? Colors.primary : Colors.primaryBackground,
-                        borderRadius: 8,
-                        justifyContent: "center",
-                        alignItems: "center",
-                        borderWidth: isInRange(date) ? 2 : 1,
-                        borderColor: isInRange(date) ? Colors.primary : Colors.secondaryText,
-                        marginHorizontal: 3,
-                        marginVertical: 3,
-                      }}
-                      onPress={() => handleDayPress(date)}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={{
-                          color: isInRange(date) ? "#fff" : Colors.primary,
-                          fontWeight: isInRange(date) ? "bold" : "normal",
-                          fontSize: 15,
-                        }}
-                      >
-                        {date.getDate()}
-                      </Text>
-                    </TouchableOpacity>
-                  ))
-                ) : (
-                  <Text style={{ color: Colors.secondaryText, padding: 10 }}>
-                    No data days for this month
-                  </Text>
-                )}
-              </View>
-              <TouchableOpacity
-                style={{ marginTop: 10, alignItems: "center" }}
-                onPress={() => setRangeModalVisible(false)}
-              >
-                <Text style={{ color: Colors.primary, fontWeight: "bold" }}>Done</Text>
-              </TouchableOpacity>
-            </View>
-          </Pressable>
-        </Modal>
-        <View style={{ marginTop: 5 }}>
+        <IconButton
+          onPress={() => {
+            setCalendarModalVisible(true);
+          }}
+          icon="calendar"
+          iconColor={Colors.primary}
+          text="Select Date"
+          textColor={Colors.primary}
+          style={{
+            width: "50%",
+            alignSelf: "center",
+            marginTop: 10,
+            height: 50,
+          }}
+        />
+        <View style={{ marginTop: 20 }}>
           <Text
             style={{
+              fontSize: 16,
               color: Colors.primaryBackground,
-              fontSize: 18,
               fontWeight: "bold",
-              marginBottom: 5,
             }}
           >
             Forecasted Income
           </Text>
           <Text
             style={{
-              alignSelf: "center",
-              textAlign: "center",
-              fontSize: 55,
-              fontWeight: "bold",
+              fontSize: 40,
               color: Colors.primaryBackground,
+              fontWeight: "bold",
+              alignSelf: "center",
             }}
           >
-            {peso} {formatNumber(latestMetric.forecasted_income)}
+            {" "}
+            ₱{" "}
+            {(latestMetric?.forecasted_income &&
+              latestMetric.forecasted_income.toLocaleString()) ||
+              "0"}{" "}
           </Text>
         </View>
-        
-        <ScrollView
-          style={{ flex: 1, marginTop: 20 }}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={{ gap: 12 }}>
-            <AnalyticsGraph metrics={metrics}/>
-            <OccupancyChart occupancyRate={latestMetric?.occupancy_rate as number} />
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 8, padding: 8 }}
-            >
-              <AnalyticsCard
-                title={"Tenants"}
-                subtitle={"total number of tenant this month for apartments."}
-                value={latestMetric?.tenants as number}
-              />
-              <AnalyticsCard
-                title={"Guests"}
-                subtitle={"total number of guest this month for transients."}
-                value={latestMetric?.guest as number}
-              />
-              <AnalyticsCard
-                title={"Bookings"}
-                subtitle={"total number of successful bookings this month."}
-                value={latestMetric?.bookings as number}
-              />
-            </ScrollView>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 8, padding: 8 }}
-            >
-              <AnalyticsCard
-                title={"Properties"}
-                subtitle={"total number of properties posted in this platform."}
-                value={latestMetric?.properties as number}
-              />
-              <AnalyticsCard
-                title={"Apartments"}
-                subtitle={"total number of apartment posted in this platform."}
-                value={latestMetric?.apartments as number}
-              />
-              <AnalyticsCard
-                title={"Transients"}
-                subtitle={"total number of transient posted in this platform."}
-                value={latestMetric?.transients as number}
-              />
-            </ScrollView>
-          </View>
+        <ScrollView style={{ flex: 1, marginTop: 10 }}>
+          <AnalyticsGraph metrics={metrics as Metric[]} />
+          <ScrollView
+            style={{ marginTop: 20, paddingBottom: 20 }}
+            contentContainerStyle={{ gap: 20 }}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          >
+            <AnalyticsCard
+              title="Tenants"
+              subtitle="total number of tenant for apartments"
+              value={latestMetric?.tenants as number}
+            />
+            <AnalyticsCard
+              title="Guests"
+              subtitle="total number of guest for transients"
+              value={latestMetric?.guest as number}
+            />
+            <AnalyticsCard
+              title="Bookings"
+              subtitle="total number of bookings"
+              value={latestMetric?.bookings as number}
+            />
+          </ScrollView>
+          <ScrollView
+            style={{ marginTop: 20, paddingBottom: 20 }}
+            contentContainerStyle={{ gap: 20 }}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          >
+            <AnalyticsCard
+              title="Properties"
+              subtitle="total number of properties posted in this platform."
+              value={latestMetric?.properties as number}
+            />
+            <AnalyticsCard
+              title="Apartments"
+              subtitle="total number of apartments posted in this platform."
+              value={latestMetric?.tenants as number}
+            />
+            <AnalyticsCard
+              title="Transients"
+              subtitle="total number of transient posted in this platform."
+              value={latestMetric?.tenants as number}
+            />
+          </ScrollView>
         </ScrollView>
       </View>
-      {/* Year Picker Modal */}
-      <Modal
-        visible={yearModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setYearModalVisible(false)}
-      >
-        <Pressable
+
+      {/* Calendar Modal */}
+      {calendarModalVisible && (
+        <View
           style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.3)",
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
             justifyContent: "center",
             alignItems: "center",
           }}
-          onPress={() => setYearModalVisible(false)}
         >
           <View
             style={{
-              backgroundColor: "#fff",
-              borderRadius: 16,
-              padding: 24,
-              minWidth: 220,
-              elevation: 10,
+              width: "80%",
+              backgroundColor: Colors.primaryBackground,
+              padding: 20,
+              borderRadius: 10,
             }}
           >
-            <Text
-              style={{
-                fontWeight: "bold",
-                fontSize: 18,
-                marginBottom: 12,
-              }}
-            >
-              Select Year
+            <Text style={{ color: Colors.primaryText, fontSize: 18 }}>
+              Select Date
             </Text>
-            <ScrollView
-              style={{ maxHeight: 200 }}
-              nestedScrollEnabled
-              showsVerticalScrollIndicator={false}
-            >
-              {availableYears.length > 0 ? (
-                availableYears.map((y) => (
-                  <Pressable
-                    key={`year-${y}`} // Changed to ensure uniqueness
-                    style={{
-                      padding: 10,
-                      backgroundColor:
-                        y === selectedYear ? Colors.primary : "transparent",
-                      borderRadius: 8,
-                      marginBottom: 4,
-                    }}
-                    onPress={() => handleYearSelection(y)}
-                  >
-                    <Text
-                      style={{
-                        color: y === selectedYear ? "#fff" : Colors.secondaryText,
-                        fontWeight: y === selectedYear ? "bold" : "normal",
-                        fontSize: 16,
-                      }}
-                    >
-                      {y}
-                    </Text>
-                  </Pressable>
-                ))
-              ) : (
-                <Text style={{ color: Colors.secondaryText, padding: 10 }}>
-                  No data available
-                </Text>
-              )}
-            </ScrollView>
-            <TouchableOpacity
-              style={{
-                marginTop: 10,
-                alignItems: "center",
-              }}
-              onPress={() => setYearModalVisible(false)}
-            >
-              <Text style={{ color: Colors.primary, fontWeight: "bold" }}>Cancel</Text>
-            </TouchableOpacity>
+            <View style={{ marginVertical: 10 }}>
+              <CustomSwitch
+                initialValue={mode === "range"}
+                onValueChange={(val: boolean) => {
+                  setMode(val ? "range" : "single");
+                  setRange({ startDate: null, endDate: null });
+                  setSelectedDate(null);
+                }}
+                leftLabel="Single"
+                rightLabel="Range"
+              />
+            </View>
+            <Calendar
+              onDayPress={handleDayPress}
+              markedDates={getMarkedDates()}
+              markingType={mode === "range" ? "period" : "simple"}
+              disableAllTouchEventsForDisabledDays={true}
+            />
+            <View style={{ flexDirection: "column", marginTop: 20, gap: 10 }}>
+              <Button
+                title="Done"
+                onPress={() => {
+                  fetchMetric(); // Fetch metrics based on selected date or range
+                  setCalendarModalVisible(false);
+                }}
+              />
+              <Button
+                title="Clear Dates"
+                onPress={() => {
+                  // Clear all date selections
+                  setSelectedDate(null);
+                  setRange({ startDate: null, endDate: null });
+
+                  // Fetch default metrics (current month)
+                  const now = new Date();
+                  const month = now.toLocaleString("default", {
+                    month: "long",
+                  });
+                  const year = now.getFullYear();
+                  fetch(month, year);
+
+                  setCalendarModalVisible(false);
+                }}
+                color={Colors.error}
+              />
+            </View>
           </View>
-        </Pressable>
-      </Modal>
-      {/* Month Picker Modal */}
-      <Modal
-        visible={monthModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMonthModalVisible(false)}
-      >
-        <Pressable
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.3)",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-          onPress={() => setMonthModalVisible(false)}
-        >
-          <View
-            style={{
-              backgroundColor: "#fff",
-              borderRadius: 16,
-              padding: 24,
-              minWidth: 220,
-              elevation: 10,
-            }}
-          >
-            <Text
-              style={{
-                fontWeight: "bold",
-                fontSize: 18,
-                marginBottom: 12,
-              }}
-            >
-              Select Month for {selectedYear}
-            </Text>
-            <ScrollView
-              style={{ maxHeight: 300 }}
-              nestedScrollEnabled
-              showsVerticalScrollIndicator={false}
-            >
-              {availableMonths.length > 0 ? (
-                availableMonths.map(({ name, idx }) => (
-                  <Pressable
-                    key={`month-${selectedYear}-${idx}`} // Changed to ensure uniqueness
-                    style={{
-                      padding: 10,
-                      backgroundColor:
-                        idx === selectedMonth ? Colors.primary : "transparent",
-                      borderRadius: 8,
-                      marginBottom: 4,
-                    }}
-                    onPress={() => handleMonthSelection(idx)}
-                  >
-                    <Text
-                      style={{
-                        color: idx === selectedMonth ? "#fff" : Colors.secondaryText,
-                        fontWeight: idx === selectedMonth ? "bold" : "normal",
-                        fontSize: 16,
-                      }}
-                    >
-                      {name}
-                    </Text>
-                  </Pressable>
-                ))
-              ) : (
-                <Text style={{ color: Colors.secondaryText, padding: 10 }}>
-                  No months available for {selectedYear}
-                </Text>
-              )}
-            </ScrollView>
-            <TouchableOpacity
-              style={{
-                marginTop: 10,
-                alignItems: "center",
-              }}
-              onPress={() => setMonthModalVisible(false)}
-            >
-              <Text style={{ color: Colors.primary, fontWeight: "bold" }}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </Pressable>
-      </Modal>
+        </View>
+      )}
     </GestureHandlerRootView>
   );
 };
@@ -672,129 +397,6 @@ const styles = StyleSheet.create({
     marginTop: 65,
     alignItems: "center",
   },
-  analyticsGrid: {
-    // Use column layout, each card 100% width, with spacing
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 12,
-    marginTop: 8,
-  },
-  analyticsCard: {
-    backgroundColor: Colors.primaryBackground,
-    borderRadius: 16,
-    paddingVertical: 22,
-    paddingHorizontal: 18,
-    alignItems: "flex-start",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    width: "100%",
-    marginBottom: 14,
-  },
-  analyticsIcon: {
-    marginBottom: 8,
-  },
-  analyticsLabel: {
-    fontSize: 13,
-    color: Colors.secondaryText,
-    marginTop: 4,
-    marginBottom: 2,
-    textAlign: "left",
-  },
-  analyticsValue: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: Colors.primary,
-    marginTop: 2,
-    textAlign: "left",
-    letterSpacing: 0.5,
-  },
-  analyticsDetail: {
-    fontSize: 12,
-    color: Colors.secondaryText,
-    marginTop: 4,
-    textAlign: "left",
-    opacity: 0.85,
-  },
-  chartContainer: {
-    marginTop: 30,
-    backgroundColor: Colors.primaryBackground,
-    borderRadius: 14,
-    padding: 18,
-    elevation: 4,
-    alignItems: "center",
-  },
-  chartTitle: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: Colors.primary,
-    marginBottom: 10,
-  },
-  lineChart: {
-    width: 240,
-    height: 120,
-    alignItems: "center",
-    justifyContent: "flex-end",
-    marginTop: 10,
-  },
-  lineChartLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: 240,
-    marginTop: 4,
-  },
-  barLabel: {
-    fontSize: 11,
-    color: Colors.secondaryText,
-    marginTop: 2,
-    width: 34,
-    textAlign: "center",
-  },
-  incomeDetails: {
-    marginTop: 18,
-    width: "100%",
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-    paddingTop: 10,
-  },
-  incomeDetailRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
-    paddingHorizontal: 6,
-  },
-  incomeDetailMonth: {
-    fontSize: 13,
-    color: Colors.secondaryText,
-  },
-  incomeDetailValue: {
-    fontSize: 13,
-    color: Colors.primary,
-    fontWeight: "bold",
-  },
-  badge: {
-    marginLeft: 6,
-    borderRadius: 8,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    alignItems: "center",
-    justifyContent: "center",
-    minWidth: 32,
-    minHeight: 20,
-  },
-  badgeText: {
-    color: "#fff",
-    fontSize: 11,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  percentChange: {
-    fontSize: 12,
-    marginLeft: 4,
-    color: "#888",
-  },
   monthContainer: {
     marginTop: 10,
     marginBottom: 10,
@@ -805,7 +407,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignItems: "center",
     justifyContent: "center",
-    flexDirection: "row",
+    flexDirection: "column",
+    width: "100%",
     gap: 5,
   },
   monthHeaderText: {
@@ -813,6 +416,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: Colors.primaryBackground,
     letterSpacing: 1,
+  },
+  updatedText: {
+    fontSize: 15,
+    fontWeight: "regular",
+    color: Colors.primaryBackground,
+  },
+  updatedContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 
