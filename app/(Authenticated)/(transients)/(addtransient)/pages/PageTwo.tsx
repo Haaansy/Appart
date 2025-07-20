@@ -120,7 +120,7 @@ const PageTwo: React.FC<PageProps> = ({
           />
           <Text style={{ fontSize: 24, fontWeight: "bold" }}>
             {" "}
-            Apartment Location{" "}
+            Transient Location{" "}
           </Text>
         </View>
       </TouchableOpacity>
