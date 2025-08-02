@@ -269,12 +269,12 @@ const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
             <AnalyticsCard
               title="Apartments"
               subtitle="total number of apartments posted in this platform."
-              value={latestMetric?.tenants as number}
+              value={latestMetric?.apartments as number}
             />
             <AnalyticsCard
               title="Transients"
               subtitle="total number of transient posted in this platform."
-              value={latestMetric?.tenants as number}
+              value={latestMetric?.transients as number}
             />
           </ScrollView>
         </ScrollView>
