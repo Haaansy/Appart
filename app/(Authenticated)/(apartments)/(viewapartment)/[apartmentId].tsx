@@ -10,7 +10,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert as RNAlert
+  Alert as RNAlert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { RelativePathString, router, useLocalSearchParams } from "expo-router";
@@ -148,7 +148,9 @@ const ViewApartment = () => {
       );
 
       if (existingConversation) {
-        router.push(`/(Authenticated)/(inbox)/(viewconversation)/${existingConversation.id}`);
+        router.push(
+          `/(Authenticated)/(inbox)/(viewconversation)/${existingConversation.id}`
+        );
         return;
       }
 
@@ -167,7 +169,9 @@ const ViewApartment = () => {
 
       const createdConversationId = await createConversation(conversationData);
       if (createdConversationId) {
-        router.push(`/(Authenticated)/(inbox)/(viewconversation)/${createdConversationId.id}`);
+        router.push(
+          `/(Authenticated)/(inbox)/(viewconversation)/${createdConversationId.id}`
+        );
       }
     } catch (error) {
       console.error("[ERROR] Failed to create or check conversation:", error);
@@ -206,61 +210,61 @@ const ViewApartment = () => {
   return (
     <View style={{ marginBottom: 5 }}>
       {/* ✅ Scrollable Image Gallery with Centered Indicator */}
-        <View style={{ height: height * 0.4, position: 'relative' }}>
-          <FlatList
-            data={apartment.images || []}
-            horizontal
-            keyExtractor={(_, index: number) => index.toString()}
-            showsHorizontalScrollIndicator={false}
-            pagingEnabled
-            onMomentumScrollEnd={handleScroll}
-            renderItem={({ item }) => (
-              <View style={{ width, height: height * 0.4 }}>
-          <TouchableWithoutFeedback onPress={() => handleImagePress(item)}>
-            <Image
-              source={{ uri: item }}
+      <View style={{ height: height * 0.4, position: "relative" }}>
+        <FlatList
+          data={apartment.images || []}
+          horizontal
+          keyExtractor={(_, index: number) => index.toString()}
+          showsHorizontalScrollIndicator={false}
+          pagingEnabled
+          onMomentumScrollEnd={handleScroll}
+          renderItem={({ item }) => (
+            <View style={{ width, height: height * 0.4 }}>
+              <TouchableWithoutFeedback onPress={() => handleImagePress(item)}>
+                <Image
+                  source={{ uri: item }}
+                  style={{
+                    width,
+                    height: height * 0.4,
+                    resizeMode: "cover",
+                  }}
+                />
+              </TouchableWithoutFeedback>
+            </View>
+          )}
+        />
+        {/* 🔹 Pagination Dots Fixed Position */}
+        <View
+          style={{
+            position: "absolute",
+            bottom: 50,
+            left: 0,
+            right: 0,
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+            paddingVertical: 5,
+            borderRadius: 10,
+            alignSelf: "center",
+            width: "30%",
+            marginHorizontal: "35%",
+          }}
+        >
+          {apartment.images?.map((_: any, index: number) => (
+            <View
+              key={index}
               style={{
-                width,
-                height: height * 0.4,
-                resizeMode: "cover",
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor:
+                  index === currentIndex ? Colors.primary : "white",
+                marginHorizontal: 5,
               }}
             />
-          </TouchableWithoutFeedback>
-              </View>
-            )}
-          />
-          {/* 🔹 Pagination Dots Fixed Position */}
-          <View
-            style={{
-              position: "absolute",
-              bottom: 50,
-              left: 0,
-              right: 0,
-              flexDirection: "row",
-              justifyContent: "center",
-              alignItems: "center",
-              paddingVertical: 5,
-              borderRadius: 10,
-              alignSelf: "center",
-              width: "30%",
-              marginHorizontal: "35%",
-            }}
-          >
-            {apartment.images?.map((_: any, index: number) => (
-              <View
-          key={index}
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: 4,
-            backgroundColor:
-              index === currentIndex ? Colors.primary : "white",
-            marginHorizontal: 5,
-          }}
-              />
-            ))}
-          </View>
+          ))}
         </View>
+      </View>
       <View style={styles.container}>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -332,12 +336,14 @@ const ViewApartment = () => {
                   marginLeft: 5,
                 }}
               >
-                { apartment.reviews && apartment.reviews.length > 0 ? (
-                  apartment.reviews.reduce((sum: any, review: any) => sum + review.rating, 0) / apartment.reviews.length
-                ).toFixed(1)
-                : (
-                  "No reviews"
-                ) }
+                {apartment.reviews && apartment.reviews.length > 0
+                  ? (
+                      apartment.reviews.reduce(
+                        (sum: any, review: any) => sum + review.rating,
+                        0
+                      ) / apartment.reviews.length
+                    ).toFixed(1)
+                  : "No reviews"}
               </Text>
               <Text
                 style={{
@@ -348,11 +354,9 @@ const ViewApartment = () => {
                   marginLeft: 2,
                 }}
               >
-                { apartment.reviews && apartment.reviews.length > 0 ? (
-                  `(${apartment.reviews.length})`
-                ): (
-                  ""
-                ) }
+                {apartment.reviews && apartment.reviews.length > 0
+                  ? `(${apartment.reviews.length})`
+                  : ""}
               </Text>
               <TouchableOpacity>
                 <Ionicons
@@ -421,11 +425,10 @@ const ViewApartment = () => {
                   flexDirection: "row",
                   marginLeft: 10,
                 }}
-
                 onPress={() => {
                   router.push(
                     `(Authenticated)/(profile)/(viewprofile)/${ownerData?.id}` as unknown as RelativePathString
-                  )
+                  );
                 }}
               >
                 <Text style={{ fontSize: 12, color: Colors.primary }}>
@@ -627,6 +630,19 @@ const ViewApartment = () => {
             <View>
               <Text style={styles.title}>Actions</Text>
               <View>
+                {apartment.status === "Available" && (
+                  <IconButton
+                    onPress={() => {
+                      router.push(
+                        `/(Authenticated)/(bookings)/(manualbooking)/${apartmentId}` as unknown as RelativePathString
+                      );
+                    }}
+                    icon={"walk"}
+                    text={"Walk-ins"}
+                    iconColor={Colors.success}
+                    style={{ marginBottom: 10 }}
+                  />
+                )}
                 <IconButton
                   onPress={() => {
                     router.push(

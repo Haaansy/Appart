@@ -560,6 +560,9 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
           onConfirm={handleEviction}
           tenant={booking.tenants}
           onClose={() => setTenantEvictionModalVisible(false)}
+          bookingId={booking.id}
+          apartmentId={apartment.id}
+          currentUserId={currentUserData.id}
         />
 
         <ReasonPopup

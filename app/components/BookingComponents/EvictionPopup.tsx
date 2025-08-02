@@ -7,24 +7,22 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
+  Alert as ReactNativeAlert,
 } from "react-native";
-import CustomInputWithButton from "../CustomInputButton";
-import TenantCard from "./TenantCard";
-import {
-  fetchTenantByDisplayName,
-  updateBooking,
-} from "@/app/Firebase/Services/DatabaseService";
-import { useFocusEffect } from "expo-router";
+import Alert from "@/app/types/Alert"
+import useSendAlerts from "@/app/hooks/alerts/useSendAlerts";
 import EvictionCard from "./EvictionCard";
-import Booking from "@/app/types/Booking";
 import { Ionicons } from "@expo/vector-icons";
+import { Timestamp } from "firebase/firestore";
 
 interface PopupProps {
   visible: boolean;
   onConfirm: (tenant: Tenant[]) => void; // Pass selected value
   tenant: Tenant[];
   onClose: () => void;
+  bookingId?: string;
+  apartmentId?: string;
+  currentUserId?: string;
 }
 
 const EvictionPopup: React.FC<PopupProps> = ({
@@ -32,9 +30,13 @@ const EvictionPopup: React.FC<PopupProps> = ({
   onConfirm,
   tenant,
   onClose,
+  bookingId,
+  apartmentId,
+  currentUserId,
 }) => {
   const [tenants, setTenants] = React.useState<Tenant[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
+  const { sendAlerts, loading: alertLoading } = useSendAlerts();
 
   useEffect(() => {
     setTenants([...tenant]);
@@ -42,7 +44,7 @@ const EvictionPopup: React.FC<PopupProps> = ({
   }, [tenant]);
 
   const handleDelete = (tenant: Tenant) => {
-    Alert.alert(
+    ReactNativeAlert.alert(
       "Confirm Eviction",
       "Are you sure you want to evict this tenant?",
       [
@@ -65,16 +67,19 @@ const EvictionPopup: React.FC<PopupProps> = ({
             // If the evicted tenant is the Host, transfer the status
             if (tenant.status === "Host" && updatedTenants.length > 1) {
               let nextIndex = tenantIndex === 0 ? 1 : 0; // Start with the next available tenant
-              
+
               // Find the next tenant who is not evicted
-              while (nextIndex < updatedTenants.length && updatedTenants[nextIndex].status === "Evicted") {
+              while (
+                nextIndex < updatedTenants.length &&
+                updatedTenants[nextIndex].status === "Evicted"
+              ) {
                 nextIndex++;
               }
-            
+
               if (nextIndex < updatedTenants.length) {
                 updatedTenants[nextIndex].status = "Host"; // Assign Host role to the first non-evicted tenant
               }
-            }            
+            }
 
             // Remove the tenant from the list
             // Change tenant status to "Evicted" instead of removing them
@@ -82,9 +87,22 @@ const EvictionPopup: React.FC<PopupProps> = ({
               ...updatedTenants[tenantIndex],
               status: "Evicted",
             };
-            
+
             setTenants(updatedTenants);
             onConfirm(updatedTenants);
+
+            const alertData: Alert = {
+              message: "You have been evicted from the apartment.",
+              type: "Booking",
+              bookingType: "Apartment",
+              bookingId: String(bookingId),
+              propertyId: String(apartmentId),
+              isRead: false,
+              senderId: String(currentUserId),
+              createdAt: Timestamp.now(),
+            };
+
+            sendAlerts([tenant], alertData);
           },
         },
       ]

@@ -214,7 +214,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ currentUserData }) => {
               fontWeight: "bold",
             }}
           >
-            Forecasted Income
+            Daily Forecasted Income
           </Text>
           <Text
             style={{
