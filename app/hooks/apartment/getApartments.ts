@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { collection, query, where, getDocs, orderBy, limit, startAfter } from "firebase/firestore";
-import { db } from "@/app/Firebase/FirebaseConfig";
+import { db, functions} from "@/app/Firebase/FirebaseConfig";
 import Apartment from "../../types/Apartment";
+import { httpsCallable } from "firebase/functions";
 
 /**
  * Calculates distance between two coordinates using the Haversine formula
@@ -61,7 +62,6 @@ export const getApartments = (
         setError(null);
 
         try {
-            console.log(`Fetching apartments for role: ${role}, userId: ${userId}`);
             const apartmentsRef = collection(db, "apartments");
             let apartmentsQuery =
                 role === "home owner"

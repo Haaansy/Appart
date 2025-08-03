@@ -51,7 +51,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
     leaseDuration: 0,
     tenants: [], // Ensure it's an array initially
     viewingDate: Timestamp.fromMillis(Date.now()),
-    owner: apartment.ownerId as string
+    owner: apartment.ownerId as string,
   });
 
   useEffect(() => {
@@ -111,17 +111,17 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
     // Check if the selected date is within 14 days from today
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Reset hours to compare dates only
-    
+
     const maximumDate = new Date(today);
     maximumDate.setDate(today.getDate() + 14); // Add 14 days to today
-    
+
     const selectedDateObj = new Date(date);
     selectedDateObj.setHours(0, 0, 0, 0); // Reset hours to compare dates only
 
     if (selectedDateObj > maximumDate) {
       ReactAlert.alert(
-      "Invalid Date", 
-      "Start date must be within 14 days from today."
+        "Invalid Date",
+        "Start date must be within 14 days from today."
       );
       return;
     }
@@ -133,21 +133,28 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
     endDate.setMonth(endDate.getMonth() + leaseDuration);
 
     // Flatten all booked dates from the apartment
-    const apartmentBookedDates = apartment.bookedDates.map(bd => bd.bookedDates as Timestamp[]).flat();
-    
+    const apartmentBookedDates = apartment.bookedDates
+      .map((bd) => bd.bookedDates as Timestamp[])
+      .flat();
+
     // Check if any date in the selected range is already booked
     let currentCheckDate = new Date(startDate);
     while (currentCheckDate <= endDate) {
       const checkTimestamp = Timestamp.fromDate(new Date(currentCheckDate));
-      const isBooked = apartmentBookedDates.some(bookedDate => 
-        checkTimestamp.toDate().setHours(0,0,0,0) === bookedDate.toDate().setHours(0,0,0,0)
+      const isBooked = apartmentBookedDates.some(
+        (bookedDate) =>
+          checkTimestamp.toDate().setHours(0, 0, 0, 0) ===
+          bookedDate.toDate().setHours(0, 0, 0, 0)
       );
-      
+
       if (isBooked) {
-        ReactAlert.alert("Booking Conflict", "Some dates in your selected range are already booked. Please select a different date range.");
+        ReactAlert.alert(
+          "Booking Conflict",
+          "Some dates in your selected range are already booked. Please select a different date range."
+        );
         return;
       }
-      
+
       currentCheckDate.setDate(currentCheckDate.getDate() + 1);
     }
 
@@ -178,33 +185,33 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
   };
 
   const handleSelectViewingDate = (date: number) => {
-  const selectedDate = Timestamp.fromMillis(date);
-  const currentDate = Timestamp.now(); // Get current timestamp
-  const startDate = bookingData?.bookedDate[0] || null; // Ensure start date exists
+    const selectedDate = Timestamp.fromMillis(date);
+    const currentDate = Timestamp.now(); // Get current timestamp
+    const startDate = bookingData?.bookedDate[0] || null; // Ensure start date exists
 
-  // Check if the date is in the past
-  if (selectedDate.toMillis() < currentDate.toMillis()) {
-    ReactAlert.alert("Invalid Date", "Viewing date cannot be in the past.");
-    return;
-  }
+    // Check if the date is in the past
+    if (selectedDate.toMillis() < currentDate.toMillis()) {
+      ReactAlert.alert("Invalid Date", "Viewing date cannot be in the past.");
+      return;
+    }
 
-  // Check if the date is beyond the start date
-  if (startDate && selectedDate.toMillis() > startDate.toMillis()) {
-    ReactAlert.alert("Invalid Date", "Viewing date must be before or on the start date.");
-    return;
-  }
+    // Check if the date is beyond the start date
+    if (startDate && selectedDate.toMillis() > startDate.toMillis()) {
+      ReactAlert.alert(
+        "Invalid Date",
+        "Viewing date must be before or on the start date."
+      );
+      return;
+    }
 
+    // Update state if valid
+    setBookingData((prevData) => ({
+      ...prevData,
+      viewingDate: selectedDate,
+    }));
 
-
-  // Update state if valid
-  setBookingData((prevData) => ({
-    ...prevData,
-    viewingDate: selectedDate,
-  }));
-
-  setViewingDateModalVisible(false); // Close the popup
-};
-
+    setViewingDateModalVisible(false); // Close the popup
+  };
 
   const handleBookApartment = async () => {
     try {
@@ -333,7 +340,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
           </View>
         )}
         {bookingData.bookedDate.length > 0 && (
-          <View style={{ flexDirection: "row", alignItems: "center"}}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
             <DateCard date={bookingData.bookedDate[0]} />
             <Ionicons
               name="chevron-forward"
@@ -349,9 +356,13 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
         <DateSelectPopup
           visible={leaseDateModalVisible}
           onSelect={handleSelectStartDate}
-          viewingDates={apartment.viewingDates.map((bd) => bd.viewingDate as Timestamp)}
+          viewingDates={apartment.viewingDates.map(
+            (bd) => bd.viewingDate as Timestamp
+          )}
           onClose={() => setLeaseDateModalVisible(false)}
-          bookedDates={apartment.bookedDates.map((bd) => bd.bookedDates as Timestamp[]).flat()}
+          bookedDates={apartment.bookedDates
+            .map((bd) => bd.bookedDates as Timestamp[])
+            .flat()}
           title="Select Lease Date"
           subtitle="Select the start date of the lease"
         />
@@ -374,9 +385,13 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment }) => {
         <DateSelectPopup
           visible={viewingDateModalVisible}
           onSelect={handleSelectViewingDate}
-          viewingDates={apartment.viewingDates.map((bd) => bd.viewingDate as Timestamp)}
+          viewingDates={apartment.viewingDates.map(
+            (bd) => bd.viewingDate as Timestamp
+          )}
           onClose={() => setViewingDateModalVisible(false)}
-          bookedDates={apartment.bookedDates.map((bd) => bd.bookedDates as Timestamp[]).flat()}
+          bookedDates={apartment.bookedDates
+            .map((bd) => bd.bookedDates as Timestamp[])
+            .flat()}
           title="Select Viewing Date"
           subtitle="Select the viewing appointment date"
           yourbookedDates={bookingData.bookedDate}

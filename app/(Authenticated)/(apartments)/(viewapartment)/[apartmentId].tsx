@@ -633,9 +633,9 @@ const ViewApartment = () => {
                 {apartment.status === "Available" && (
                   <IconButton
                     onPress={() => {
-                      router.push(
-                        `/(Authenticated)/(bookings)/(manualbooking)/${apartmentId}` as unknown as RelativePathString
-                      );
+                        router.push(
+                        `/(Authenticated)/(bookings)/(manualbooking)/${apartmentId}?type=apartment` as unknown as RelativePathString
+                        );
                     }}
                     icon={"walk"}
                     text={"Walk-ins"}

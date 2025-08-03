@@ -7,6 +7,7 @@ import {
 } from "firebase/auth";
 import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
 import { connectStorageEmulator, getStorage } from "firebase/storage";
+import { getFunctions } from "firebase/functions";
 
 // 🔥 Firebase Configuration
 const firebaseConfig = {
@@ -29,6 +30,7 @@ const auth = initializeAuth(app, {
 
 const db = getFirestore(app);
 const storage = getStorage(app);
+const functions = getFunctions(app);
 
 // 🔥 Connect to Emulator in Development
 // const localhost = "172.20.10.2";
@@ -42,4 +44,4 @@ const storage = getStorage(app);
 
 // 🔹 Export Firebase Services
 
-export { app, auth, db, storage, firebaseConfig }; 
+export { app, auth, db, storage, firebaseConfig, functions}; 

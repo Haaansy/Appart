@@ -1,15 +1,30 @@
 import { ImageBackground, StyleSheet, Text, View, Image } from "react-native";
 import React from "react";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import Colors from "@/assets/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
 import CustomSwitch from "@/app/components/CustomSwitch";
 import ExistingAccountForm from "./ExistingAccountForm";
 import NoAccountForm from "./NoAccountForm";
+import { useTransient } from "@/app/hooks/transient/useTransient";
+import { useApartment } from "@/app/hooks/apartment/useApartment";
 
 const ManualBooking = () => {
+  const Router = useRouter();
   const { propertyId } = useLocalSearchParams();
+  const { type } = useLocalSearchParams();
   const [selectedTab, setSelectedTab] = React.useState("existing");
+
+  const {
+    apartment,
+    loading: apartmentLoading,
+    error: apartmentError,
+  } = useApartment(type === "apartment" ? (propertyId as string) : "");
+  const {
+    transient,
+    loading: transientLoading,
+    error: transientError,
+  } = useTransient(type === "transient" ? (propertyId as string) : "");
 
   return (
     <>
@@ -31,6 +46,10 @@ const ManualBooking = () => {
             name="chevron-back"
             size={40}
             color={Colors.primaryBackground}
+            onPress={() => {
+              // Handle back navigation
+              Router.back();
+            }}
           />
           <Text
             style={{
@@ -56,13 +75,14 @@ const ManualBooking = () => {
           />
           {selectedTab === "existing" ? (
             <View style={styles.forms}>
-              <ExistingAccountForm />
+              <ExistingAccountForm
+                type={type as string}
+                property={type === "apartment" ? apartment : transient}
+              />
             </View>
           ) : (
-            <View
-              style={styles.forms}
-            >
-              <NoAccountForm />
+            <View style={styles.forms}>
+              <NoAccountForm apartment={apartment} />
             </View>
           )}
         </View>

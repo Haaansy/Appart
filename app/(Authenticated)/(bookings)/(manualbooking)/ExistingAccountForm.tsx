@@ -1,13 +1,18 @@
 import { View, Text, TouchableOpacity } from "react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import CustomInputWithButton from "@/app/components/CustomInputButton";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
 import UserData from "@/app/types/UserData";
 import { fetchTenantByDisplayName } from "@/app/Firebase/Services/DatabaseService";
-import CustomButton from "@/app/components/CustomButton";
 import { Ionicons } from "@expo/vector-icons";
+import ApartmentComponent from "./components/ApartmentComponent";
 
-const ExistingAccountForm = () => {
+interface ExistingAccountFormProps {
+  type: string;
+  property: any;
+}
+
+const ExistingAccountForm = ({ type, property }: ExistingAccountFormProps) => {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [accounts, setAccounts] = React.useState<UserData[] | []>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
@@ -28,17 +33,8 @@ const ExistingAccountForm = () => {
     }
   };
 
-  const handleConfirm = () => {
-    if (accounts.length === 0) {
-      setError("Please select at least one account");
-      return;
-    }
-
-    // Handle confirmation logic here
-  }
-
   return (
-    <View>
+    <ScrollView showsVerticalScrollIndicator={false}>
       <CustomInputWithButton
         onButtonPress={handleSearch}
         iconName="search"
@@ -51,9 +47,17 @@ const ExistingAccountForm = () => {
       />
       <FlatList
         data={accounts as []}
+        scrollEnabled={false}
         renderItem={({ item }: { item: UserData }) => (
           <View
-            style={{ padding: 10, borderBottomWidth: 1, borderColor: "#ccc", flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}
+            style={{
+              padding: 10,
+              borderBottomWidth: 1,
+              borderColor: "#ccc",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
           >
             <Text>{item.displayName}</Text>
             <TouchableOpacity
@@ -70,17 +74,20 @@ const ExistingAccountForm = () => {
       />
 
       {error && (
-        <Text style={{ color: "red", margin: 10, alignSelf: "center" }}>{error}</Text>
+        <Text style={{ color: "red", margin: 10, alignSelf: "center" }}>
+          {error}
+        </Text>
       )}
 
-      <CustomButton
-        title="Confirm"
-        onPress={() => {
-          // Handle account selection
-        }}
-        disabled={accounts.length === 0}
-      />
-    </View>
+      {accounts.length > 0 && (
+        <View style={{ marginTop: 20, paddingBottom: 350 }}>
+          <ApartmentComponent
+            apartment={property}
+            tenantId={accounts[0].id as string}
+          />
+        </View>
+      )}
+    </ScrollView>
   );
 };
 
