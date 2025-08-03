@@ -163,6 +163,9 @@ const RegisterScreen = () => {
           phoneNumber: "",
           isAdmin: false,
           reviews: [],
+          verified: false,
+          isVerifying: false,
+          businessPermitURL: "",
         };
 
         // ✅ Save user data to Firestore

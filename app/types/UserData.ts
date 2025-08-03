@@ -24,4 +24,8 @@ export default interface UserData {
     phoneNumber: string;
     isAdmin: boolean;
     reviews: Review[];
+    verified?: boolean;
+    isVerifying?: boolean;
+    businessPermitURL?: string;
+
 }

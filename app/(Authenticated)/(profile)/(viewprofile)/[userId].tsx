@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Linking,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
@@ -19,6 +20,8 @@ import {
 import Review from "@/app/types/Review";
 import UserData from "@/app/types/UserData";
 import ReviewCard from "@/app/components/ProfileComponents/ReviewCard";
+import CustomButton from "@/app/components/CustomButton";
+import { Ionicons } from "@expo/vector-icons";
 
 const index = () => {
   const { userId } = useLocalSearchParams();
@@ -84,10 +87,26 @@ const index = () => {
           <View style={styles.avatarContainer}>
             <Image source={{ uri: userData?.photoUrl }} style={styles.avatar} />
           </View>
-          <Text style={styles.name}>
-            {`${userData?.firstName} ${userData?.lastName}` ||
-              "First Name, Last Name"}
-          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Text style={styles.name}>
+              {`${userData?.firstName} ${userData?.lastName}` ||
+                "First Name, Last Name"}
+            </Text>
+            {userData?.verified && (
+              <Ionicons
+                name="checkmark-circle-outline"
+                color={Colors.primary}
+                size={24}
+                style={{ marginLeft: 6 }}
+              />
+            )}
+          </View>
           <Text style={styles.username}>
             {`@${userData?.displayName}` || "User"}
           </Text>
@@ -123,17 +142,31 @@ const index = () => {
                       ).toFixed(1)
                     : 0
                   : reviews && reviews.length > 0
-                  ? (
-                      reviews.reduce(
-                        (acc: number, curr: any) => acc + curr.rating,
-                        0
-                      ) / reviews.length
-                    ).toFixed(1)
-                  : 0}
+                    ? (
+                        reviews.reduce(
+                          (acc: number, curr: any) => acc + curr.rating,
+                          0
+                        ) / reviews.length
+                      ).toFixed(1)
+                    : 0}
               </Text>
               <Text>Rating</Text>
             </View>
           </View>
+
+          {userData?.role === "home owner" && userData?.verified === true && (
+            <CustomButton
+              title={"View Proof of Legitimacy"}
+              onPress={() => {
+                if (userData.businessPermitURL) {
+                  Linking.openURL(userData.businessPermitURL);
+                } else {
+                  Alert.alert("No Proof", "No business permit uploaded.");
+                }
+              }}
+              style={styles.buttonsContainer}
+            />
+          )}
 
           {userData?.role === "tenant" && (
             <FlatList
@@ -233,7 +266,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   name: {
-    marginTop: 15,
     fontSize: 20,
     fontWeight: "bold",
   },
@@ -262,8 +294,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
     flexDirection: "row",
     justifyContent: "center",
-    width: "100%",
+    width: "80%",
     marginHorizontal: 25,
+    backgroundColor: Colors.primary,
   },
   manageButton: {
     backgroundColor: Colors.primary,

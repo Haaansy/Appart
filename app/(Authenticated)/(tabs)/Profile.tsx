@@ -9,6 +9,7 @@ import {
   Platform,
   StatusBar,
   Dimensions,
+  Linking,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import CustomButton from "@/app/components/CustomButton";
@@ -69,7 +70,15 @@ const Profile: React.FC<ProfileProps> = ({ currentUserData }) => {
     <>
       <View style={[styles.container]}>
         {isLoading ? (
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignContent: "center",
+            }}
+          >
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
         ) : (
           <>
             <Image
@@ -102,10 +111,27 @@ const Profile: React.FC<ProfileProps> = ({ currentUserData }) => {
                 style={styles.avatar}
               />
             </View>
-            <Text style={styles.name}>
-              {`${currentUserData?.firstName} ${currentUserData?.lastName}` ||
-                "First Name, Last Name"}
-            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text style={styles.name}>
+                {`${currentUserData?.firstName} ${currentUserData?.lastName}` ||
+                  "First Name, Last Name"}
+              </Text>
+              {currentUserData.verified && (
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  color={Colors.primary}
+                  size={24}
+                  style={{ marginLeft: 6 }}
+                />
+              )}
+            </View>
+
             <Text style={styles.username}>
               {`@${currentUserData?.displayName}` || "User"}
             </Text>
@@ -131,22 +157,25 @@ const Profile: React.FC<ProfileProps> = ({ currentUserData }) => {
               )}
               <View style={styles.infoItem}>
                 <Text style={{ fontSize: 20, fontWeight: "bold" }}>
-                  {currentUserData.role === "tenant" && currentUserData?.reviews && currentUserData?.reviews.length > 0 
+                  {currentUserData.role === "tenant" &&
+                  currentUserData?.reviews &&
+                  currentUserData?.reviews.length > 0
                     ? (
                         currentUserData?.reviews.reduce(
                           (acc: number, curr: any) => acc + curr.rating,
                           0
                         ) / currentUserData?.reviews.length
-                      ).toFixed(1) 
-                    : currentUserData.role === "home owner" && reviews && reviews.length > 0
+                      ).toFixed(1)
+                    : currentUserData.role === "home owner" &&
+                        reviews &&
+                        reviews.length > 0
                       ? (
                           reviews.reduce(
                             (acc: number, curr: any) => acc + curr.rating,
                             0
                           ) / reviews.length
                         ).toFixed(1)
-                      : "0.0"
-                  }
+                      : "0.0"}
                 </Text>
                 <Text>Rating</Text>
               </View>
@@ -163,6 +192,41 @@ const Profile: React.FC<ProfileProps> = ({ currentUserData }) => {
                 }
                 style={[styles.manageButton, { flex: 1 }]}
               />
+              {currentUserData.verified ? (
+                <CustomButton
+                  title="View Proof of Legitimacy"
+                  onPress={() => {
+                    if (currentUserData.businessPermitURL) {
+                      Linking.openURL(currentUserData.businessPermitURL);
+                    } else {
+                      Alert.alert("No Proof", "No business permit uploaded.");
+                    }
+                  }}
+                  style={[styles.proofButton, { flex: 1 }]}
+                  textstyle={{ fontSize: 12, textAlign: "center" }}
+                />
+              ) : currentUserData.isVerifying ? (
+                <CustomButton
+                  title="Applied"
+                  onPress={() =>
+                    Alert.alert(
+                      "Wait for application",
+                      "Please patiently wait for the approval of your application. This process may take 1-2 days atmost. Thank you."
+                    )
+                  }
+                  style={[styles.proofButton, { flex: 1 }]}
+                  textstyle={{ fontSize: 16, textAlign: "center" }}
+                />
+              ) : (
+                <CustomButton
+                  title="Apply for Verification"
+                  onPress={() =>
+                    router.replace("/(Authenticated)/(profile)/(verification)")
+                  }
+                  style={[styles.proofButton, { flex: 1 }]}
+                  textstyle={{ fontSize: 12, textAlign: "center" }}
+                />
+              )}
             </View>
             {currentUserData.role === "tenant" && (
               <FlatList
@@ -263,7 +327,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   name: {
-    marginTop: 15,
     fontSize: 20,
     fontWeight: "bold",
   },
@@ -298,8 +361,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     marginHorizontal: 5,
   },
-  shareButton: {
-    backgroundColor: Colors.secondaryText,
+  proofButton: {
+    backgroundColor: Colors.success,
     marginHorizontal: 5,
   },
 });

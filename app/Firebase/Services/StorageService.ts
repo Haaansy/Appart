@@ -115,4 +115,24 @@ export const uploadCover = async (uri: string): Promise<string | null> => {
     }
   };
 
+  export const uploadBusinessPermit = async (uri: string): Promise<string | null> => {
+    try {
+      const user = getAuth().currentUser;
+      if (!user) throw new Error("User not authenticated");
+
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      const storageRef = ref(storage, `permits/${user.uid}_permit.pdf`);
+      await uploadBytes(storageRef, blob);
+
+      const downloadURL = await getDownloadURL(storageRef);
+      // Optionally update user data or Firestore here if needed
+      return downloadURL;
+    } catch (error) {
+      console.error("Error uploading business permit:", error);
+      return null;
+    }
+  };
+
 
