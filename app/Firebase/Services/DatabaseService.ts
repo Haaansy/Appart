@@ -238,7 +238,7 @@ export const updateApartment = async (apartmentId: string, apartmentData: Partia
     await updateDoc(apartmentRef, updatedApartmentData);
     console.log("Apartment updated successfully");
   } catch (error) {
-    console.error("Error updating apartment:", error);
+    console.log("Error updating apartment:", error);
   }
 };
 

@@ -10,7 +10,7 @@ const useBooking = (bookingId: string) => {
   const [propertyData, setPropertyData] = useState<Apartment | Transient | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   useEffect(() => {
     const fetchBooking = async () => {
       if (!bookingId) return;
@@ -25,15 +25,36 @@ const useBooking = (bookingId: string) => {
 
           let propertyRef;
           if (booking.type === "Apartment") {
+            // Try apartments collection first
             propertyRef = doc(db, "apartments", booking.propertyId);
+            const apartmentSnap = await getDoc(propertyRef);
+
+            if (!apartmentSnap.exists()) {
+              // If not found, try archives collection
+              propertyRef = doc(db, "archives", booking.propertyId);
+            }
+            
           } else if (booking.type === "Transient") {
             propertyRef = doc(db, "transients", booking.propertyId);
           }
 
-          if (propertyRef) {
-            const propertySnap = await getDoc(propertyRef);
-            if (propertySnap.exists()) {
-              setPropertyData(propertySnap.data() as Apartment | Transient);
+          if (booking.type === "Apartment") {
+            if (propertyRef) {
+              const propertySnap = await getDoc(propertyRef);
+              if (propertySnap.exists()) {
+                const data = propertySnap.data();
+                setPropertyData(data as Apartment);
+              }
+            }
+          } else if (booking.type === "Transient") {
+            if (propertyRef) {
+              const propertySnap = await getDoc(propertyRef);
+
+              if (propertySnap.exists()) {
+                const data = propertySnap.data()
+
+                setPropertyData(data as Transient)
+              }
             }
           }
         }

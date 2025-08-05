@@ -1,10 +1,4 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Image,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, Image } from "react-native";
 import React, { useEffect, useState } from "react";
 import Apartment from "@/app/types/Apartment";
 import PropertyCard from "@/app/components/BookingComponents/PropertyCard";
@@ -33,6 +27,8 @@ import { checkExistingConversationWithTenants } from "@/app/hooks/inbox/useCheck
 import useBatchDeclineBooking from "@/app/hooks/bookings/useBatchDeclineBooking";
 import ReasonPopup from "@/app/components/BookingComponents/ReasonPopup";
 import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
+import ArchiveDocument from "@/app/hooks/archives/ArchiveDocument";
+import SetRestore from "@/app/hooks/archives/SetRestore";
 
 interface ApartmentProps {
   apartment: Apartment;
@@ -144,6 +140,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
   const handleBookingApproval = async () => {
     try {
       setLoading(true);
+
       await updateBooking(String(booking.id), {
         ...booking,
         status: "Booking Confirmed",
@@ -173,6 +170,12 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
       };
 
       await sendAlerts(booking.tenants, alertData);
+
+      await ArchiveDocument(
+        "apartments",
+        bookingData.propertyId as string,
+        "unavailable"
+      );
       setLoading(true);
       router.replace(`/(Authenticated)/(tabs)/Bookings`);
     } catch (error) {
@@ -251,7 +254,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userData = await getCurrentUserData() as UserData;
+        const userData = (await getCurrentUserData()) as UserData;
         setCurrentUserData(userData);
         setBookingData(booking);
         setLoading(false);
@@ -282,6 +285,8 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
   }
 
   const handleEviction = async (tenants: Tenant[]) => {
+    await SetRestore(bookingData.propertyId as string);
+
     setBookingData((prevData) => ({
       ...prevData,
       tenants: tenants,
@@ -290,6 +295,7 @@ const ApartmentScreen: React.FC<ApartmentProps> = ({ apartment, booking }) => {
     await updateBooking(String(booking.id), {
       ...booking,
       tenants: tenants,
+      status: "Booking Completed",
     });
 
     setTenantEvictionModalVisible(false);

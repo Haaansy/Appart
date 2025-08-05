@@ -17,7 +17,7 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking }) => {
     loading: apartmentLoading,
     error: apartmentError,
   } = booking.type === "Apartment"
-    ? useApartment(booking.propertyId)
+    ? useApartment(booking.propertyId, booking.status)
     : { apartment: null, loading: false, error: null };
 
   const {
