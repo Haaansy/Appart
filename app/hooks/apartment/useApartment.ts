@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { db } from "../../Firebase/FirebaseConfig";
 import Apartment from "@/app/types/Apartment";
 
-export const useApartment = (apartmentId: string, bookingStatus: string) => {
+export const useApartment = (apartmentId: string) => {
     const [apartment, setApartment] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

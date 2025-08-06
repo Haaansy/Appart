@@ -184,12 +184,11 @@ const Profile: React.FC<ProfileProps> = ({ currentUserData }) => {
               style={[styles.buttonsContainer, { width: screenWidth * 0.9 }]}
             >
               <CustomButton
-                title="Edit Profile"
-                onPress={() =>
-                  router.replace(
-                    "/(Authenticated)/(profile)/(profilesettings)/Personal"
-                  )
-                }
+                title="Archives"
+                onPress={() => {
+                  console.log("Archives button pressed");
+                  router.push("/(Authenticated)/(archives)");
+                }}
                 style={[styles.manageButton, { flex: 1 }]}
               />
               {currentUserData.verified ? (

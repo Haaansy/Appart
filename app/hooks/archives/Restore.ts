@@ -15,6 +15,7 @@ const Restore = async (destinationCollectionName: string, documentId: string) =>
 
     const archiveData = {
       ...data,
+      status: "Available", 
     };
 
     await setDoc(doc(db, destinationCollectionName, documentId), archiveData);

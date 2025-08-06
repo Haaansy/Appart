@@ -33,6 +33,7 @@ import { TouchableWithoutFeedback } from "react-native-gesture-handler";
 import getCurrentUserData from "@/app/hooks/users/getCurrentUserData";
 import AlertType from "@/app/types/Alert";
 import { serverTimestamp } from "firebase/firestore";
+import ArchiveDocument from "@/app/hooks/archives/ArchiveDocument";
 
 const { width, height } = Dimensions.get("window");
 
@@ -113,7 +114,7 @@ const ViewApartment = () => {
           text: "Delete",
           onPress: async () => {
             try {
-              await deleteApartment(apartmentId);
+              await ArchiveDocument("apartments", apartmentId, "deleted");
               router.push("/(Authenticated)/(tabs)/Home");
             } catch (error) {
               console.error("Failed to delete apartment:", error);
